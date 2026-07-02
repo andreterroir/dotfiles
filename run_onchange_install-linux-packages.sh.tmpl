@@ -1,0 +1,32 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -e
+
+sudo dnf install -y \
+	ShellCheck \
+	bash-completion \
+	fd-find \
+	fish \
+	fzf \
+	gh \
+	git-lfs \
+	gnupg2 \
+	golang \
+	hugo \
+	jetbrains-mono-fonts \
+	jq \
+	neovim \
+	nodejs \
+	npm \
+	pass \
+	pass-otp \
+	ripgrep \
+	tree \
+	tree-sitter-cli \
+	tmux \
+	wget2-wget \
+	wl-clipboard \
+	zig
+
+{{ end }}

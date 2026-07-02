@@ -1,0 +1,84 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+if ! command -v brew > /dev/null; then
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+brew bundle --file=/dev/stdin <<EOF
+
+tap 'cormacrelf/tap'
+
+brew 'ascii'
+brew 'bash'
+brew 'bash-completion'
+brew 'coreutils'
+brew 'cormacrelf/tap/dark-notify'
+brew 'delve'
+brew 'exercism'
+brew 'fd'
+brew 'fzf'
+brew 'gh'
+brew 'git'
+brew 'git-gui'
+brew 'git-lfs'
+brew 'gnu-sed'
+brew 'gnupg'
+brew 'go'
+brew 'golangci-lint'
+brew 'hugo'
+brew 'jq'
+brew 'litecli'
+brew 'mas'
+brew 'neovim'
+brew 'node'
+brew 'npm'
+brew 'openjdk'
+brew 'pass'
+brew 'pass-otp'
+brew 'pinentry-mac'
+brew 'ripgrep'
+brew 'shellcheck'
+brew 'staticcheck'
+brew 'tlrc'
+brew 'tmux'
+brew 'topgrade'
+brew 'tpm'
+brew 'tree'
+brew 'tree-sitter'
+brew 'uv'
+brew 'watchexec'
+brew 'wget'
+
+cask 'appcleaner'
+cask 'font-jetbrains-mono'
+cask 'ghostty'
+cask 'logi-options+'
+cask 'meld'
+cask 'netnewswire'
+cask 'obsidian'
+cask 'rectangle'
+cask 'signal'
+cask 'spotify'
+cask 'sublime-text'
+cask 'vlc'
+cask 'zotero'
+
+mas 'DaisyDisk', id: 411643860
+mas 'DuckDuckGo', id: 663592361
+mas 'Telegram', id: 747648890
+mas 'WhatsApp', id: 310633997
+
+EOF
+
+# ensure Homebrew fish is the login shell
+homebrew_fish={{ lookPath "fish" }}
+if ! grep --quiet "$homebrew_fish" /etc/shells; then
+	echo "$homebrew_fish" | sudo tee -a /etc/shells
+fi
+chsh -s "$homebrew_fish"
+
+{{ end }}

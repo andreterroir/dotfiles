@@ -1,0 +1,12 @@
+{{ if .work.laptop -}}
+Include {{ .chezmoi.homeDir }}/.ssh/local_config
+{{ end -}}
+{{- if eq .chezmoi.os "darwin" }}
+Include {{ .chezmoi.homeDir }}/.colima/ssh_config
+{{ end -}}
+Host *
+	AddKeysToAgent yes
+	{{- if eq .chezmoi.os "darwin" }}
+	UseKeychain yes
+	{{- end }}
+	HashKnownHosts no

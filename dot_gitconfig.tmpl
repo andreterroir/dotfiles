@@ -1,0 +1,41 @@
+[user]
+	name = André Terroir
+	email = andre@terroir.systems
+	signingkey = ~/.ssh/id_ed25519.pub
+[commit]
+	gpgsign = true
+	verbose = true
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	allowedSignersFile = {{ .chezmoi.homeDir }}/.allowed_signers
+[core]
+	excludesfile = ~/.gitignore
+[init]
+        defaultBranch = main
+[pull]
+	ff = only
+[push]
+        autoSetupRemote = true
+[mergetool "nvim"]
+	cmd = nvim -c "Gvdiffsplit!" "$MERGED"
+	prompt = false
+	keepBackup = false
+[merge]
+	tool = nvim
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[alias]
+	continue = "!f() { git commit --edit --file=$(git rev-parse --git-dir)/COMMIT_EDITMSG; }; f"
+	df = "diff --color-words"
+[credential "https://github.com"]
+	helper =
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !gh auth git-credential
+[include]
+	path = ~/.gitconfig.local

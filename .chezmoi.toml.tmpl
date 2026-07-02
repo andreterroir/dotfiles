@@ -1,0 +1,13 @@
+sourceDir = "{{ .chezmoi.homeDir }}/code/dotfiles"
+
+[edit]
+    apply = true
+[merge]
+    command = "nvim"
+    args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}", "{{ "{{ .Target }}" }}"]
+[hooks.update.post]
+    command = "bash"
+    args = [ "-c", "! command -v pass &>/dev/null || (pass git pull --rebase --quiet && pass git push --quiet)" ]
+[data]
+    work.laptop = {{ eq .chezmoi.hostname "slate" }}
+    gpg.enabled = {{ ne .chezmoi.hostname "slate" }}

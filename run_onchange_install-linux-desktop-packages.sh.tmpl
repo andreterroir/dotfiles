@@ -1,0 +1,23 @@
+{{ if or (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "xps13") -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -e
+
+sudo dnf install -y \
+	ImageMagick \
+	gnome-extensions-app \
+	gnome-tweaks \
+	meld \
+	pass \
+	pass-otp \
+	powertop \
+	syncthing \
+	yt-dlp
+
+flatpak install --assumeyes \
+	com.spotify.Client \
+	md.obsidian.Obsidian \
+	org.signal.Signal \
+	org.telegram.desktop \
+	org.zotero.Zotero
+{{ end }}
