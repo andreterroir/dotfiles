@@ -80,6 +80,8 @@ homebrew_fish={{ lookPath "fish" }}
 if ! grep --quiet "$homebrew_fish" /etc/shells; then
 	echo "$homebrew_fish" | sudo tee -a /etc/shells
 fi
-chsh -s "$homebrew_fish"
+if [ "$SHELL" != "$homebrew_fish" ]; then
+	chsh -s "$homebrew_fish"
+fi
 
 {{ end }}
