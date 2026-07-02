@@ -1,4 +1,6 @@
 #!/bin/sh
+# Only for use when the repo is already cloned locally. For a fresh install
+# (no repo, no chezmoi), see readme.md.
 set -eu
 
 if ! chezmoi="$(command -v chezmoi)"; then
