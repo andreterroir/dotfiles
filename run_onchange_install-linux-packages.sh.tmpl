@@ -29,4 +29,27 @@ sudo dnf install -y \
 	wl-clipboard \
 	zig
 
+{{ if or (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "xps13") -}}
+sudo dnf install -y \
+	ImageMagick \
+	gnome-extensions-app \
+	gnome-tweaks \
+	meld \
+	powertop \
+	syncthing \
+	yt-dlp
+
+flatpak install --assumeyes \
+	com.spotify.Client \
+	md.obsidian.Obsidian \
+	org.signal.Signal \
+	org.telegram.desktop \
+	org.zotero.Zotero
+
+{{ end -}}
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+	echo '>installing TPM'
+	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+fi
+
 {{ end }}
