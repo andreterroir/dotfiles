@@ -30,6 +30,15 @@ sudo dnf install -y \
 	wl-clipboard \
 	zig
 
+# ensure fish is the login shell
+fedora_fish={{ lookPath "fish" }}
+if ! grep --quiet "$fedora_fish" /etc/shells; then
+	echo "$fedora_fish" | sudo tee -a /etc/shells
+fi
+if [ "$SHELL" != "$fedora_fish" ]; then
+	chsh -s "$fedora_fish"
+fi
+
 {{ if or (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "xps13") -}}
 sudo dnf install -y \
 	ImageMagick \
