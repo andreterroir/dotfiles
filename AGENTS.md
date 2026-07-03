@@ -25,7 +25,7 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `dot_bashrc.tmpl` / `dot_profile.tmpl` / `dot_bash_functions`  shell init
 - `dot_gitconfig.tmpl` / `dot_gitignore` / `dot_allowed_signers`  git (SSH signing via `~/.ssh/id_ed25519`)
 - `dot_tmux.conf.tmpl`                  tmux config; sources `private_dot_config/tmux/amp-*.conf`
-- `dot_curlrc`, `symlink_cs.tmpl`, `symlink_icloud.tmpl`  misc targets
+- `symlink_cs.tmpl`, `symlink_icloud.tmpl`  misc targets
 - `run_onchange_install-macos-packages.sh.tmpl`   `brew bundle` (darwin only)
 - `run_onchange_install-linux-packages.sh.tmpl`  `dnf`/`flatpak` (linux only); per-host extra block for `black`/`xps13`
 - `run_once_after-set-chezmoi-remote-url.sh.tmpl`
