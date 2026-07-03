@@ -33,12 +33,12 @@ Top level (each `dot_*` maps to `~/.<name>`):
 `private_dot_config/` → `~/.config` (0700):
 - `ghostty/{config.tmpl,themes/}`        Ghostty terminal
 - `nvim/{init.lua, ginit.vim.tmpl, symlink_*}`  editor; `lazy-lock.json` is the repo-root pin
-- `private_fish/{config.fish.tmpl,functions/}`  fish shell (login shell on macOS via the install script)
+- `private_fish/{config.fish.tmpl,functions/}`  fish shell (login shell on macOS and Linux via the install script)
 - `tmux/{amp-dark.conf,amp-light.conf}`  tmux theme fragments, sourced by `dot_tmux.conf.tmpl`
 - `topgrade.toml.tmpl`                    topgrade
 - `opencode/symlink_AGENTS.md.tmpl`        → `~/.config/opencode/AGENTS.md` → `~/.agents/AGENTS.md`
 
-`private_dot_gnupg/` → `~/.gnupg` (0700): `gpg-agent.conf.tmpl`, `sshcontrol`
+`private_dot_gnupg/` → `~/.gnupg` (0700): `gpg-agent.conf.tmpl`
 `private_dot_ssh/private_config.tmpl` → `~/.ssh/config` (0700)
 
 ## File conventions
