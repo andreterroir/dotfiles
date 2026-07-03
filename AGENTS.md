@@ -22,13 +22,13 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `install.sh`                bootstrap chezmoi + apply from a local clone (fresh installs use `readme.md`)
 - `update-passwords.sh`       `pass` store helper
 - `bin/executable_swap_ctrl_caps`        → `~/.bin/` user script
-- `dot_bashrc.tmpl` / `dot_profile.tmpl` / `dot_bash_functions`  shell init
-- `dot_gitconfig.tmpl` / `dot_gitignore` / `dot_allowed_signers`  git (SSH signing via `~/.ssh/id_ed25519`)
+- `dot_bashrc` / `dot_profile.tmpl` / `dot_bash_functions`  shell init
+- `dot_gitconfig` / `dot_gitignore` / `dot_allowed_signers`  git (SSH signing via `~/.ssh/id_ed25519`)
 - `dot_tmux.conf.tmpl`                  tmux config; sources `private_dot_config/tmux/amp-*.conf`
 - `symlink_cs.tmpl`, `symlink_icloud.tmpl`  misc targets
 - `run_onchange_install-macos-packages.sh.tmpl`   `brew bundle` (darwin only)
 - `run_onchange_install-linux-packages.sh.tmpl`  `dnf`/`flatpak` (linux only); per-host extra block for `black`/`xps13`
-- `run_once_after-set-chezmoi-remote-url.sh.tmpl`
+- `run_once_after-set-chezmoi-remote-url.sh`
 
 `private_dot_config/` → `~/.config` (0700):
 - `ghostty/{config.tmpl,themes/}`        Ghostty terminal
@@ -67,5 +67,6 @@ Top level (each `dot_*` maps to `~/.<name>`):
 
 - Do not push to or pull from the `pass` git store unless asked; the
   post-update hook in `.chezmoi.toml.tmpl` already handles that.
-- OS-specific logic is gated on `.chezmoi.os`; the `slate` hostname marks
-  the work laptop (see `.chezmoi.toml.tmpl`).
+- OS-specific logic is gated on `.chezmoi.os`; the `black` and `xps13`
+  hostnames mark Linux desktops via the `desktop.linux` data variable
+  (see `.chezmoi.toml.tmpl`).

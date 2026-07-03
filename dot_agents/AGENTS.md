@@ -13,3 +13,10 @@ instructions (e.g., repo-level AGENTS.md or CONTRIBUTING.md):
 - Separate subject from body with a blank line.
 - Wrap the body at 72 characters.
 - Use the body to explain what and why, not how.
+
+## Documentation maintenance
+
+When making structural changes to a repository — such as renaming
+files, reorganising directories, or changing configuration variable
+names — update the repo's agent instruction file (`AGENTS.md` or
+equivalent) to keep layout descriptions and references accurate.
