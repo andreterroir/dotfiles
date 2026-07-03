@@ -1,8 +1,6 @@
-{{ if .work.laptop -}}
-Include {{ .chezmoi.homeDir }}/.ssh/local_config
-{{ end -}}
+Include ~/.ssh/local_config
 {{- if eq .chezmoi.os "darwin" }}
-Include {{ .chezmoi.homeDir }}/.colima/ssh_config
+Include ~/.colima/ssh_config
 {{ end -}}
 Host *
 	AddKeysToAgent yes

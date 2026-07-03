@@ -9,7 +9,7 @@ disable = [
 ]
 assume_yes = true
 
-{{ if eq .chezmoi.os "darwin" }}
+{{- if eq .chezmoi.os "darwin" }}
 [brew]
 greedy_cask = true
 autoremove = true

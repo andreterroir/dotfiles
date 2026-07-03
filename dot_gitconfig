@@ -8,7 +8,7 @@
 [gpg]
 	format = ssh
 [gpg "ssh"]
-	allowedSignersFile = {{ .chezmoi.homeDir }}/.allowed_signers
+	allowedSignersFile = ~/.allowed_signers
 [core]
 	excludesfile = ~/.gitignore
 [init]

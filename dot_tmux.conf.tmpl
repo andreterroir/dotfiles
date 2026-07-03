@@ -41,22 +41,15 @@ set-option -g @plugin 'tmux-plugins/tpm'
 set-option -g @plugin 'christoomey/vim-tmux-navigator'
 set -g @plugin 'tmux-plugins/tmux-open'
 set -g @plugin 'ctrlmachine/tmux-amp-theme'
-{{ if eq .chezmoi.os "darwin" -}}
+{{- if eq .chezmoi.os "darwin" }}
 set -g @plugin 'erikw/tmux-dark-notify'
 set -g @dark-notify-theme-path-light '$HOME/.config/tmux/amp-light.conf'
 set -g @dark-notify-theme-path-dark '$HOME/.config/tmux/amp-dark.conf'
-{{ else -}}
-set -g @amp-theme-appearance 'auto'
-{{ end -}}
-
-{{- if eq .chezmoi.os "darwin" }}
 # Homebrew is only added to PATH in .profile which is loaded by shell later
 set-environment -g PATH "/opt/homebrew/bin:$PATH"
-{{- end }}
-
-{{- if eq .chezmoi.os "darwin" }}
 run '/opt/homebrew/opt/tpm/share/tpm/tpm'
 {{- else }}
+set -g @amp-theme-appearance 'auto'
 run '~/.tmux/plugins/tpm/tpm'
 {{- end }}
 # Override after plugins load — amp-theme overwrites this if set earlier
