@@ -20,6 +20,8 @@ export GOPATH="$HOME/.cache/go"
 [ -e "$HOME/code/env" ] && export PATH="$PATH:$HOME/code/env"
 # Include user executables into PATH (used by pip)
 [ -d "$HOME/.local/bin" ] && export PATH="$PATH:$HOME/.local/bin"
+# OpenCode does not add its executable to a standard path
+[ -d "$HOME/.opencode/bin" ] && export PATH="$PATH:$HOME/.opencode/bin"
 # Homebrew binaries
 [ -d "/home/linuxbrew" ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 if [ -d "/opt/homebrew/" ]; then
