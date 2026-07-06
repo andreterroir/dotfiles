@@ -2,20 +2,19 @@
 # git-cleanup: remove worktrees with no changes and branches merged into
 # the current branch.
 #
-# Usage: git cleanup [-n|--dry-run] [-f|--force] [-h|--help]
+# Usage: git cleanup [-n|--dry-run] [-h|--help]
 
 set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: git cleanup [-n|--dry-run] [-f|--force] [-h|--help]
+Usage: git cleanup [-n|--dry-run] [-h|--help]
 
 Remove worktrees with a clean working tree and local branches that have
 been fully merged into the current branch.
 
 Options:
   -n, --dry-run   print what would be removed; do not modify anything
-  -f, --force     force-delete merged branches with `git branch -D`
   -h, --help      show this help and exit
 
 Protected branches (never deleted): main, master, develop
@@ -23,11 +22,9 @@ EOF
 }
 
 dry_run=0
-force=0
 for arg in "$@"; do
     case "$arg" in
         -n|--dry-run) dry_run=1 ;;
-        -f|--force)   force=1 ;;
         -h|--help)    usage; exit 0 ;;
         *)            printf 'git-cleanup: unknown argument: %s\n' "$arg" >&2
                       usage >&2
@@ -48,9 +45,6 @@ fi
 
 main_path=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
 cwd_worktree=$(git rev-parse --show-toplevel)
-
-delete_flag="-d"
-[ "$force" -eq 1 ] && delete_flag="-D"
 
 run() {
     if [ "$dry_run" -eq 1 ]; then
@@ -92,7 +86,7 @@ while IFS= read -r branch; do
         main|master|develop) continue ;;
     esac
     if [ -n "$(git branch --list "$branch" --merged "$current_branch" 2>/dev/null)" ]; then
-        if run git branch "$delete_flag" "$branch"; then
+        if run git branch -d "$branch"; then
             branch_removed=$((branch_removed + 1))
         else
             printf 'failed to delete branch: %s\n' "$branch" >&2
