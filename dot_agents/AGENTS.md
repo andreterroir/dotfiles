@@ -1,10 +1,41 @@
-Do not interact with Git repository or GitHub (via API or gh CLI) unless
-prompted explicitly.
+## Restrictions
+
+Do not interact with Git repository or GitHub (via API or `gh` CLI) unless
+asked explicitly.
+
+## Before Making Changes
+
+Create a Git worktree first, unless asked to make changes to the current branch
+or the working directory within a worktree already (a child of `.wt/` or in
+`git worktree list`). Create worktrees with `git worktree add
+.wt/<branch-name>` using a short simple name referencing the change being
+made, e.g. `message-length-validation`.
+
+## Before Committing Changes
+
+Start a code review, if it was not yet performed, using the agent's native
+review capability if available.
+
+## Code Review
+
+- flag any unrelated changes
+- make sure the documentation is up to date and reflects state after the
+  changes
+  - code comments close to the changed code
+  - code comments for the parent scope of the changed code
+  - project documentation (`README.md`, `docs/`, `AGENTS.md` etc.)
+- make sure that any temporary changes (e.g. debug print statements) were
+  undone
+
+## Committing Changes
+
+- break down into small logical changes
+- ask what to do with unrelated changes
 
 ## Commit Messages
 
 Follow https://commit.style unless the repository has its own commit
-instructions (e.g., repo-level AGENTS.md or CONTRIBUTING.md):
+instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 
 - Capitalize the subject line.
 - Use the imperative mood ("Fix bug", not "Fixed bug").
@@ -13,10 +44,3 @@ instructions (e.g., repo-level AGENTS.md or CONTRIBUTING.md):
 - Separate subject from body with a blank line.
 - Wrap the body at 72 characters.
 - Use the body to explain what and why, not how.
-
-## Documentation maintenance
-
-When making structural changes to a repository — such as renaming
-files, reorganising directories, or changing configuration variable
-names — update the repo's agent instruction file (`AGENTS.md` or
-equivalent) to keep layout descriptions and references accurate.
