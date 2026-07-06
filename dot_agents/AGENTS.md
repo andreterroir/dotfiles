@@ -52,8 +52,6 @@ commit message, separated from the body by a blank line:
 
     Model: <provider/model>
     Agent: <agent-name>
-    Agent-Session: <session-id>
 
 Examples of the `Model` value: `bedrock/sonnet-4.6`,
-`opencode-go/minimax-m3`. Use the current session ID provided by the
-agent runtime for `Agent-Session`.
+`opencode-go/minimax-m3`.
