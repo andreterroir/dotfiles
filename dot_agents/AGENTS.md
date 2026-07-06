@@ -44,3 +44,16 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 - Separate subject from body with a blank line.
 - Wrap the body at 72 characters.
 - Use the body to explain what and why, not how.
+
+### Attribution trailers
+
+When committing as an agent, append the following Git trailers to every
+commit message, separated from the body by a blank line:
+
+    Model: <provider/model>
+    Agent: <agent-name>
+    Agent-Session: <session-id>
+
+Examples of the `Model` value: `bedrock/sonnet-4.6`,
+`opencode-go/minimax-m3`. Use the current session ID provided by the
+agent runtime for `Agent-Session`.
