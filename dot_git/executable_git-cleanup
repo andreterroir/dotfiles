@@ -56,26 +56,39 @@ run() {
 
 printf '==> Scanning worktrees (main: %s, cwd: %s)\n' "$main_path" "$cwd_worktree"
 worktree_removed=0
-while IFS= read -r path; do
+while IFS=$'\t' read -r path lock_state; do
     [ -n "$path" ] || continue
     # Never remove the main worktree or the one we are running from.
-    case "$path" in
-        "$main_path"|"$cwd_worktree") continue ;;
-    esac
-    if [ ! -d "$path" ]; then
-        run git worktree prune
+    if [ "$path" = "$main_path" ] || [ "$path" = "$cwd_worktree" ]; then
         continue
     fi
-    if [ -z "$(git -C "$path" status --porcelain 2>/dev/null)" ]; then
-        if run git worktree remove "$path"; then
+    if [ ! -d "$path" ]; then
+        # Stale entry; the end-of-script prune will clean it up.
+        continue
+    fi
+    if [ "$lock_state" = "locked" ]; then
+        printf 'skip worktree (locked): %s\n' "$path"
+        continue
+    fi
+    if status_output=$(git -C "$path" status --porcelain 2>/dev/null); then
+        if [ -z "$status_output" ]; then
             worktree_removed=$((worktree_removed + 1))
+            if ! run git worktree remove "$path"; then
+                worktree_removed=$((worktree_removed - 1))
+                printf 'failed to remove worktree: %s\n' "$path" >&2
+            fi
         else
-            printf 'failed to remove worktree: %s\n' "$path" >&2
+            printf 'skip worktree (has changes): %s\n' "$path"
         fi
     else
-        printf 'skip worktree (has changes): %s\n' "$path"
+        printf 'skip worktree (status failed): %s\n' "$path" >&2
     fi
-done < <(git worktree list --porcelain | sed -n 's/^worktree //p')
+done < <(git worktree list --porcelain | awk '
+    /^worktree / { path = substr($0, 10); locked = 0; next }
+    /^locked/    { locked = 1; next }
+    /^$/         { if (path != "") { print path (locked ? "\tlocked" : ""); path = ""; locked = 0 } }
+    END          { if (path != "") print path (locked ? "\tlocked" : "") }
+')
 
 printf '==> Scanning branches (current: %s)\n' "$current_branch"
 branch_removed=0
@@ -86,9 +99,9 @@ while IFS= read -r branch; do
         main|master|develop) continue ;;
     esac
     if [ -n "$(git branch --list "$branch" --merged "$current_branch" 2>/dev/null)" ]; then
-        if run git branch -d "$branch"; then
-            branch_removed=$((branch_removed + 1))
-        else
+        branch_removed=$((branch_removed + 1))
+        if ! run git branch -d "$branch"; then
+            branch_removed=$((branch_removed - 1))
             printf 'failed to delete branch: %s\n' "$branch" >&2
         fi
     else
