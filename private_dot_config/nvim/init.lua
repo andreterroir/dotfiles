@@ -51,6 +51,7 @@ require('lazy').setup({
    {
       'windwp/nvim-autopairs',
       event = 'InsertEnter',
+      config = true,
    },
    -- keymap discovery
    { 'folke/which-key.nvim' },
