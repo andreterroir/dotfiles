@@ -36,7 +36,10 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `private_fish/{config.fish.tmpl,functions/}`  fish shell (login shell on macOS and Linux via the install script)
 - `tmux/{amp-dark.conf,amp-light.conf}`  tmux theme fragments, sourced by `dot_tmux.conf.tmpl`
 - `topgrade.toml.tmpl`                    topgrade
+- `opencode/opencode.json`                 base config (`lsp`, `formatter`; no providers/models)
 - `opencode/symlink_AGENTS.md.tmpl`        → `~/.config/opencode/AGENTS.md` → `~/.agents/AGENTS.md`
+- `opencode.local.json` is machine-local (not tracked); loaded via `OPENCODE_CONFIG` set in fish
+  when `~/.config/opencode/opencode.local.json` exists; holds providers, models, mcp, share, agent.title
 
 `private_dot_gnupg/` → `~/.gnupg` (0700): `gpg-agent.conf.tmpl`
 `private_dot_ssh/private_config.tmpl` → `~/.ssh/config` (0700)

@@ -9,4 +9,10 @@ function on_fish_prompt --on-event fish_prompt
   echo -ne '\e[1 q'
 end
 
+# Load local opencode config override if present
+set -l _oc_local ~/.config/opencode/opencode.local.json
+if test -f $_oc_local
+    set --global --export OPENCODE_CONFIG $_oc_local
+end
+
 source $__fish_config_dir/config.local.fish 2>/dev/null
