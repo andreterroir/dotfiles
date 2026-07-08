@@ -11,10 +11,10 @@ or the working directory within a worktree already (a child of `.wt/` or in
 .wt/<branch-name>` using a short simple name referencing the change being
 made, e.g. `message-length-validation`.
 
-## Before Committing Changes
+## After Making Changes
 
-Start a code review, if it was not yet performed, using the agent's native
-review capability if available.
+Start a code review, if it was not yet performed, with the agent's native
+review capability (agent/tool), if available.
 
 ## Code Review
 
