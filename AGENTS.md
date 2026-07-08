@@ -58,13 +58,24 @@ Top level (each `dot_*` maps to `~/.<name>`):
 
 ## Workflow
 
-1. Start from a clean chezmoi state. Run `chezmoi status` first.
-2. If `chezmoi status` is not clean, inspect `chezmoi diff` and ask the
+When working in a Git worktree (per global agent instructions), chezmoi's
+configured `sourceDir` (`~/code/dotfiles`) points to the main checkout, not
+the worktree.  Use `chezmoi --source "$(git rev-parse --show-toplevel)"` to
+validate changes against the worktree instead.
+
+1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
+2. If not clean, inspect `chezmoi --source "$(git rev-parse --show-toplevel)" diff` and ask the
    user how to proceed (apply, discard, or stash) before making changes.
-3. Preview any change before applying with `chezmoi diff` or
-   `chezmoi apply --dry-run` against `$HOME`.
-4. Test templates with `chezmoi execute-template < file.tmpl`.
-5. Apply with `chezmoi apply` only once the user has confirmed.
+3. Preview any change before applying with
+   `chezmoi --source "$(git rev-parse --show-toplevel)" diff` or
+   `chezmoi --source "$(git rev-parse --show-toplevel)" apply --dry-run`.
+4. Test templates with
+   `chezmoi --source "$(git rev-parse --show-toplevel)" execute-template < file.tmpl`.
+5. Apply with `chezmoi --source "$(git rev-parse --show-toplevel)" apply`
+   only once the user has confirmed.
+
+Run validation before committing to catch template syntax errors and
+unintended changes.
 
 ## Boundaries
 
