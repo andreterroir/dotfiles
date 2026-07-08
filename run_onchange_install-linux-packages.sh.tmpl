@@ -57,6 +57,12 @@ flatpak install --assumeyes \
 	org.zotero.Zotero
 
 {{ end -}}
+# install opencode
+if ! command -v opencode > /dev/null; then
+	echo '>installing opencode'
+	curl -fsSL https://opencode.ai/install | bash
+fi
+
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
 	echo '>installing TPM'
 	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
