@@ -66,6 +66,7 @@ configured `sourceDir` (`~/code/dotfiles`) points to the main checkout, not
 the worktree.  Use `chezmoi --source "$(git rev-parse --show-toplevel)"` to
 validate changes against the worktree instead.
 
+0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
 2. If not clean, inspect `chezmoi --source "$(git rev-parse --show-toplevel)" diff` and ask the
    user how to proceed (apply, discard, or stash) before making changes.
@@ -78,7 +79,7 @@ validate changes against the worktree instead.
    only once the user has confirmed.
 
 Run validation before committing to catch template syntax errors and
-unintended changes.
+unintended changes. Do a fast forward only merge when asked to integrate the changes into main branch.
 
 ## Boundaries
 
