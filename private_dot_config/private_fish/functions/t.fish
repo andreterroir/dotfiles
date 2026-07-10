@@ -1,3 +1,3 @@
-function t --wraps=tmux
-     tmux $argv; 
+function t
+     tmux attach || tmux new;
 end
