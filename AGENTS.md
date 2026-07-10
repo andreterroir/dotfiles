@@ -21,7 +21,7 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `.chezmoiignore.tmpl`       files chezmoi should not manage
 - `install.sh`                bootstrap chezmoi + apply from a local clone (fresh installs use `readme.md`)
 - `bin/executable_swap_ctrl_caps`        → `~/bin/` user script
-- `bin/executable_update-passwords`      → `~/bin/update-passwords` `pass` store sync helper; loops over `~/.password-store` and `~/.password-store-work` (called by the chezmoi post-update hook)
+- `bin/executable_update-passwords`      → `~/bin/update-passwords` `pass` store sync helper; runs `pass git pull --rebase` then `pass git push` against `~/.password-store` (called by the chezmoi post-update hook)
 - `bin/executable_git-cleanup`           → `~/bin/git-cleanup` worktree/branch cleanup
 - `dot_bashrc` / `dot_profile.tmpl` / `dot_bash_functions`  shell init
 - `dot_gitconfig` / `dot_gitignore` / `dot_allowed_signers`  git (SSH signing via `~/.ssh/id_ed25519`)
