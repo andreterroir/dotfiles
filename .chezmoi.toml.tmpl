@@ -9,6 +9,5 @@ sourceDir = "{{ .chezmoi.homeDir }}/code/dotfiles"
     command = "bash"
     args = [ "-c", "! command -v update-passwords >/dev/null 2>&1 || update-passwords" ]
 [data]
-    work.laptop = {{ eq .chezmoi.hostname "slate" }}
     gpg.enabled = {{ or (eq .chezmoi.hostname "slate") (eq .chezmoi.hostname "xps13") (eq .chezmoi.hostname "Chloes-MBP") (eq .chezmoi.hostname "x1") (eq .chezmoi.hostname "black") }}
     desktop.linux = {{ or (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "xps13") }}

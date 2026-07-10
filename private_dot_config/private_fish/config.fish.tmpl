@@ -15,4 +15,13 @@ if test -f $_oc_local
     set --global --export OPENCODE_CONFIG $_oc_local
 end
 
+# `passw` wraps `pass` against the work store at ~/.password-store-work.
+# Only defined when that store exists, so a missing work store surfaces as
+# "command not found" rather than a confusing pass error.
+if test -d $HOME/.password-store-work
+    function passw --wraps=pass
+        PASSWORD_STORE_DIR=$HOME/.password-store-work pass $argv
+    end
+end
+
 source $__fish_config_dir/config.local.fish 2>/dev/null

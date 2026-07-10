@@ -3,14 +3,8 @@
 # vi: set ft=bash
 set -e
 
-{{ if .work.laptop -}}
-pass_dir="$HOME/.password-store-personal"
-{{ else -}}
-pass_dir="$HOME/.password-store"
-{{ end -}}
-
-if [ ! -e "$pass_dir" ]; then
+if [ ! -e "$HOME/.password-store" ]; then
 	echo '>setting up pass'
-	git clone REDACTED "$pass_dir"
+	git clone REDACTED "$HOME/.password-store"
 fi
 {{ end }}

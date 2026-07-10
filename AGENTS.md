@@ -17,11 +17,11 @@ installed globally; do not duplicate them here.
 ## Repository layout
 
 Top level (each `dot_*` maps to `~/.<name>`):
-- `.chezmoi.toml.tmpl`        chezmoi config (sourceDir, merge tool, hooks, `gpg.enabled`, `work.laptop` flags)
+- `.chezmoi.toml.tmpl`        chezmoi config (sourceDir, merge tool, hooks, `gpg.enabled` flag)
 - `.chezmoiignore.tmpl`       files chezmoi should not manage
 - `install.sh`                bootstrap chezmoi + apply from a local clone (fresh installs use `readme.md`)
 - `bin/executable_swap_ctrl_caps`        → `~/bin/` user script
-- `bin/executable_update-passwords`      → `~/bin/update-passwords` `pass` store sync helper; loops over `~/.password-store` and `~/.password-store-personal` (called by the chezmoi post-update hook)
+- `bin/executable_update-passwords`      → `~/bin/update-passwords` `pass` store sync helper; loops over `~/.password-store` and `~/.password-store-work` (called by the chezmoi post-update hook)
 - `bin/executable_git-cleanup`           → `~/bin/git-cleanup` worktree/branch cleanup
 - `dot_bashrc` / `dot_profile.tmpl` / `dot_bash_functions`  shell init
 - `dot_gitconfig` / `dot_gitignore` / `dot_allowed_signers`  git (SSH signing via `~/.ssh/id_ed25519`)
@@ -31,11 +31,10 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `run_onchange_install-linux-packages.sh.tmpl`  `dnf`/`flatpak` (linux only); per-host extra block for `black`/`xps13`
 - `run_once_after-set-chezmoi-remote-url.sh`
 - `run_once_set-up-gpg.sh.tmpl`                   one-time GPG/YubiKey setup (gated on `.gpg.enabled`)
-- `run_once_set-up-pass.sh.tmpl`                  one-time `pass` store clone (gated on `.gpg.enabled`; on `.work.laptop` clones the personal store to `~/.password-store-personal`)
+- `run_once_set-up-pass.sh.tmpl`                  one-time `pass` store clone (gated on `.gpg.enabled`; clones the personal store to `~/.password-store`)
 
 `private_dot_config/` → `~/.config` (0700):
 - `ghostty/{config.tmpl,themes/}`        Ghostty terminal
-- `gopass/config.yml.tmpl`               `gopass` workspaces (only rendered on `.work.laptop`; defines `work` and `personal` mounts)
 - `nvim/{init.lua, ginit.vim.tmpl, symlink_*}`  editor; `lazy-lock.json` is the repo-root pin
 - `private_fish/{config.fish.tmpl,functions/}`  fish shell (login shell on macOS and Linux via the install script)
 - `tmux/{amp-dark.conf,amp-light.conf}`  tmux theme fragments, sourced by `dot_tmux.conf.tmpl`
