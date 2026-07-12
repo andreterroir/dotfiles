@@ -43,9 +43,8 @@ it down. Extended context belongs in commit messages, not in comments.
 
 ## After Making Changes
 
-Start a code review, if it was not yet performed, with the agent's native
-review capability (agent/tool), if available. Use the review tool before
-committing to catch issues that a manual pass misses.
+Start a code review using the review tool/subagent, if available (avoid review
+within the same context).
 
 ## Code Review
 
