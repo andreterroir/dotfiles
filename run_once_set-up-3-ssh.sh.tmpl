@@ -12,11 +12,12 @@
 # Run from a real terminal, not from CI.
 set -euo pipefail
 
+# Switch the chezmoi source remote to SSH after initial HTTPS-based init
+git -C "$CHEZMOI_SOURCE_DIR" remote set-url origin git@github.com:andreterroir/dotfiles.git
+
 LOCAL_KEY="$HOME/.ssh/id_ed25519"
 LOCAL_PUB="$LOCAL_KEY.pub"
 NETCUP=REDACTED
-ERR_FILE=$(mktemp -t gh-ssh-key-err.XXXXXX)
-trap 'rm -f "$ERR_FILE"' EXIT
 
 # --- 1. local key
 if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
@@ -55,16 +56,14 @@ else
 		--scopes admin:public_key \
 		--skip-ssh-key
 fi
-# Treat "already exists" as success so re-runs do not fail.
-if ! gh ssh-key add "$LOCAL_PUB" --title "$(whoami)@$(hostname -s)" 2>"$ERR_FILE"; then
-	if grep -qF "already exists" "$ERR_FILE"; then
-		echo '>local key already on GitHub'
-	else
-		cat "$ERR_FILE" >&2
-		exit 1
-	fi
+# Check whether the key is already registered before attempting to add it.
+# Comparing key material (algo + base64) avoids false matches on title alone.
+KEY_MAT=$(awk '{print $1, $2}' "$LOCAL_PUB")
+if gh ssh-key list 2>/dev/null | grep -qF "$KEY_MAT"; then
+	echo '>local key already on GitHub'
 else
-	echo '>registered local key on GitHub'
+	echo '>registering local key on GitHub'
+	gh ssh-key add "$LOCAL_PUB" --title "$(whoami)@$(hostname -s)"
 fi
 
 # --- 4. update allowed signers + commit
