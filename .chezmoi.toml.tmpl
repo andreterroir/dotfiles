@@ -9,5 +9,5 @@ sourceDir = "{{ .chezmoi.homeDir }}/code/dotfiles"
     command = "bash"
     args = [ "-c", "! command -v update-passwords >/dev/null 2>&1 || update-passwords" ]
 [data]
-    desktop = {{ or (eq .chezmoi.os "darwin") (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "xps13") (eq .chezmoi.hostname "x1") }}
-    linux.desktop = {{ or (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "xps13") (eq .chezmoi.hostname "x1") }}
+    desktop = {{ or (eq .chezmoi.os "darwin") (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "x1") }}
+    linux.desktop = {{ or (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "x1") }}

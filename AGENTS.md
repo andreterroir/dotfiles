@@ -28,7 +28,7 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `dot_tmux.conf.tmpl`                  tmux config; sources `private_dot_config/tmux/amp-*.conf`
 - `symlink_cs.tmpl`, `symlink_icloud.tmpl`, `symlink_work-notes.tmpl`  misc targets (notes/work-notes live under `~/notes/`)
 - `run_onchange_install-macos-packages.sh.tmpl`   `brew bundle` (darwin only)
-- `run_onchange_install-linux-packages.sh.tmpl`  `dnf`/`flatpak` (linux only); per-host extra block for `black`/`xps13`/`x1`
+- `run_onchange_install-linux-packages.sh.tmpl`  `dnf`/`flatpak` (linux only); shared desktop block gated on `linux.desktop`
 - `run_once_after-set-chezmoi-remote-url.sh`
 - `run_once_set-up-1-gpg.sh.tmpl`                 one-time GPG/YubiKey setup (gated on `.desktop`)
 - `run_once_set-up-2-pass.sh.tmpl`                one-time `pass` store clone (gated on `.desktop`; clones the personal store to `~/.password-store`)
@@ -86,6 +86,6 @@ unintended changes. Do a fast forward only merge when asked to integrate the cha
 
 - Do not push to or pull from the `pass` git store unless asked; the
   post-update hook in `.chezmoi.toml.tmpl` already handles that.
-- OS-specific logic is gated on `.chezmoi.os`; the `black`, `xps13`, and `x1`
+- OS-specific logic is gated on `.chezmoi.os`; the `black` and `x1`
   hostnames mark Linux desktops via the `linux.desktop` data variable
   (see `.chezmoi.toml.tmpl`).
