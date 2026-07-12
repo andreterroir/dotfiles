@@ -394,12 +394,41 @@ vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
 -- filetypes --
 ---------------
 
+-- expandtab, 4-space indent
+vim.api.nvim_create_autocmd({ 'FileType' }, {
+   group = augroup,
+   pattern = { 'java', 'python', 'sh', 'zig' },
+   callback = function()
+      vim.opt_local.expandtab = true
+      vim.opt_local.softtabstop = 4
+      vim.opt_local.shiftwidth = 4
+   end,
+})
+-- expandtab, 2-space indent
+vim.api.nvim_create_autocmd({ 'FileType' }, {
+   group = augroup,
+   pattern = { 'html', 'kotlin', 'swift' },
+   callback = function()
+      vim.opt_local.expandtab = true
+      vim.opt_local.softtabstop = 2
+      vim.opt_local.shiftwidth = 2
+   end,
+})
+vim.api.nvim_create_autocmd({ 'FileType' }, {
+   group = augroup,
+   pattern = { 'lua' },
+   callback = function()
+      vim.opt_local.expandtab = true
+      vim.opt_local.softtabstop = 3
+      vim.opt_local.shiftwidth = 3
+   end,
+})
 vim.api.nvim_create_autocmd({ 'FileType' }, {
    group = augroup,
    pattern = { 'gitcommit' },
    callback = function()
       vim.opt_local.spell = true
-   end
+   end,
 })
 vim.api.nvim_create_autocmd({ 'FileType' }, {
    group = augroup,
@@ -410,43 +439,7 @@ vim.api.nvim_create_autocmd({ 'FileType' }, {
       vim.opt.shiftwidth = 8
       -- Workaround for the lack of a DAP strategy in neotest-go: https://github.com/nvim-neotest/neotest-go/issues/12
       vim.api.nvim_buf_set_keymap(0, '', '<leader>tD', '<cmd>lua require("dap-go").debug_test()<cr>', {})
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'html' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 2
-      vim.opt_local.shiftwidth = 2
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'java' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 4
-      vim.opt_local.shiftwidth = 4
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'kotlin' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 2
-      vim.opt_local.shiftwidth = 2
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'lua' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 3
-      vim.opt_local.shiftwidth = 3
-   end
+   end,
 })
 vim.api.nvim_create_autocmd({ 'FileType' }, {
    group = augroup,
@@ -458,50 +451,13 @@ vim.api.nvim_create_autocmd({ 'FileType' }, {
       vim.opt_local.linebreak = true
       -- hide line break continuation markers
       vim.opt_local.showbreak = 'NONE'
-      --- hide line numbers
       vim.opt_local.number = false
       -- swap gj/gk with j/k for finer navigation over wrapped lines
       vim.keymap.set({ 'n', 'v' }, 'j', 'gj', { silent = true, buffer = true })
       vim.keymap.set({ 'n', 'v' }, 'k', 'gk', { silent = true, buffer = true })
       vim.keymap.set({ 'n', 'v' }, 'gj', 'j', { silent = true, buffer = true })
       vim.keymap.set({ 'n', 'v' }, 'gk', 'k', { silent = true, buffer = true })
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'python' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 4
-      vim.opt_local.shiftwidth = 4
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'sh' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 4
-      vim.opt_local.shiftwidth = 4
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'swift' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 2
-      vim.opt_local.shiftwidth = 2
-   end
-})
-vim.api.nvim_create_autocmd({ 'FileType' }, {
-   group = augroup,
-   pattern = { 'zig' },
-   callback = function()
-      vim.opt_local.expandtab = true
-      vim.opt_local.softtabstop = 4
-      vim.opt_local.shiftwidth = 4
-   end
+   end,
 })
 
 ------------------
