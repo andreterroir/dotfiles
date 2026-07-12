@@ -6,4 +6,7 @@ install.sh
 {{ if eq .chezmoi.os "linux" -}}
 icloud
 {{ end -}}
+{{ if eq .chezmoi.os "darwin" -}}
+dot_bin/executable_swap_ctrl_caps
+{{ end -}}
 .config/opencode/opencode.local.json
