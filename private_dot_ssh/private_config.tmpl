@@ -8,3 +8,12 @@ Host *
 	UseKeychain yes
 	{{- end }}
 	HashKnownHosts no
+
+Host github.com REDACTED
+	IdentitiesOnly yes
+	IdentityFile ~/.ssh/id_ed25519
+	{{- if eq .chezmoi.os "darwin" }}
+	PKCS11Provider /opt/homebrew/lib/libykcs11.dylib
+	{{- else }}
+	PKCS11Provider /usr/lib64/libykcs11.so
+	{{- end }}

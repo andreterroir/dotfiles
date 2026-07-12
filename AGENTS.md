@@ -17,7 +17,7 @@ installed globally; do not duplicate them here.
 ## Repository layout
 
 Top level (each `dot_*` maps to `~/.<name>`):
-- `.chezmoi.toml.tmpl`        chezmoi config (sourceDir, merge tool, hooks, `gpg.enabled` flag)
+- `.chezmoi.toml.tmpl`        chezmoi config (sourceDir, merge tool, hooks, `desktop` data variable)
 - `.chezmoiignore.tmpl`       files chezmoi should not manage
 - `install.sh`                bootstrap chezmoi + apply from a local clone (fresh installs use `readme.md`)
 - `dot_bin/executable_swap_ctrl_caps`        → `~/.bin/swap_ctrl_caps` keyboard swap script
@@ -28,10 +28,11 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `dot_tmux.conf.tmpl`                  tmux config; sources `private_dot_config/tmux/amp-*.conf`
 - `symlink_cs.tmpl`, `symlink_icloud.tmpl`, `symlink_work-notes.tmpl`  misc targets (notes/work-notes live under `~/notes/`)
 - `run_onchange_install-macos-packages.sh.tmpl`   `brew bundle` (darwin only)
-- `run_onchange_install-linux-packages.sh.tmpl`  `dnf`/`flatpak` (linux only); per-host extra block for `black`/`xps13`
+- `run_onchange_install-linux-packages.sh.tmpl`  `dnf`/`flatpak` (linux only); per-host extra block for `black`/`xps13`/`x1`
 - `run_once_after-set-chezmoi-remote-url.sh`
-- `run_once_set-up-gpg.sh.tmpl`                   one-time GPG/YubiKey setup (gated on `.gpg.enabled`)
-- `run_once_set-up-pass.sh.tmpl`                  one-time `pass` store clone (gated on `.gpg.enabled`; clones the personal store to `~/.password-store`)
+- `run_once_set-up-1-gpg.sh.tmpl`                 one-time GPG/YubiKey setup (gated on `.desktop`)
+- `run_once_set-up-2-pass.sh.tmpl`                one-time `pass` store clone (gated on `.desktop`; clones the personal store to `~/.password-store`)
+- `run_once_set-up-3-ssh.sh.tmpl`                 one-time per-machine ed25519 bootstrap (gated on `.desktop`; uses the YubiKey PIV cert via the SSH config's `PKCS11Provider` to authorise the new key on netcup + GitHub and commit `dot_allowed_signers`; first-time PIV setup is documented in `readme.md`)
 
 `private_dot_config/` → `~/.config` (0700):
 - `ghostty/{config.tmpl,themes/}`        Ghostty terminal
@@ -85,6 +86,6 @@ unintended changes. Do a fast forward only merge when asked to integrate the cha
 
 - Do not push to or pull from the `pass` git store unless asked; the
   post-update hook in `.chezmoi.toml.tmpl` already handles that.
-- OS-specific logic is gated on `.chezmoi.os`; the `black` and `xps13`
-  hostnames mark Linux desktops via the `desktop.linux` data variable
+- OS-specific logic is gated on `.chezmoi.os`; the `black`, `xps13`, and `x1`
+  hostnames mark Linux desktops via the `linux.desktop` data variable
   (see `.chezmoi.toml.tmpl`).

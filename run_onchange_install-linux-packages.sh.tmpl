@@ -22,13 +22,18 @@ sudo dnf install -y \
 	npm \
 	pass \
 	pass-otp \
+	pcsc-tools \
 	ripgrep \
 	tree \
 	tree-sitter-cli \
 	tmux \
 	wget2-wget \
 	wl-clipboard \
+	yubico-piv-tool \
+	yubikey-manager \
 	zig
+
+sudo systemctl enable --now pcscd
 
 # ensure fish is the login shell
 fedora_fish={{ lookPath "fish" }}
@@ -39,7 +44,7 @@ if [ "$SHELL" != "$fedora_fish" ]; then
 	chsh -s "$fedora_fish"
 fi
 
-{{ if .desktop.linux -}}
+{{ if .linux.desktop -}}
 sudo dnf install -y \
 	ImageMagick \
 	gnome-extensions-app \
