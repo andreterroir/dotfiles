@@ -89,3 +89,7 @@ unintended changes. Do a fast forward only merge when asked to integrate the cha
 - OS-specific logic is gated on `.chezmoi.os`; the `black` and `x1`
   hostnames mark Linux desktops via the `linux.desktop` data variable
   (see `.chezmoi.toml.tmpl`).
+- In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
+  running scripts) rather than `chezmoi source-path`: a nested
+  `chezmoi` invocation deadlocks on the parent `chezmoi apply`'s
+  persistent-state lock.

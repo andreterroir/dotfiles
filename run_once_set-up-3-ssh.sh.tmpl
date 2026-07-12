@@ -3,25 +3,18 @@
 # vi: set ft=bash
 # This script is interactive: it blocks for the PIV PIN, the YubiKey
 # touch (when touch-policy is set), and the `gh auth login --web`
-# browser flow. The YubiKey is the only SSH auth identity available
-# until the per-machine ed25519 is registered on netcup and GitHub.
-# Run from a real terminal with the YubiKey plugged in, not from CI.
+# browser flow. Re-runs are idempotent: a YubiKey is only requested
+# when the local ed25519 is not yet authorised on netcup, the GitHub
+# login is skipped when already authenticated, and the key is not
+# re-uploaded to either host if it is already there. `~/.allowed_signers`
+# is owned by chezmoi; this script only adds the new line to the repo's
+# `dot_allowed_signers` and commits it.
+# Run from a real terminal, not from CI.
 set -euo pipefail
 
 LOCAL_KEY="$HOME/.ssh/id_ed25519"
 LOCAL_PUB="$LOCAL_KEY.pub"
-ALLOWED="$HOME/.allowed_signers"
 NETCUP=REDACTED
-
-# --- preflight
-for bin in ykman ssh-keygen ssh-copy-id gh git; do
-	command -v "$bin" >/dev/null || { echo ">missing $bin" >&2; exit 1; }
-done
-
-# --- wait for YubiKey (no exit on absence)
-while ! ykman piv info >/dev/null 2>&1; do
-	read -rp ">plug in YubiKey and press Enter"
-done
 
 # --- 1. local key
 if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
@@ -30,48 +23,55 @@ if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
 fi
 
 # --- 2. REDACTED
-# SSH config provides PKCS11Provider for this host, so the PIV cert is
-# available as a fallback identity when the per-machine ed25519 is not
-# yet registered (the bootstrap case).
-# -f skips the macOS launchd-ssh-agent quirk in ssh-copy-id's "is this
-# key already installed?" probe (it logs "failed to fetch key" then exits
-# 1 even when the key would otherwise authenticate fine).
-echo '>authorising local key on REDACTED'
-ssh-copy-id -f -i "$LOCAL_PUB" "$NETCUP"
+# The SSH config provides PKCS11Provider for this host, so the PIV
+# cert is available as a fallback identity for the bootstrap case
+# where the per-machine ed25519 is not yet registered.
+# -i + IdentitiesOnly probes the local key in isolation (no PIV, no
+# agent), so the probe works without a YubiKey plugged in; the
+# passphrase is prompted for interactively.
+if ssh -i "$LOCAL_KEY" -o IdentitiesOnly=yes "$NETCUP" true 2>/dev/null; then
+	echo '>local key already authorised on REDACTED'
+else
+	if ! ykman piv info >/dev/null 2>&1; then
+		read -rp ">plug in YubiKey and press Enter"
+	fi
+	# -f skips the macOS launchd-ssh-agent quirk in ssh-copy-id's "is
+	# this key already installed?" probe (we already checked above).
+	echo '>authorising local key on REDACTED'
+	ssh-copy-id -f -i "$LOCAL_PUB" "$NETCUP"
+fi
 
 # --- 3. GitHub
-echo '>logging in to GitHub'
-gh auth login \
-	--hostname github.com \
-	--git-protocol ssh \
-	--web \
-	--scopes admin:public_key \
-	--skip-ssh-key
-echo '>registering local key on GitHub'
-gh ssh-key add "$LOCAL_PUB" --title "$(hostname -s) $(date +%Y-%m-%d)"
+if gh auth status --hostname github.com >/dev/null 2>&1; then
+	echo '>already logged in to GitHub'
+else
+	echo '>logging in to GitHub'
+	gh auth login \
+		--hostname github.com \
+		--git-protocol ssh \
+		--web \
+		--scopes admin:public_key \
+		--skip-ssh-key
+fi
+# Treat "already exists" as success so re-runs do not fail.
+if ! gh ssh-key add "$LOCAL_PUB" --title "$(whoami)@$(hostname -s)" 2>/tmp/gh-ssh-key-err; then
+	if grep -qF "already exists" /tmp/gh-ssh-key-err; then
+		echo '>local key already on GitHub'
+	else
+		cat /tmp/gh-ssh-key-err >&2
+		exit 1
+	fi
+else
+	echo '>registered local key on GitHub'
+fi
 
 # --- 4. update allowed signers + commit
-# Commits to the chezmoi-configured sourceDir (i.e. the main checkout, not
-# any worktree). Run `chezmoi apply` from the main checkout on a real
-# machine, not from inside a worktree.
-# We use $CHEZMOI_SOURCE_DIR (set by chezmoi when running scripts) rather
-# than call `chezmoi source-path`: the parent `chezmoi apply` already
-# holds the persistent-state lock, and a nested chezmoi invocation would
-# deadlock waiting for it. See run_once_after-set-chezmoi-remote-url.sh
-# for the same pattern.
-PUB_LINE=$(awk '{print $1, $2}' "$LOCAL_PUB")
-HOST_TAG="@$(hostname -s)"
-LINE="andre@terroir.systems $PUB_LINE $HOST_TAG"
-KEY_FP=$(awk '{print $2}' "$LOCAL_PUB")
-mkdir -p "$(dirname "$ALLOWED")"
-touch "$ALLOWED"
-chmod 644 "$ALLOWED"
-if grep -qF "$KEY_FP" "$ALLOWED"; then
-	echo '>~/.allowed_signers already has this key'
+if grep -qF "$(awk '{print $2}' "$LOCAL_PUB")" "$CHEZMOI_SOURCE_DIR/dot_allowed_signers"; then
+	echo '>dot_allowed_signers already has this key'
 else
-	echo "$LINE" >> "$ALLOWED"
-fi
-if ! git -C "$CHEZMOI_SOURCE_DIR" diff --quiet -- dot_allowed_signers; then
+	PUB_LINE=$(awk '{print $1, $2}' "$LOCAL_PUB")
+	echo "andre@terroir.systems $PUB_LINE @$(hostname -s)" >> "$CHEZMOI_SOURCE_DIR/dot_allowed_signers"
+	git -C "$CHEZMOI_SOURCE_DIR" add dot_allowed_signers
 	git -C "$CHEZMOI_SOURCE_DIR" commit --only dot_allowed_signers \
 		-m "Allow $(hostname -s) signing key" \
 		-m "Auto-generated by run_once_set-up-3-ssh.sh on $(hostname -s) at $(date -Iseconds)."
