@@ -21,7 +21,7 @@ done
 # --- 1. local key
 if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
 	echo '>generating per-machine ed25519 key'
-	ssh-keygen -t ed25519 -N '' -C "$(hostname -s) $(date +%Y-%m-%d)" -f "$LOCAL_KEY"
+	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%Y-%m-%d)" -f "$LOCAL_KEY"
 fi
 
 # --- 2. REDACTED
