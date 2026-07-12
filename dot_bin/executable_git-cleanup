@@ -49,6 +49,10 @@ fi
 main_path=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
 cwd_worktree=$(git rev-parse --show-toplevel)
 
+relpath_from_main() {
+    python3 -c 'import os,sys; sys.stdout.write(os.path.relpath(sys.argv[1], sys.argv[2]))' "$1" "$main_path"
+}
+
 run() {
     if [ "$dry_run" -eq 1 ]; then
         return 0
@@ -69,27 +73,28 @@ while IFS=$'\t' read -r path lock_state; do
     if [ "$path" = "$main_path" ] || [ "$path" = "$cwd_worktree" ]; then
         continue
     fi
+    display=$(relpath_from_main "$path")
     if [ ! -d "$path" ]; then
         # Stale entry; the prune below will clean it up.
         continue
     fi
     if [ "$lock_state" = "locked" ]; then
-        printf '  %s skipped (locked)\n' "$path"
+        printf '  %s skipped (locked)\n' "$display"
         continue
     fi
     if status_output=$(git -C "$path" status --porcelain 2>/dev/null); then
         if [ -z "$status_output" ]; then
             if run git worktree remove "$path"; then
-                printf '  %s\n' "$path"
+                printf '  %s\n' "$display"
                 worktree_removed=$((worktree_removed + 1))
             else
-                printf 'failed to remove worktree: %s\n' "$path" >&2
+                printf 'failed to remove worktree: %s\n' "$display" >&2
             fi
         else
-            printf '  %s skipped (has changes)\n' "$path"
+            printf '  %s skipped (has changes)\n' "$display"
         fi
     else
-        printf 'failed to check worktree status: %s\n' "$path" >&2
+        printf 'failed to check worktree status: %s\n' "$display" >&2
     fi
 done < <(git worktree list --porcelain | awk '
     /^worktree / { path = substr($0, 10); locked = 0; next }
@@ -124,7 +129,7 @@ while IFS= read -r branch; do
     esac
     if [ -n "${worktree_branch_paths[$branch]+set}" ]; then
         printf '  %s skipped (checked out in worktree %s)\n' \
-            "$branch" "${worktree_branch_paths[$branch]}"
+            "$branch" "$(relpath_from_main "${worktree_branch_paths[$branch]}")"
         continue
     fi
     if [ -n "$(git branch --list "$branch" --merged "$current_branch" 2>/dev/null)" ]; then
