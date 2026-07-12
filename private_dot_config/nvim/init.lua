@@ -273,7 +273,7 @@ vim.opt.backup = true
 -- make a copy to create a backup, overwrite the original file in place
 -- this preserves the file creation timestamp (birthtime)
 vim.opt.backupcopy = 'yes'
--- create backupdir if doens't exist
+-- create backupdir if doesn't exist
 local backup_dir = vim.env.HOME .. '/.cache/nvim/backup'
 if vim.fn.isdirectory(backup_dir) ~= 1 then
    vim.fn.mkdir(backup_dir)
