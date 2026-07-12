@@ -57,7 +57,9 @@ validate changes against the worktree instead.
    only once the user has confirmed.
 
 Run validation before committing to catch template syntax errors and
-unintended changes. Do a fast forward only merge when asked to integrate the changes into main branch.
+unintended changes. Use the review tool before committing to catch
+issues that a manual pass misses. Do a fast forward only merge when
+asked to integrate the changes into main branch.
 
 ## Boundaries
 
