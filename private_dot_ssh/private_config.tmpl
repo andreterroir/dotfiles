@@ -15,6 +15,6 @@ Host github.com REDACTED
 	{{- if eq .chezmoi.os "darwin" }}
 	PKCS11Provider /opt/homebrew/lib/libykcs11.dylib
 	{{- else }}
-	PKCS11Provider /usr/lib64/libykcs11.so
+	PKCS11Provider /usr/lib64/libykcs11.so.2
 	{{- end }}
 	{{- end }}
