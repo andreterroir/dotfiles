@@ -10,7 +10,6 @@ Host *
 	HashKnownHosts no
 
 Host github.com REDACTED
-	IdentitiesOnly yes
 	IdentityFile ~/.ssh/id_ed25519
 	{{- if eq .chezmoi.os "darwin" }}
 	PKCS11Provider /opt/homebrew/lib/libykcs11.dylib

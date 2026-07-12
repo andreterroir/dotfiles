@@ -32,7 +32,7 @@ Top level (each `dot_*` maps to `~/.<name>`):
 - `run_once_after-set-chezmoi-remote-url.sh`
 - `run_once_set-up-1-gpg.sh.tmpl`                 one-time GPG/YubiKey setup (gated on `.desktop`)
 - `run_once_set-up-2-pass.sh.tmpl`                one-time `pass` store clone (gated on `.desktop`; clones the personal store to `~/.password-store`)
-- `run_once_set-up-3-ssh.sh.tmpl`                 one-time per-machine ed25519 bootstrap (gated on `.desktop`; uses the YubiKey PIV cert via the SSH config's `PKCS11Provider` to authorise the new key on netcup + GitHub and commit `dot_allowed_signers`; first-time PIV setup is documented in `readme.md`)
+- `run_once_set-up-3-ssh.sh.tmpl`                 one-time per-machine ed25519 bootstrap (gated on `.desktop`; authorises the new key on netcup + GitHub and commits `dot_allowed_signers`). First-time YubiKey PIV setup is documented in `readme.md`.
 
 `private_dot_config/` → `~/.config` (0700):
 - `ghostty/{config.tmpl,themes/}`        Ghostty terminal

@@ -1,6 +1,11 @@
 {{ if .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
+# This script is interactive: it blocks for the PIV PIN, the YubiKey
+# touch (when touch-policy is set), and the `gh auth login --web`
+# browser flow. The YubiKey is the only SSH auth identity available
+# until the per-machine ed25519 is registered on netcup and GitHub.
+# Run from a real terminal with the YubiKey plugged in, not from CI.
 set -euo pipefail
 
 LOCAL_KEY="$HOME/.ssh/id_ed25519"
@@ -25,7 +30,9 @@ if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
 fi
 
 # --- 2. REDACTED
-# SSH config provides PKCS11Provider + IdentitiesOnly for this host.
+# SSH config provides PKCS11Provider for this host, so the PIV cert is
+# available as a fallback identity when the per-machine ed25519 is not
+# yet registered (the bootstrap case).
 # -f skips the macOS launchd-ssh-agent quirk in ssh-copy-id's "is this
 # key already installed?" probe (it logs "failed to fetch key" then exits
 # 1 even when the key would otherwise authenticate fine).
