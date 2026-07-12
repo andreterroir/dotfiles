@@ -32,9 +32,14 @@ fi
 echo '>authorising local key on REDACTED'
 ssh-copy-id -f -i "$LOCAL_PUB" "$NETCUP"
 
-# --- 3. GitHub (no flags - accept all interactive defaults)
+# --- 3. GitHub
 echo '>logging in to GitHub'
-gh auth login --skip-ssh-key
+gh auth login \
+	--hostname github.com \
+	--git-protocol ssh \
+	--web \
+	--scopes admin:public_key \
+	--skip-ssh-key
 echo '>registering local key on GitHub'
 gh ssh-key add "$LOCAL_PUB" --title "$(hostname -s) $(date +%Y-%m-%d)"
 
