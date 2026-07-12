@@ -22,7 +22,5 @@ fi
 # POSIX way to get script's dir: https://stackoverflow.com/a/29834779/12156188
 script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
 
-echo "Running 'chezmoi $*'" >&2
 "$chezmoi" init --source="${script_dir}"
-"$chezmoi" apply --source="${script_dir}" "${HOME}/.config/chezmoi"
-"$chezmoi" apply --source="${script_dir}"
+"$chezmoi" apply --source="${script_dir}" "$@"
