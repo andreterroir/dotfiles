@@ -1,7 +1,7 @@
 {{ if lookPath "fish" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-set -e
+set -euo pipefail
 
 fish_path={{ lookPath "fish" }}
 if ! grep --quiet "$fish_path" /etc/shells; then

@@ -19,6 +19,12 @@ installed globally; do not duplicate them here.
 See the source tree for the current layout. Install scripts target
 macOS and Fedora Linux; other distros are unsupported.
 
+`run_*` scripts fire in alphabetical order of their target names, so
+`run_onchange_install-*-packages` (which installs fish) runs before
+`run_onchange_set-up-default-shell` (which runs `chsh`). Keep this
+ordering in mind when adding `run_*` scripts whose preconditions
+are installed by another script.
+
 ## File conventions
 
 - `dot_*`            → `~/.<name>` (e.g. `dot_gitconfig.tmpl` → `~/.gitconfig`)
