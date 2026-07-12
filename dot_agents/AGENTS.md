@@ -14,7 +14,8 @@ made, e.g. `message-length-validation`.
 ## After Making Changes
 
 Start a code review, if it was not yet performed, with the agent's native
-review capability (agent/tool), if available.
+review capability (agent/tool), if available. Use the review tool before
+committing to catch issues that a manual pass misses.
 
 ## Code Review
 

@@ -7,12 +7,13 @@ installed globally; do not duplicate them here.
 
 ## Where agent instructions live
 
-- `AGENTS.md` (this file) — repo-level instructions for working in this
-  dotfiles repo. Add anything specific to *editing this repository* here.
-- `dot_agents/AGENTS.md` — user-global instructions, deployed by chezmoi
-  to `~/.agents/AGENTS.md`, and symlinked from `dot_claude/` and
-  `private_dot_config/opencode/` into Claude and opencode configs. Move
-  global guidance there, not here.
+- `dot_agents/AGENTS.md` — user-global instructions (worktree workflow,
+  code review, commit conventions, etc.), deployed by chezmoi to
+  `~/.agents/AGENTS.md` and symlinked from `dot_claude/` and
+  `private_dot_config/opencode/`. Edit there, not here.
+- `AGENTS.md` (this file) — repo-level instructions only, for anything
+  specific to *editing this repository* (chezmoi workflow, file
+  conventions, boundaries).
 
 ## Repository layout
 
@@ -57,9 +58,7 @@ validate changes against the worktree instead.
    only once the user has confirmed.
 
 Run validation before committing to catch template syntax errors and
-unintended changes. Use the review tool before committing to catch
-issues that a manual pass misses. Do a fast forward only merge when
-asked to integrate the changes into main branch.
+unintended changes. Do a fast forward only merge when asked to integrate the changes into main branch.
 
 ## Boundaries
 
