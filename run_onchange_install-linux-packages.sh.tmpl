@@ -35,15 +35,6 @@ sudo dnf install -y \
 
 sudo systemctl enable --now pcscd
 
-# ensure fish is the login shell
-fedora_fish={{ lookPath "fish" }}
-if ! grep --quiet "$fedora_fish" /etc/shells; then
-	echo "$fedora_fish" | sudo tee -a /etc/shells
-fi
-if [ "$SHELL" != "$fedora_fish" ]; then
-	chsh -s "$fedora_fish"
-fi
-
 {{ if .linux.desktop -}}
 sudo dnf install -y \
 	ImageMagick \

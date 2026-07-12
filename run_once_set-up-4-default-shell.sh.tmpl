@@ -1,0 +1,13 @@
+{{ if lookPath "fish" -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -e
+
+fish_path={{ lookPath "fish" }}
+if ! grep --quiet "$fish_path" /etc/shells; then
+	echo "$fish_path" | sudo tee -a /etc/shells
+fi
+if [ "$SHELL" != "$fish_path" ]; then
+	chsh -s "$fish_path"
+fi
+{{ end -}}

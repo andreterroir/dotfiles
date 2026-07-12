@@ -80,13 +80,4 @@ mas 'WhatsApp', id: 310633997
 
 EOF
 
-# ensure Homebrew fish is the login shell
-homebrew_fish={{ lookPath "fish" }}
-if ! grep --quiet "$homebrew_fish" /etc/shells; then
-	echo "$homebrew_fish" | sudo tee -a /etc/shells
-fi
-if [ "$SHELL" != "$homebrew_fish" ]; then
-	chsh -s "$homebrew_fish"
-fi
-
 {{ end }}
