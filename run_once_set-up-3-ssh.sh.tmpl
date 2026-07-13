@@ -6,7 +6,8 @@
 # browser flow. Re-runs are idempotent: a YubiKey is only requested
 # when the local ed25519 is not yet authorised on netcup, the GitHub
 # login is skipped when already authenticated, and the key is not
-# re-uploaded to either host if it is already there. `~/.allowed_signers`
+# re-uploaded to either host if it is already there. The key is
+# registered on GitHub as both authentication and signing. `~/.allowed_signers`
 # is owned by chezmoi; this script only adds the new line to the repo's
 # `dot_allowed_signers` and commits it.
 # Run from a real terminal, not from CI.
@@ -53,8 +54,13 @@ else
 		--hostname github.com \
 		--git-protocol ssh \
 		--web \
-		--scopes admin:public_key \
+		--scopes admin:public_key admin:ssh_signing_key \
 		--skip-ssh-key
+fi
+# Ensure the signing-key scope is available (needed for existing
+# sessions that predate the signing-key upload addition).
+if ! gh auth status 2>&1 | grep -qF "admin:ssh_signing_key"; then
+	gh auth refresh -h github.com -s admin:ssh_signing_key
 fi
 # Check whether the key is already registered before attempting to add it.
 # Comparing key material (algo + base64) avoids false matches on title alone.
@@ -64,6 +70,12 @@ if gh ssh-key list 2>/dev/null | grep -qF "$KEY_MAT"; then
 else
 	echo '>registering local key on GitHub'
 	gh ssh-key add "$LOCAL_PUB" --title "$(whoami)@$(hostname -s)"
+fi
+if gh ssh-key list 2>/dev/null | grep -F "$KEY_MAT" | grep -qF "signing"; then
+	echo '>local signing key already on GitHub'
+else
+	echo '>registering local signing key on GitHub'
+	gh ssh-key add "$LOCAL_PUB" --title "$(whoami)@$(hostname -s)" --type signing
 fi
 
 # --- 4. update allowed signers + commit
