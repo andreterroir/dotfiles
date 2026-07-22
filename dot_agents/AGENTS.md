@@ -59,5 +59,5 @@ commit message, separated from the body by a blank line:
     Model: <provider/model>
     Agent: <agent-name>
 
-Examples of the `Model` value: `bedrock/sonnet-4.6`,
+Examples of the `Model` value: `bedrock/claude-sonnet-4.6`,
 `opencode-go/minimax-m3`.
