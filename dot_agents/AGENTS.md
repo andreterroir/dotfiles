@@ -3,6 +3,11 @@
 Do not interact with Git repository or GitHub (via API or `gh` CLI) unless
 asked explicitly.
 
+## Local Configuration
+
+Inspect `~/.agents/AGENTS.local.md` if present and incorporate any additional
+instructions found there.
+
 ## Before Making Changes
 
 Create a Git worktree first, unless asked to make changes to the current branch
