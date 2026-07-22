@@ -407,7 +407,7 @@ vim.api.nvim_create_autocmd({ 'FileType' }, {
 -- expandtab, 2-space indent
 vim.api.nvim_create_autocmd({ 'FileType' }, {
    group = augroup,
-   pattern = { 'html', 'kotlin', 'swift' },
+   pattern = { 'html', 'kotlin', 'swift', 'yaml' },
    callback = function()
       vim.opt_local.expandtab = true
       vim.opt_local.softtabstop = 2
