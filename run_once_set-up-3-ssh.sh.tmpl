@@ -5,12 +5,12 @@
 # touch (when touch-policy is set), and the `gh auth login --web`
 # browser flow. Re-runs are idempotent: a YubiKey is only requested
 # when the local ed25519 is not yet authorised on netcup; GitHub key
-# presence is checked via the public API for the andreterroir account
-# (no elevated scopes), and login/scope refresh only runs when a key
-# still needs uploading. The key is registered on GitHub as both
-# authentication and signing. `~/.allowed_signers` is owned by
-# chezmoi; this script only adds the new line to the repo's
-# `dot_allowed_signers` and commits it.
+# presence is checked via the public API (no auth needed), so gh
+# auth only runs when a key still needs uploading. Uploads pin gh's
+# active account to andreterroir (left active afterwards). The key
+# is registered as both authentication and signing.
+# `~/.allowed_signers` is owned by chezmoi; this script only adds
+# the new line to the repo's `dot_allowed_signers` and commits it.
 # Run from a real terminal, not from CI.
 set -euo pipefail
 
@@ -47,81 +47,55 @@ else
 fi
 
 # --- 3. GitHub (andreterroir)
-# Public user-key endpoints need no scopes, so we can skip gh auth
-# entirely when the key is already registered on the target account.
+# Key registrations are public, so check them before touching gh
+# auth: re-runs skip the browser flow when nothing needs uploading.
+# Key material never appears in titles, so a substring match on the
+# buffered JSON is enough (buffering also avoids curl|grep SIGPIPE
+# false-negatives under pipefail).
 GH_ACCOUNT=andreterroir
 KEY_MAT=$(awk '{print $1, $2}' "$LOCAL_PUB")
-# Buffer the response before grepping: with pipefail, curl|grep -q can
-# false-negative when grep exits early and curl dies on SIGPIPE.
-need_auth_key=false
-need_signing_key=false
-auth_keys_json=$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")
-if grep -qF "\"key\": \"$KEY_MAT\"" <<<"$auth_keys_json"; then
-	echo ">local key already on GitHub (@${GH_ACCOUNT})"
-else
-	need_auth_key=true
-fi
-signing_keys_json=$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")
-if grep -qF "\"key\": \"$KEY_MAT\"" <<<"$signing_keys_json"; then
-	echo ">local signing key already on GitHub (@${GH_ACCOUNT})"
-else
-	need_signing_key=true
-fi
+auth_keys=$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")
+signing_keys=$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")
 
-if $need_auth_key || $need_signing_key; then
-	needed_scopes=()
-	$need_auth_key && needed_scopes+=(admin:public_key)
-	$need_signing_key && needed_scopes+=(admin:ssh_signing_key)
-
-	# Pin the active account so refresh/add never hit a different login.
-	# Login makes the new account active; switch only when it already exists.
-	if gh auth status --hostname github.com 2>&1 \
-		| grep -qF "account ${GH_ACCOUNT} "; then
+if ! grep -qF "$KEY_MAT" <<<"$auth_keys" || ! grep -qF "$KEY_MAT" <<<"$signing_keys"; then
+	# gh may hold several accounts (work + personal): make
+	# $GH_ACCOUNT active so refresh/add never hit another login.
+	# Switch works when the account is known, log in otherwise.
+	if gh auth switch --hostname github.com --user "$GH_ACCOUNT" 2>/dev/null; then
 		echo ">using GitHub account ${GH_ACCOUNT}"
-		gh auth switch --hostname github.com --user "$GH_ACCOUNT"
 	else
 		echo ">logging in to GitHub as ${GH_ACCOUNT} (select this account in the browser)"
-		scope_flags=()
-		for s in "${needed_scopes[@]}"; do
-			scope_flags+=(--scopes "$s")
-		done
-		gh auth login \
-			--hostname github.com \
-			--git-protocol ssh \
-			--web \
-			"${scope_flags[@]}" \
+		gh auth login --hostname github.com --git-protocol ssh --web \
+			--scopes admin:public_key --scopes admin:ssh_signing_key \
 			--skip-ssh-key
 	fi
 	active=$(gh api user -q .login)
 	if [ "$active" != "$GH_ACCOUNT" ]; then
-		echo "error: expected GitHub login ${GH_ACCOUNT}, got ${active}" >&2
+		echo "error: active GitHub account is not ${GH_ACCOUNT}" >&2
 		exit 1
 	fi
 
-	# Refresh only scopes the active token still lacks.
-	auth_status=$(gh auth status --hostname github.com --active 2>&1)
-	missing_scopes=()
-	for s in "${needed_scopes[@]}"; do
-		grep -qF "$s" <<<"$auth_status" || missing_scopes+=("$s")
-	done
-	if ((${#missing_scopes[@]})); then
-		echo ">extending GitHub token scopes: ${missing_scopes[*]}"
-		scope_flags=()
-		for s in "${missing_scopes[@]}"; do
-			scope_flags+=(-s "$s")
-		done
-		gh auth refresh -h github.com "${scope_flags[@]}"
+	# Login requests both scopes, so a token created by this script
+	# has public_key iff it has the signing scope; only older
+	# tokens need topping up.
+	if ! grep -qF admin:ssh_signing_key \
+		<<<"$(gh auth status --hostname github.com --active 2>&1)"; then
+		echo '>extending GitHub token scopes'
+		gh auth refresh --hostname github.com \
+			--scopes admin:public_key --scopes admin:ssh_signing_key
 	fi
 
 	title="$(whoami)@$(hostname -s)"
-	if $need_auth_key; then
+	if ! grep -qF "$KEY_MAT" <<<"$auth_keys"; then
 		echo '>registering local key on GitHub'
 		gh ssh-key add "$LOCAL_PUB" --title "$title"
 	fi
-	if $need_signing_key; then
+	if ! grep -qF "$KEY_MAT" <<<"$signing_keys"; then
 		echo '>registering local signing key on GitHub'
 		gh ssh-key add "$LOCAL_PUB" --title "$title" --type signing
 	fi
+else
+	echo '>local key already on GitHub (auth + signing)'
 fi
 
 # --- 4. update allowed signers + commit
