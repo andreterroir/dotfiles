@@ -14,7 +14,8 @@ Create a Git worktree first, unless asked to make changes to the current branch
 or the working directory within a worktree already (a child of `.wt/` or in
 `git worktree list`). Create worktrees with `git worktree add
 .wt/<branch-name>` using a short simple name referencing the change being
-made, e.g. `message-length-validation`.
+made, e.g. `message-length-validation`. Never create a worktree inside
+another worktree; if started from a worktree directory, work there directly.
 
 ## After Making Changes
 
