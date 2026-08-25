@@ -3,6 +3,9 @@
 Do not interact with Git repository or GitHub (via API or `gh` CLI) unless
 asked explicitly.
 
+To avoid reading large binary files unintentionally, inspect files without
+extension first using `file` command line tool.
+
 ## Local Configuration
 
 Inspect `~/.agents/AGENTS.local.md` if present and incorporate any additional
