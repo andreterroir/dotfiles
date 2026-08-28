@@ -21,9 +21,14 @@ YubiKey PIV (once per YubiKey)
 ------------------------------
 
 Done once per YubiKey, before applying this repo to any machine. The
-slot-9a key created here is a permanent fallback identity used by the
-SSH config's `PKCS11Provider`; the per-machine ed25519 from
-`run_once_set-up-3-ssh.sh.tmpl` remains the primary identity.
+slot-9a key created here is a fallback identity: the bootstrap script
+`run_once_set-up-3-ssh.sh.tmpl` passes `PKCS11Provider` inline (via
+`ssh-copy-id -o`) so the PIV cert can authenticate the first run,
+before the per-machine ed25519 is registered. It is deliberately kept
+out of the permanent SSH config, because a permanent
+`PKCS11Provider` disables `UseKeychain` on macOS (see ssh_config),
+forcing the ed25519 passphrase to be re-entered after every reboot.
+The per-machine ed25519 remains the primary identity.
 
 Based on the
 [Yubico guide](https://developers.yubico.com/PIV/Guides/SSH_with_PIV_and_PKCS11.html).
@@ -72,10 +77,14 @@ yubico-piv-tool` on Fedora). Plug in the YubiKey, then:
        gh ssh-key add /tmp/piv.pub --title "yubikey-piv"
        rm /tmp/piv.pub
 
-The SSH config's `PKCS11Provider` for `github.com` and
-`REDACTED` makes ssh use libykcs11 directly for those hosts,
-so no ssh-agent setup is required for them. (Optional) To also
-expose the key via ssh-agent for other uses, run
+`PKCS11Provider` is not kept in the permanent SSH config (it would
+disable `UseKeychain` on macOS, forcing passphrase re-entry after
+every reboot). Instead, `run_once_set-up-3-ssh.sh.tmpl` passes it
+inline via `ssh-copy-id -o "PKCS11Provider=…"` during bootstrap, so
+the PIV cert authenticates the first run before the per-machine
+ed25519 is registered. After setup, the ed25519 is the primary
+identity and `UseKeychain` handles passphrase persistence. (Optional)
+To also expose the PIV key via ssh-agent for other uses, run
 `ssh-add -s <libykcs11>` and confirm with `ssh-add -l` — but note
 that macOS launchd-ssh-agent (the default `SSH_AUTH_SOCK` on macOS)
 does not support PKCS#11 cards. To use ssh-add -s on macOS, start

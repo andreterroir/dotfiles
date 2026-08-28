@@ -20,6 +20,11 @@ git -C "$CHEZMOI_SOURCE_DIR" remote set-url origin git@github.com:andreterroir/d
 LOCAL_KEY="$HOME/.ssh/id_ed25519"
 LOCAL_PUB="$LOCAL_KEY.pub"
 NETCUP=REDACTED
+{{- if eq .chezmoi.os "darwin" }}
+PKCS11=/opt/homebrew/lib/libykcs11.dylib
+{{- else }}
+PKCS11=/usr/lib64/libykcs11.so.2
+{{- end }}
 
 # --- 1. local key
 if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
@@ -28,9 +33,13 @@ if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
 fi
 
 # --- 2. REDACTED
-# The SSH config provides PKCS11Provider for this host, so the PIV
-# cert is available as a fallback identity for the bootstrap case
-# where the per-machine ed25519 is not yet registered.
+# PKCS11Provider is passed inline here (via -o) only during
+# ssh-copy-id, not kept in the permanent SSH config: a permanent
+# PKCS11Provider disables UseKeychain on macOS (see ssh_config:
+# "Setting PKCS11Provider will disable UseKeychain"), which would
+# force re-entering the ed25519 passphrase after every reboot. The
+# PIV cert is available as a fallback identity for the bootstrap
+# case where the per-machine ed25519 is not yet registered.
 # -i + IdentitiesOnly probes the local key in isolation (no PIV, no
 # agent), so the probe works without a YubiKey plugged in; the
 # passphrase is prompted for interactively.
@@ -43,7 +52,7 @@ else
 	# -f skips the macOS launchd-ssh-agent quirk in ssh-copy-id's "is
 	# this key already installed?" probe (we already checked above).
 	echo '>authorising local key on REDACTED'
-	ssh-copy-id -f -i "$LOCAL_PUB" "$NETCUP"
+	ssh-copy-id -f -i "$LOCAL_PUB" -o "PKCS11Provider=$PKCS11" "$NETCUP"
 fi
 
 # --- 3. GitHub (andreterroir)
