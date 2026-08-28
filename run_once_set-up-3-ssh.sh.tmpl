@@ -33,16 +33,13 @@ if [ ! -f "$LOCAL_KEY" ] || [ ! -f "$LOCAL_PUB" ]; then
 fi
 
 # --- 2. REDACTED
-# PKCS11Provider is passed inline here (via -o) only during
-# ssh-copy-id, not kept in the permanent SSH config: a permanent
-# PKCS11Provider disables UseKeychain on macOS (see ssh_config:
-# "Setting PKCS11Provider will disable UseKeychain"), which would
-# force re-entering the ed25519 passphrase after every reboot. The
-# PIV cert is available as a fallback identity for the bootstrap
-# case where the per-machine ed25519 is not yet registered.
-# -i + IdentitiesOnly probes the local key in isolation (no PIV, no
-# agent), so the probe works without a YubiKey plugged in; the
-# passphrase is prompted for interactively.
+# PKCS11Provider is passed inline via ssh-copy-id -o, not kept in the
+# permanent SSH config: a permanent PKCS11Provider disables UseKeychain
+# on macOS, forcing the ed25519 passphrase to be re-entered after every
+# reboot. The PIV cert acts as a fallback identity until the per-machine
+# ed25519 is registered.
+# -i + IdentitiesOnly probes the local key alone (no PIV, no agent), so
+# the probe works without a YubiKey plugged in.
 if ssh -i "$LOCAL_KEY" -o IdentitiesOnly=yes "$NETCUP" true 2>/dev/null; then
 	echo '>local key already authorised on REDACTED'
 else
