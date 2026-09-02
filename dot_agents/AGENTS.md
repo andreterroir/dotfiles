@@ -1,24 +1,29 @@
-## Restrictions
+## Local Configuration
 
-Do not interact with Git repository or GitHub (via API or `gh` CLI) unless
-asked explicitly.
+If present, inspect `~/.agents/AGENTS.local.md` and respect the instructions
+found there, which take precedence over the content of this file in case of
+conflicts.
+
+## Restrictions
 
 To avoid reading large binary files unintentionally, inspect files without
 extension first using `file` command line tool.
 
-## Local Configuration
-
-Inspect `~/.agents/AGENTS.local.md` if present and incorporate any additional
-instructions found there.
+Do not push or pull changes from Git remotes and do not interact with GitHub
+(via `gh` CLI or an API) unless asked.
 
 ## Before Making Changes
 
-Create a Git worktree first, unless asked to make changes to the current branch
-or the working directory within a worktree already (a child of `.wt/` or in
-`git worktree list`). Create worktrees with `git worktree add
-.wt/<branch-name>` using a short simple name referencing the change being
-made, e.g. `message-length-validation`. Never create a worktree inside
-another worktree; if started from a worktree directory, work there directly.
+When inside a Git repository, always make changes within a non-main Git
+worktree, unless asked explicitly to work on the default branch.
+
+Use the existing worktree, if asked to work on a specific branch that has a
+linked worktree or the current working directory is already inside a worktree.
+Otherwise create a new worktree with `git worktree add .wt/<branch-name>`. Use
+a short simple name referencing the change being made as the branch name, e.g.
+`message-length-validation`.
+
+Never create a nested worktree inside another worktree.
 
 ## After Making Changes
 
@@ -57,11 +62,11 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 
 ### Attribution trailers
 
-When committing as an agent, append the following Git trailers to every
-commit message, separated from the body by a blank line:
+When committing as an agent, append the following Git trailers to every commit
+message, separated from the body by a blank line:
 
-    Model: <provider/model>
-    Agent: <agent-name>
+	Model: <provider/model>
+	Agent: <agent-name>
 
 Examples of the `Model` value: `bedrock/claude-sonnet-4.6`,
 `opencode-go/minimax-m3`.
