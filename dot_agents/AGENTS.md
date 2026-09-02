@@ -54,7 +54,7 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 
 - Capitalize the subject line.
 - Use the imperative mood ("Fix bug", not "Fixed bug").
-- Limit the subject line to ~50 characters.
+- Limit the subject line to 50 characters.
 - Omit trailing punctuation in the subject.
 - Separate subject from body with a blank line.
 - Wrap the body at 72 characters.
