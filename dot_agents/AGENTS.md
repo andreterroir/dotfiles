@@ -60,7 +60,7 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 - Wrap the body at 72 characters.
 - Use the body to explain what and why, not how.
 
-### Attribution trailers
+### Attribution Trailers
 
 When committing as an agent, append the following Git trailers to every commit
 message, separated from the body by a blank line:
@@ -70,3 +70,11 @@ message, separated from the body by a blank line:
 
 Examples of the `Model` value: `bedrock/claude-sonnet-4.6`,
 `opencode-go/minimax-m3`.
+
+## Publishing Changes
+
+After pushing a branch, if it has an associated pull request, make sure that
+that its title and description reflect the most recent changes.
+
+When asked to create a new pull request make sure it has the correct base
+branch, if differs from the main branch.
