@@ -10,25 +10,29 @@ To avoid reading large binary files unintentionally, inspect files without
 extension first using `file` command line tool.
 
 Do not push or pull changes from Git remotes and do not interact with GitHub
-(via `gh` CLI or an API) unless asked. Exception: you may fetch the default
-branch before creating new worktrees (see "Before Making Changes").
+(via `gh` CLI or an API) unless asked. Exception: you may fetch `origin/main`
+to check whether the remote main branch has new commits (see "Before Making
+Changes").
 
 ## Before Making Changes
 
-When inside a Git repository, always make changes within a non-main Git
-worktree, unless asked explicitly to work on the default branch.
+The `main` branch is always checked out in the main worktree. Two operations
+may fetch `origin/main` as an exception to the "Do not push or pull"
+restriction above:
 
-Before cutting a new branch or worktree, ensure the local default branch is up
-to date: `git fetch origin` and rebase onto `origin/main`. Only update the
-local main reference when working on the default branch directly, since it is
-always checked out in the main worktree. This is a permitted exception to the
-"Do not push or pull" restriction above.
+- To create a new branch or worktree from a fresh `main`, run
+  `git fetch origin && git rebase origin/main` (in the main worktree)
+  before cutting the new branch.
+- When working on `main` directly, fast-forward the local `main` reference
+  with `git fetch origin && git merge --ff-only origin/main`. If a
+  fast-forward is not possible, stop and ask the user — never create a
+  merge commit on `main`.
 
-Use the existing worktree, if asked to work on a specific branch that has a
-linked worktree or the current working directory is already inside a worktree.
-Otherwise create a new worktree with `git worktree add .wt/<branch-name>`. Use
-a short simple name referencing the change being made as the branch name, e.g.
-`message-length-validation`.
+For any other branch, use the existing worktree if the current working
+directory is already inside a linked one, or if you were asked to work on a
+specific branch that already has one. Otherwise create a new worktree with
+`git worktree add .wt/<branch-name>`. Use a short simple name referencing the
+change being made as the branch name, e.g. `message-length-validation`.
 
 Never create a nested worktree inside another worktree.
 
