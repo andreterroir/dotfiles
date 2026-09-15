@@ -10,12 +10,19 @@ To avoid reading large binary files unintentionally, inspect files without
 extension first using `file` command line tool.
 
 Do not push or pull changes from Git remotes and do not interact with GitHub
-(via `gh` CLI or an API) unless asked.
+(via `gh` CLI or an API) unless asked. Exception: you may fetch the default
+branch before creating new worktrees (see "Before Making Changes").
 
 ## Before Making Changes
 
 When inside a Git repository, always make changes within a non-main Git
 worktree, unless asked explicitly to work on the default branch.
+
+Before cutting a new branch or worktree, ensure the local default branch is up
+to date: `git fetch origin` and rebase onto `origin/main`. Only update the
+local main reference when working on the default branch directly, since it is
+always checked out in the main worktree. This is a permitted exception to the
+"Do not push or pull" restriction above.
 
 Use the existing worktree, if asked to work on a specific branch that has a
 linked worktree or the current working directory is already inside a worktree.
