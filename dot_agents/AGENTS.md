@@ -36,6 +36,11 @@ change being made as the branch name, e.g. `message-length-validation`.
 
 Never create a nested worktree inside another worktree.
 
+## Making Changes
+
+Keep comments brief. A good comment should speed up reading the code, not slow
+it down. Extended context belongs in commit messages, not in comments.
+
 ## After Making Changes
 
 Start a code review, if it was not yet performed, with the agent's native
