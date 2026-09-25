@@ -38,4 +38,9 @@ if test -f $_oc_local
     set --global --export OPENCODE_CONFIG $_oc_local
 end
 
+# Load Amp completions at runtime (per https://ampcode.com/docs/cli)
+if status is-interactive; and command -q amp
+    amp completions fish | source
+end
+
 source $__fish_config_dir/config.local.fish 2>/dev/null
