@@ -39,3 +39,6 @@
 	helper = !gh auth git-credential
 [include]
 	path = ~/.gitconfig.local
+[credential "https://ampcode.com/"]
+	helper = 
+	helper = !amp git-credential-helper
