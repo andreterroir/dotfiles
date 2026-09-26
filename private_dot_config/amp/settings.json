@@ -1,0 +1,4 @@
+{
+  "$schema": "https://ampcode.com/cli-settings.schema.json",
+  "amp.remoteThreadCreation.enabled": true
+}
