@@ -17,8 +17,9 @@ installed globally; do not duplicate them here.
 
 ## Repository layout
 
-See the source tree for the current layout. Install scripts target
-macOS and Fedora Linux; other distros are unsupported.
+See the source tree for the current layout. Package install scripts target
+macOS and Fedora Linux. Ubuntu servers only receive setup from scripts
+explicitly gated to that platform; other distros are unsupported.
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` (which installs fish) runs before

@@ -7,8 +7,9 @@ Prerequisites
 - curl
 - git
 
-This repo targets macOS and Fedora Linux. Other distros are
-unsupported; the install scripts use `brew` and `dnf`/`flatpak`.
+Package install scripts target macOS and Fedora Linux. Ubuntu servers only
+receive setup from scripts explicitly gated to that platform. Other distros
+are unsupported.
 
 Install
 -------
