@@ -81,11 +81,6 @@ require('lazy').setup({
    },
    -- navigation
    'christoomey/vim-tmux-navigator',
-   {
-      'ThePrimeagen/harpoon',
-      branch = 'harpoon2',
-      dependencies = { 'nvim-lua/plenary.nvim' },
-   },
    -- search
    {
       'ibhagwan/fzf-lua',
@@ -327,14 +322,6 @@ vim.keymap.set('n', '<leader>fs', fzf.grep_cWORD, { desc = '[F]ind [S]tring' })
 vim.keymap.set('n', '<leader>fk', fzf.keymaps, { desc = '[F]ind [K]ey mapping' })
 vim.keymap.set('n', '<leader>fr', fzf.oldfiles, { desc = '[f]ind [r]ecent files' })
 vim.keymap.set('n', '<leader>fh', fzf.helptags, { desc = '[F]ind [H]elp' })
-
-local harpoon = require('harpoon')
-harpoon:setup()
-vim.keymap.set('', '<leader>A', function() harpoon:list():add() end, { desc = '[A]dd to Harpoon file list' })
-vim.keymap.set('', '<leader>H', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = 'Toggle Harpoon file selector' })
-for i = 1, 5 do
-   vim.keymap.set('', '<leader>' .. i, function() harpoon:list():select(i) end, { desc = 'Switch to Harpoon file ' .. i })
-end
 
 local function journal_next(step)
    local buf_path = vim.api.nvim_buf_get_name(0)

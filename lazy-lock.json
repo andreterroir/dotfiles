@@ -19,10 +19,6 @@
     "branch": "main",
     "commit": "070a5d7b985546cc57e1fc61e5bc507fecac6045"
   },
-  "harpoon": {
-    "branch": "harpoon2",
-    "commit": "87b1a3506211538f460786c23f98ec63ad9af4e5"
-  },
   "lazy.nvim": {
     "branch": "main",
     "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97"
@@ -42,10 +38,6 @@
   "persistence.nvim": {
     "branch": "main",
     "commit": "b20b2a7887bd39c1a356980b45e03250f3dce49c"
-  },
-  "plenary.nvim": {
-    "branch": "master",
-    "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b"
   },
   "securemodelines": {
     "branch": "master",
