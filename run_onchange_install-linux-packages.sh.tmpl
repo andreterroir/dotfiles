@@ -121,42 +121,50 @@ fi
 
 # Exercism publishes release tarballs only; there is no apt package.
 # https://exercism.org/cli-walkthrough
+# Pinned: bump the version and checksums together.
+exercism_version=3.5.8
 if ! command -v exercism > /dev/null; then
-	exercism_tag="$(curl -fsSL https://api.github.com/repos/exercism/cli/releases/latest \
-		| jq -r .tag_name)"
-	exercism_version="${exercism_tag#v}"
 	case "$(uname -m)" in
-		x86_64) exercism_arch=x86_64 ;;
-		aarch64) exercism_arch=arm64 ;;
+		x86_64)
+			exercism_arch=x86_64
+			exercism_sha=4ce6a3e5e41e4c51606f8cb94ef6b46e8f45144ef8c613c1ea4b8b69209e02ad
+			;;
+		aarch64)
+			exercism_arch=arm64
+			exercism_sha=0d2474eba53b14a8e4965c0d3c77b74d037058d2d76c55496deda63c7044d281
+			;;
 		*) echo "unsupported architecture for exercism: $(uname -m)" >&2; exit 1 ;;
 	esac
 	exercism_tmp="$(mktemp -d)"
 	curl -fsSL -o "$exercism_tmp/exercism.tar.gz" \
-		"https://github.com/exercism/cli/releases/download/${exercism_tag}/exercism-${exercism_version}-linux-${exercism_arch}.tar.gz"
+		"https://github.com/exercism/cli/releases/download/v${exercism_version}/exercism-${exercism_version}-linux-${exercism_arch}.tar.gz"
+	echo "$exercism_sha  $exercism_tmp/exercism.tar.gz" | sha256sum --check
 	tar -xzf "$exercism_tmp/exercism.tar.gz" -C "$exercism_tmp" exercism
 	install -D -m 755 "$exercism_tmp/exercism" "$HOME/.local/bin/exercism"
 	rm -rf "$exercism_tmp"
 fi
 
-# Latest tagged Zig, not Ubuntu's zig metapackage (pinned to 0.14).
+# Pinned tagged release, not Ubuntu's zig metapackage (0.14).
 # https://ziglang.org/download/
-zig_version="$(curl -fsSL https://ziglang.org/download/index.json \
-	| jq -r 'keys[] | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' \
-	| sort -V | tail -n 1)"
 # Compare the copy this script owns. An older zig earlier in PATH,
 # such as ~/bin/zig, must not hide it or force a reinstall.
+zig_version=0.16.0
 if [ ! -x "$HOME/.local/bin/zig" ] || [ "$("$HOME/.local/bin/zig" version)" != "$zig_version" ]; then
 	case "$(uname -m)" in
-		x86_64) zig_arch=x86_64 ;;
-		aarch64) zig_arch=aarch64 ;;
+		x86_64)
+			zig_arch=x86_64
+			zig_sha=70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00
+			;;
+		aarch64)
+			zig_arch=aarch64
+			zig_sha=ea4b09bfb22ec6f6c6ceac57ab63efb6b46e17ab08d21f69f3a48b38e1534f17
+			;;
 		*) echo "unsupported architecture for zig: $(uname -m)" >&2; exit 1 ;;
 	esac
 	zig_tarball="zig-${zig_arch}-linux-${zig_version}.tar.xz"
-	zig_url="https://ziglang.org/download/${zig_version}/${zig_tarball}"
-	zig_sha="$(curl -fsSL https://ziglang.org/download/index.json \
-		| jq -r --arg arch "${zig_arch}-linux" --arg ver "$zig_version" '.[$ver][$arch].shasum')"
 	zig_tmp="$(mktemp -d)"
-	curl -fsSL -o "$zig_tmp/$zig_tarball" "$zig_url"
+	curl -fsSL -o "$zig_tmp/$zig_tarball" \
+		"https://ziglang.org/download/${zig_version}/${zig_tarball}"
 	echo "$zig_sha  $zig_tmp/$zig_tarball" | sha256sum --check
 	rm -rf "$HOME/.local/zig"
 	tar -xJf "$zig_tmp/$zig_tarball" -C "$HOME/.local"
@@ -167,19 +175,25 @@ if [ ! -x "$HOME/.local/bin/zig" ] || [ "$("$HOME/.local/bin/zig" version)" != "
 fi
 
 # Official release binary in ~/.local/bin, ahead of any distro package.
-# Apt has no topgrade; deb-get is another installer, not an upstream package.
+# Apt has no topgrade; the release .deb is a one-off, not a repo.
+# Pinned: bump the version and checksums together.
+topgrade_version=17.12.2
 if [ ! -x "$HOME/.local/bin/topgrade" ]; then
 	case "$(uname -m)" in
-		x86_64) topgrade_arch=x86_64 ;;
-		aarch64) topgrade_arch=aarch64 ;;
+		x86_64)
+			topgrade_arch=x86_64
+			topgrade_sha=4d6660a2f021cf34c823c1baf4499a7cace581b5415935f6c5fc5484858faf8e
+			;;
+		aarch64)
+			topgrade_arch=aarch64
+			topgrade_sha=ebe0750313da6ae5cca7888f0ca4652272b29b8711b1e8c2ded35b8ce29a57d4
+			;;
 		*) echo "unsupported architecture for topgrade: $(uname -m)" >&2; exit 1 ;;
 	esac
-	topgrade_tag="$(curl -fsSL https://api.github.com/repos/topgrade-rs/topgrade/releases/latest \
-		| jq -r .tag_name)"
-	topgrade_version="${topgrade_tag#v}"
 	topgrade_tmp="$(mktemp -d)"
 	curl -fsSL -o "$topgrade_tmp/topgrade.tar.gz" \
-		"https://github.com/topgrade-rs/topgrade/releases/download/${topgrade_tag}/topgrade-v${topgrade_version}-${topgrade_arch}-unknown-linux-gnu.tar.gz"
+		"https://github.com/topgrade-rs/topgrade/releases/download/v${topgrade_version}/topgrade-v${topgrade_version}-${topgrade_arch}-unknown-linux-gnu.tar.gz"
+	echo "$topgrade_sha  $topgrade_tmp/topgrade.tar.gz" | sha256sum --check
 	tar -xzf "$topgrade_tmp/topgrade.tar.gz" -C "$topgrade_tmp"
 	install -D -m 755 "$topgrade_tmp/topgrade" "$HOME/.local/bin/topgrade"
 	rm -rf "$topgrade_tmp"
