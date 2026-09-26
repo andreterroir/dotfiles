@@ -4,7 +4,7 @@
 
 -- bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
    vim.fn.system({
       'git',
       'clone',
@@ -164,29 +164,35 @@ require('lazy').setup({
 
             -- navigation
             map('n', ']c', function()
-               if vim.wo.diff then return ']c' end
-               vim.schedule(function() gs.next_hunk() end)
-               return '<Ignore>'
-            end, { expr = true })
+               if vim.wo.diff then
+                  vim.cmd.normal({ ']c', bang = true })
+               else
+                  gs.nav_hunk('next')
+               end
+            end)
 
             map('n', '[c', function()
-               if vim.wo.diff then return '[c' end
-               vim.schedule(function() gs.prev_hunk() end)
-               return '<Ignore>'
-            end, { expr = true })
+               if vim.wo.diff then
+                  vim.cmd.normal({ '[c', bang = true })
+               else
+                  gs.nav_hunk('prev')
+               end
+            end)
 
             -- actions
             map({ 'n', 'v' }, '<leader>hs', gs.stage_hunk)
             map({ 'n', 'v' }, '<leader>hr', gs.reset_hunk)
             map('n', '<leader>hS', gs.stage_buffer)
-            map('n', '<leader>hu', gs.undo_stage_hunk)
+            -- stage_hunk on a staged hunk unstages it (undo_stage_hunk is deprecated)
+            map('n', '<leader>hu', gs.stage_hunk)
             map('n', '<leader>hR', gs.reset_buffer)
             map('n', '<leader>hp', gs.preview_hunk)
             map('n', '<leader>hb', function() gs.blame_line { full = true } end)
             map('n', '<leader>tb', gs.toggle_current_line_blame)
             map('n', '<leader>hd', gs.diffthis)
             map('n', '<leader>hD', function() gs.diffthis('~') end)
-            map('n', '<leader>td', gs.toggle_deleted)
+            -- show_deleted / toggle_deleted are deprecated
+            map('n', '<leader>td', gs.preview_hunk_inline)
 
             -- text object
             map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
@@ -351,7 +357,7 @@ local function journal_next(step)
    for i = 1, 30 do -- only look for files within a month
       local next_date = os.date('%Y-%m-%d', curr_date + i * step * 24 * 3600)
       local next_file = buf_path:gsub(date_pattern, next_date)
-      if vim.loop.fs_stat(next_file) then
+      if vim.uv.fs_stat(next_file) then
          vim.cmd('edit ' .. next_file)
          return
       end
