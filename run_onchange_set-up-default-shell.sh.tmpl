@@ -17,5 +17,10 @@ if ! grep --quiet --line-regexp --fixed-strings "$bash_path" /etc/shells; then
 	echo "$bash_path" | sudo tee -a /etc/shells
 fi
 if [ "$SHELL" != "$bash_path" ]; then
+	# chsh needs a PAM-capable tty. A non-interactive apply has none.
+	if [ ! -t 0 ]; then
+		echo "cannot change login shell to $bash_path: no tty for chsh" >&2
+		exit 1
+	fi
 	chsh -s "$bash_path"
 fi

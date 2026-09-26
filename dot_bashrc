@@ -20,7 +20,8 @@ fi
 # (overwrites suspension of terminal output)
 stty -ixon
 
-export HISTSIZE=10000
+export HISTSIZE=100000
+export HISTFILESIZE=100000
 # Append history file when shell exits
 shopt -s histappend
 # Display ANSI color escape characters in less
@@ -37,8 +38,14 @@ if [ -f /usr/lib/git-core/git-sh-prompt ]; then
 elif [ -f /usr/share/git-core/contrib/completion/git-prompt.sh ]; then
 	# Fedora
 	source /usr/share/git-core/contrib/completion/git-prompt.sh
-elif [ -f /opt/homebrew/etc/bash_completion.d/git-prompt.sh ]; then
-	source /opt/homebrew/etc/bash_completion.d/git-prompt.sh
+elif command -v brew > /dev/null; then
+	# Homebrew git installs the prompt next to other completions, not
+	# in etc/bash_completion.d.
+	git_prompt="$(brew --prefix)/share/bash-completion/completions/git-prompt.sh"
+	if [ -f "$git_prompt" ]; then
+		source "$git_prompt"
+	fi
+	unset git_prompt
 fi
 export GIT_PS1_SHOWDIRTYSTATE=1 # +/*
 export GIT_PS1_SHOWSTASHSTATE=1 # $
@@ -52,11 +59,14 @@ export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(__gi
 export PS1="\[\e]0;\u@\h: \w\a\]$PS1"
 
 # Enable completion. Amp requires Bash 4+ and bash-completion.
-if [ -f /opt/homebrew/share/bash-completion/bash_completion ]; then
-	source /opt/homebrew/share/bash-completion/bash_completion
-elif [ -f /etc/profile.d/bash_completion.sh ]; then
+# On macOS, source only the bash-completion@2 wrapper. It loads the
+# share file and etc/bash_completion.d; sourcing the share file
+# directly skips Homebrew formula completions.
+if [ -r /opt/homebrew/etc/profile.d/bash_completion.sh ]; then
+	source /opt/homebrew/etc/profile.d/bash_completion.sh
+elif [ -r /etc/profile.d/bash_completion.sh ]; then
 	source /etc/profile.d/bash_completion.sh
-elif [ -f /usr/share/bash-completion/bash_completion ]; then
+elif [ -r /usr/share/bash-completion/bash_completion ]; then
 	source /usr/share/bash-completion/bash_completion
 fi
 source <(chezmoi completion bash)
@@ -69,12 +79,15 @@ command -v amp > /dev/null && source <(amp completions bash)
 [ -f /usr/share/bash-completion/completions/pass-otp ] \
 	&& source /usr/share/bash-completion/completions/pass-otp
 
-# Tell GPG pinentry where to prompt for password
-GPG_TTY=$(tty)
-export GPG_TTY
-# ensure gpg-agent is running (macOS some Linuxes do not have socket
-# activation for GPG)
-gpgconf --launch gpg-agent
+# Tell GPG pinentry where to prompt for password. Ubuntu servers do
+# not install GPG.
+if command -v gpgconf > /dev/null; then
+	GPG_TTY=$(tty)
+	export GPG_TTY
+	# ensure gpg-agent is running (macOS and some Linuxes do not have
+	# socket activation for GPG)
+	gpgconf --launch gpg-agent
+fi
 
 # Load machine-specific configuration
 [ -f ~/.bashrc.local ] && source ~/.bashrc.local

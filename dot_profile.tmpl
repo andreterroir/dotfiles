@@ -1,8 +1,6 @@
 #!/bin/false
 # vi: ft=sh
 
-# Make Cargo binaries available
-[ -d "$HOME/.cargo/bin" ] && export PATH="$PATH:$HOME/.cargo/bin"
 # Store all Cargo build artifacts in one place
 # This also allows reusing build results between projects
 export CARGO_TARGET_DIR="$HOME/.cache/cargo/target"
@@ -11,24 +9,26 @@ export RUSTUP_HOME="$HOME/.cache/rustup"
 
 # Move GOPATH out of sight
 export GOPATH="$HOME/.cache/go"
-# go installed binaries
-[ -d "$HOME/.cache/go/bin" ] && export PATH="$PATH:$HOME/.cache/go/bin"
 
-# Include my scripts into PATH
-[ -e "$HOME/.bin" ] && export PATH="$PATH:$HOME/.bin"
-[ -e "$HOME/bin" ] && export PATH="$PATH:$HOME/bin"
-# Include user executables into PATH (used by pip)
-[ -d "$HOME/.local/bin" ] && export PATH="$PATH:$HOME/.local/bin"
 {{ if eq .chezmoi.os "darwin" -}}
-# Homebrew binaries
+# Homebrew binaries. User directories are prepended after this so they
+# win, matching fish_add_path.
 if [ -d "/opt/homebrew/" ]; then
 	export HOMEBREW_NO_AUTO_UPDATE
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 	# Use homebrew utilities instead of macOS provided commands
-	PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
 	PATH="$(brew --prefix)/opt/gnu-sed/libexec/gnubin:$PATH"
+	PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
 fi
 {{ end -}}
+# Prepend in reverse of fish_add_path order. The last prepend here is
+# searched first: cargo, go, ~/bin, ~/.bin, ~/.local/bin.
+[ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
+[ -e "$HOME/.bin" ] && PATH="$HOME/.bin:$PATH"
+[ -e "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
+[ -d "$HOME/.cache/go/bin" ] && PATH="$HOME/.cache/go/bin:$PATH"
+[ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
+export PATH
 
 export EDITOR=nvim
 # Use all available cores when possible
