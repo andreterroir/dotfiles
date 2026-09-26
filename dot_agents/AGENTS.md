@@ -84,8 +84,9 @@ message, separated from the body by a blank line:
 	Model: <provider/model>
 	Agent: <agent-name>
 
-Examples of the `Model` value: `bedrock/claude-sonnet-4.6`,
-`opencode-go/minimax-m3`.
+Use the provider/model and agent name actually in use, e.g. Model values such
+as opencode-go/muse-spark-1.3, opencode-go/minimax-m3, amp/gpt-6-astra
+or bedrock/sonnet-4.6, and Agent values such as amp or opencode.
 
 ## Publishing Changes
 
