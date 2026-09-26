@@ -9,3 +9,6 @@
 .swival/
 # Git worktrees
 .wt/
+
+# vim-plug clones
+dot_vim/plugged/

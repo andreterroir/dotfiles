@@ -1,0 +1,362 @@
+" Shared by Vim and Neovim. Neovim loads this from init.vim.
+" Legacy Vim script only: Neovim does not implement Vim9 script.
+
+let s:plug_dir = expand('~/.vim/plugged')
+let s:autoload = expand('~/.vim/autoload/plug.vim')
+if !filereadable(s:autoload)
+  silent! call mkdir(fnamemodify(s:autoload, ':h'), 'p')
+  execute '!curl -fLo ' . shellescape(s:autoload) . ' --create-dirs '
+        \ . 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+endif
+
+" Leader before plugins define mappings.
+let mapleader = ' '
+
+call plug#begin(s:plug_dir)
+" Vim-script colorscheme. Not the Neovim github-nvim-theme palette.
+Plug 'cormacrelf/vim-colors-github'
+Plug 'ypcrts/securemodelines'
+Plug 'tpope/vim-rsi'
+Plug 'tpope/vim-repeat'
+Plug 'andymass/vim-matchup'
+Plug 'tpope/vim-surround'
+Plug 'jiangmiao/auto-pairs'
+Plug 'liuchengxu/vim-which-key'
+Plug 'mbbill/undotree'
+Plug 'tpope/vim-obsession'
+Plug 'christoomey/vim-tmux-navigator'
+" fzf binary comes from the system package scripts.
+Plug 'junegunn/fzf'
+Plug 'junegunn/fzf.vim'
+Plug 'mhinz/vim-startify'
+Plug 'voldikss/vim-floaterm'
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'justinmk/vim-dirvish'
+call plug#end()
+
+" ----------------
+" options
+" ----------------
+if has('nvim')
+  " blink* cursor forms are Neovim-only.
+  set guicursor=i-r-c-ci-cr-t:block-blinkwait300-blinkoff150-blinkon150
+endif
+
+" GitGutter otherwise waits for the default 4s updatetime.
+set updatetime=100
+set termguicolors
+if !has('nvim')
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
+
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set noexpandtab
+
+let &fillchars = 'vert: '
+set list
+let &listchars .= ',tab:  '
+set listchars+=trail:·
+set listchars+=nbsp:⍽
+set listchars+=extends:»
+set listchars+=precedes:«
+set breakindent
+let &showbreak = '↳ '
+set formatlistpat=^\\s*\\(\\d\\+[\\]:.)}]*\\|[-\\*+]\\)\\s\\+
+set breakindentopt=sbr,list:-1
+set cpoptions+=n
+set conceallevel=1
+set number
+set cursorline
+set cursorlineopt=number
+set signcolumn=yes
+set foldlevelstart=99
+
+set nohlsearch
+set wildmode=longest:full,full
+
+set backup
+set backupcopy=yes
+let s:backup_dir = expand('~/.cache/vim/backup')
+if !isdirectory(s:backup_dir)
+  call mkdir(s:backup_dir, 'p')
+endif
+let &backupdir = s:backup_dir
+let &undodir = expand('~/.cache/vim/undo')
+if !isdirectory(&undodir)
+  call mkdir(&undodir, 'p')
+endif
+set undofile
+
+silent! colorscheme github
+
+" ----------------
+" keymap
+" ----------------
+" Empty mode is nvo, matching the old map of '', not :map (which includes select).
+
+nnoremap <leader>Th :set hlsearch!<CR>
+vnoremap <leader>Th :set hlsearch!<CR>
+onoremap <leader>Th :set hlsearch!<CR>
+nnoremap <leader>Ts :set spell!<CR>
+vnoremap <leader>Ts :set spell!<CR>
+onoremap <leader>Ts :set spell!<CR>
+
+nnoremap <leader>; :
+vnoremap <leader>; :
+onoremap <leader>; :
+
+nnoremap <leader>- :split<CR>
+vnoremap <leader>- :split<CR>
+onoremap <leader>- :split<CR>
+nnoremap <leader>\ :vsplit<CR>
+vnoremap <leader>\ :vsplit<CR>
+onoremap <leader>\ :vsplit<CR>
+
+if has('clipboard') || has('nvim')
+  nnoremap <leader>y "+y
+  vnoremap <leader>y "+y
+  nnoremap <leader>Y "+y$
+  nnoremap <leader>p "+p
+  vnoremap <leader>p "+p
+  nnoremap <leader>P "+P
+endif
+
+nnoremap ]q :cnext<CR>
+nnoremap [q :cprev<CR>
+
+" fzf.vim has no resume command.
+nnoremap <leader>F :Files<CR>
+nnoremap <leader>ff :Files<CR>
+nnoremap <leader>fg :Rg<CR>
+nnoremap <leader>fs :Rg <C-r><C-w><CR>
+nnoremap <leader>fk :Maps<CR>
+nnoremap <leader>fr :History<CR>
+nnoremap <leader>fh :Helptags<CR>
+
+nnoremap <leader>U :UndotreeToggle<CR>
+vnoremap <leader>U :UndotreeToggle<CR>
+onoremap <leader>U :UndotreeToggle<CR>
+nnoremap <leader>w :write<CR>
+vnoremap <leader>w :write<CR>
+onoremap <leader>w :write<CR>
+nnoremap <leader>q :confirm quitall<CR>
+vnoremap <leader>q :confirm quitall<CR>
+onoremap <leader>q :confirm quitall<CR>
+nnoremap <C-w>go :tabonly<CR>
+vnoremap <C-w>go :tabonly<CR>
+onoremap <C-w>go :tabonly<CR>
+
+" Alt-; often arrives as an escape sequence over SSH and will not match.
+nnoremap <A-;> :FloatermToggle<CR>
+tnoremap <A-;> <C-\><C-n>:FloatermToggle<CR>
+
+" gitgutter owns ]c/[c, <leader>hs, <leader>hu, <leader>hp, and ic/ac.
+" It has no blame or deleted-line toggle. In a diff window ]c is gitgutter's,
+" not the built-in diff motion.
+
+" ----------------
+" sessions
+" ----------------
+" One session per directory. Not persistence.nvim: nothing restores on startup,
+" and :Last is the previous directory recorded by this vimrc.
+let s:session_dir = expand('~/.cache/vim/sessions')
+if !isdirectory(s:session_dir)
+  call mkdir(s:session_dir, 'p')
+endif
+let s:last_session = s:session_dir . '/last'
+
+function! s:session_path(dir) abort
+  return s:session_dir . '/' . substitute(fnamemodify(a:dir, ':p'), '[^A-Za-z0-9]', '_', 'g') . '.vim'
+endfunction
+
+function! s:session_save() abort
+  if argc() == 0 && expand('%') ==# '' && winnr('$') == 1
+    return
+  endif
+  let path = s:session_path(getcwd())
+  execute 'mksession!' fnameescape(path)
+  call writefile([path], s:last_session)
+endfunction
+
+function! s:session_load(last) abort
+  if a:last
+    if !filereadable(s:last_session)
+      echomsg 'no last session'
+      return
+    endif
+    let path = readfile(s:last_session)[0]
+  else
+    let path = s:session_path(getcwd())
+  endif
+  if !filereadable(path)
+    echomsg 'no session: ' . path
+    return
+  endif
+  execute 'source' fnameescape(path)
+endfunction
+
+command! Load call s:session_load(0)
+command! Last call s:session_load(1)
+augroup session
+  autocmd!
+  autocmd VimLeavePre * call s:session_save()
+augroup END
+
+" ----------------
+" which-key
+" ----------------
+" vim-which-key does not read mapping descriptions, so the dictionary is the
+" source of labels. Mappings above still work without waiting for the popup.
+if exists(':WhichKey') == 2
+  nnoremap <silent> <leader> :WhichKey '<Space>'<CR>
+  vnoremap <silent> <leader> :WhichKeyVisual '<Space>'<CR>
+endif
+let g:which_key_map = {}
+let g:which_key_map.T = { 'name': '+toggle' }
+let g:which_key_map.T.h = 'search highlighting'
+let g:which_key_map.T.s = 'spell'
+let g:which_key_map.f = { 'name': '+find' }
+let g:which_key_map.f.f = 'files'
+let g:which_key_map.f.g = 'grep'
+let g:which_key_map.f.s = 'word under cursor'
+let g:which_key_map.f.k = 'key mappings'
+let g:which_key_map.f.r = 'recent files'
+let g:which_key_map.f.h = 'help'
+let g:which_key_map.h = { 'name': '+hunk' }
+let g:which_key_map.j = { 'name': '+journal' }
+let g:which_key_map.j[';'] = 'next journal file'
+let g:which_key_map.j[','] = 'previous journal file'
+if exists('*which_key#register')
+  call which_key#register('<Space>', 'g:which_key_map')
+endif
+
+" ----------------
+" startify
+" ----------------
+let g:startify_custom_header = []
+let g:startify_lists = [
+      \ { 'type': 'commands', 'header': ['   Commands'] },
+      \ { 'type': 'files', 'header': ['   Recent'] },
+      \ { 'type': 'sessions', 'header': ['   Sessions'] },
+      \ { 'type': 'bookmarks', 'header': ['   Bookmarks'] },
+      \ ]
+let g:startify_commands = [
+      \ ['Today''s journal', 'JournalToday'],
+      \ ['Find file', 'Files'],
+      \ ['Find text', 'Rg'],
+      \ ['Load session', 'Load'],
+      \ ['Last session', 'Last'],
+      \ ['Config', 'edit ~/.vimrc'],
+      \ ]
+let g:startify_bookmarks = [
+      \ { 'n': '~/notes/journal' },
+      \ ]
+
+" ----------------
+" journal
+" ----------------
+function! s:journal_date(offset) abort
+  return strftime('%Y-%m-%d', localtime() + a:offset * 86400)
+endfunction
+
+" date(1) parses an existing journal name. GNU and BSD flag sets differ.
+" system() is given a string: classic Vim rejects a List here.
+function! s:journal_shift(ymd, step) abort
+  if a:ymd !~# '\v^\d{4}-\d{2}-\d{2}$'
+    echomsg 'unexpected journal date: ' . a:ymd
+    return ''
+  endif
+  let n = a:step < 0 ? -a:step : a:step
+  let sign = a:step < 0 ? '-' : '+'
+  let spec = a:ymd . ' ' . sign . n . ' days'
+  let gnu = system('date -d ' . shellescape(spec) . ' +%F')
+  if v:shell_error == 0
+    return substitute(gnu, '\n$', '', '')
+  endif
+  let bsd = system('date -j -f %Y-%m-%d ' . shellescape(a:ymd) . ' -v' . a:step . 'd +%F')
+  if v:shell_error == 0
+    return substitute(bsd, '\n$', '', '')
+  endif
+  echomsg 'cannot shift journal date'
+  return ''
+endfunction
+
+function! s:journal_for_offset(offset) abort
+  let notes = expand('~/notes')
+  let day = s:journal_date(a:offset)
+  if day ==# ''
+    return
+  endif
+  execute 'cd' fnameescape(notes)
+  execute 'edit' fnameescape(notes . '/journal/' . day . '.md')
+endfunction
+
+command! JournalToday call s:journal_for_offset(0)
+command! JournalTomorrow call s:journal_for_offset(1)
+command! JournalYesterday call s:journal_for_offset(-1)
+
+function! s:journal_next(step) abort
+  let path = expand('%:p')
+  if path ==# ''
+    echomsg 'buffer has no path'
+    return
+  endif
+  if path !~# 'journal'
+    echomsg 'not a journal buffer'
+    return
+  endif
+  let stem = fnamemodify(path, ':t:r')
+  let matched = matchlist(stem, '\v(\d{4})-(\d{2})-(\d{2})')
+  if empty(matched)
+    echomsg 'unexpected journal file format: ' . path
+    return
+  endif
+  let i = 1
+  while i <= 30
+    let next = s:journal_shift(matched[1] . '-' . matched[2] . '-' . matched[3], i * a:step)
+    if next ==# ''
+      return
+    endif
+    let next_file = substitute(path, '\v\d{4}-\d{2}-\d{2}', next, '')
+    if filereadable(next_file)
+      execute 'edit' fnameescape(next_file)
+      return
+    endif
+    let i += 1
+  endwhile
+  echomsg 'no more close journal files'
+endfunction
+
+nnoremap <leader>j; :call <SID>journal_next(1)<CR>
+nnoremap <leader>j, :call <SID>journal_next(-1)<CR>
+
+" ----------------
+" autocommands
+" ----------------
+augroup init
+  autocmd!
+  autocmd BufWritePre * %s/\s\+$//e
+  autocmd FileType java,python,sh,zig setlocal expandtab softtabstop=4 shiftwidth=4
+  autocmd FileType html,kotlin,swift,yaml setlocal expandtab softtabstop=2 shiftwidth=2
+  autocmd FileType lua setlocal expandtab softtabstop=3 shiftwidth=3
+  autocmd FileType gitcommit setlocal spell textwidth=72
+  autocmd FileType go setlocal noexpandtab tabstop=8 shiftwidth=8
+  autocmd FileType markdown setlocal spell noexpandtab linebreak showbreak=NONE nonumber
+        \ | nnoremap <buffer> <silent> j gj
+        \ | nnoremap <buffer> <silent> k gk
+        \ | nnoremap <buffer> <silent> gj j
+        \ | nnoremap <buffer> <silent> gk k
+        \ | vnoremap <buffer> <silent> j gj
+        \ | vnoremap <buffer> <silent> k gk
+        \ | vnoremap <buffer> <silent> gj j
+        \ | vnoremap <buffer> <silent> gk k
+augroup END
+
+let s:local_vim = expand('~/.vim/init.local.vim')
+if filereadable(s:local_vim)
+  execute 'source' fnameescape(s:local_vim)
+endif
