@@ -54,22 +54,6 @@ flatpak install --assumeyes \
 	org.zotero.Zotero
 
 {{ end -}}
-# Fish already adds ~/.opencode/bin. --no-modify-path skips the
-# installer's ~/.bashrc PATH edit.
-if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
-	echo '>installing opencode'
-	curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
-fi
-
-if [ ! -x "$HOME/.local/bin/amp" ]; then
-	echo '>installing amp'
-	curl -fsSL https://ampcode.com/install.sh | bash
-fi
-
-if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-	echo '>installing TPM'
-	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-fi
 {{ else if and (eq .chezmoi.osRelease.id "ubuntu") .server -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
@@ -205,13 +189,17 @@ if [ ! -x "$HOME/.local/bin/topgrade" ]; then
 	install -D -m 755 "$topgrade_tmp/topgrade" "$HOME/.local/bin/topgrade"
 	rm -rf "$topgrade_tmp"
 fi
+{{ end -}}
 
-# Fish already adds ~/.opencode/bin. --no-modify-path skips the
-# installer's ~/.bashrc PATH edit.
+{{ if or (eq .chezmoi.osRelease.id "fedora") (and (eq .chezmoi.osRelease.id "ubuntu") .server) -}}
+# --no-modify-path skips the installer's shell PATH edit. Link the
+# binary into ~/.local/bin, which is already on PATH.
 if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
 	echo '>installing opencode'
 	curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
 fi
+mkdir -p "$HOME/.local/bin"
+ln -sfn "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"
 
 if [ ! -x "$HOME/.local/bin/amp" ]; then
 	echo '>installing amp'
@@ -222,4 +210,4 @@ if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
 	echo '>installing TPM'
 	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 fi
-{{ end }}
+{{ end -}}
