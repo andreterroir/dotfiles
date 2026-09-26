@@ -1,0 +1,38 @@
+{{ if and .server (eq .chezmoi.osRelease.id "ubuntu") -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Install Ghostty's own xterm-ghostty terminfo entry into ~/.terminfo.
+#
+# Ghostty sets TERM=xterm-ghostty. Ubuntu's ncurses-term only ships a reduced
+# entry named "ghostty" (a separate definition, missing Sync, fullkbd, setrgbf
+# and Setulc), and tmux has no built-in entry for the xterm-ghostty name, so
+# attaching from Ghostty over SSH fails with
+# "missing or unsuitable terminal: xterm-ghostty".
+#
+# The entry is taken from Ubuntu's ghostty package rather than aliasing the
+# ncurses "ghostty" entry, which is not a drop-in replacement. ncurses searches
+# ~/.terminfo before /usr/share/terminfo, so a user-level install needs no sudo
+# and is not clobbered by distro updates.
+set -euo pipefail
+
+if infocmp -x xterm-ghostty > /dev/null 2>&1; then
+	echo '>xterm-ghostty terminfo already available'
+	exit 0
+fi
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+echo '>installing xterm-ghostty terminfo from the Ubuntu ghostty package'
+(
+	cd "$tmp"
+	apt-get download -qq ghostty
+	dpkg-deb -x ghostty_*.deb root
+)
+
+mkdir -p "$HOME/.terminfo/x"
+cp "$tmp"/root/usr/share/terminfo/x/xterm-ghostty "$HOME/.terminfo/x/"
+
+infocmp -x xterm-ghostty > /dev/null
+echo '>xterm-ghostty terminfo installed'
+{{ end -}}
