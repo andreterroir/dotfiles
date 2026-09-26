@@ -16,6 +16,10 @@ tap 'cormacrelf/tap'
 
 brew 'ampcode/tap/ampcode'
 brew 'ascii'
+brew 'bash'
+# @2 is the Bash 4.2+ completion package. Unversioned bash-completion
+# is for macOS Bash 3.2 and conflicts with this formula.
+brew 'bash-completion@2'
 brew 'chezmoi'
 brew 'coreutils'
 brew 'cormacrelf/tap/dark-notify'

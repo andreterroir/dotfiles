@@ -1,13 +1,21 @@
-{{ if lookPath "fish" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail
 
-fish_path={{ lookPath "fish" }}
-if ! grep --quiet "$fish_path" /etc/shells; then
-	echo "$fish_path" | sudo tee -a /etc/shells
+{{ if eq .chezmoi.os "darwin" -}}
+# macOS ships Bash 3.2, which is too old for the interactive config.
+# install-macos-packages sorts first and installs this binary.
+bash_path="/opt/homebrew/bin/bash"
+if [ ! -x "$bash_path" ]; then
+	echo "Homebrew Bash is not installed at $bash_path" >&2
+	exit 1
 fi
-if [ "$SHELL" != "$fish_path" ]; then
-	chsh -s "$fish_path"
-fi
+{{ else -}}
+bash_path="/bin/bash"
 {{ end -}}
+if ! grep --quiet --line-regexp --fixed-strings "$bash_path" /etc/shells; then
+	echo "$bash_path" | sudo tee -a /etc/shells
+fi
+if [ "$SHELL" != "$bash_path" ]; then
+	chsh -s "$bash_path"
+fi
