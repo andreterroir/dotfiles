@@ -1,82 +1,22 @@
 {
-  "dashboard-nvim": {
-    "branch": "master",
-    "commit": "f787e3462c2ee2b6117b17c1aa4ddf66cb6f57fe"
-  },
-  "daybreak.nvim": {
-    "branch": "main",
-    "commit": "ef7f7ecc670b16c871a93569975772d460010f53"
-  },
-  "fzf-lua": {
-    "branch": "main",
-    "commit": "78b85d2a522b1e6a2d154216b3e532a1df1ad6d7"
-  },
-  "github-nvim-theme": {
-    "branch": "main",
-    "commit": "c106c9472154d6b2c74b74565616b877ae8ed31d"
-  },
-  "gitsigns.nvim": {
-    "branch": "main",
-    "commit": "070a5d7b985546cc57e1fc61e5bc507fecac6045"
-  },
-  "lazy.nvim": {
-    "branch": "main",
-    "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97"
-  },
-  "nvim-autopairs": {
-    "branch": "master",
-    "commit": "430522f95fe4fb7c511ec64f8c1a90cc6a66c05c"
-  },
-  "nvim-web-devicons": {
-    "branch": "master",
-    "commit": "58447c1fca354bbf184425e4a8d01deecbd6f3c4"
-  },
-  "oil.nvim": {
-    "branch": "master",
-    "commit": "b73018b75affd13fa38e2fc94ef753b465f770d7"
-  },
-  "persistence.nvim": {
-    "branch": "main",
-    "commit": "b20b2a7887bd39c1a356980b45e03250f3dce49c"
-  },
-  "securemodelines": {
-    "branch": "master",
-    "commit": "53227da8bb2e286501969d3e6180c2b5b21b27e0"
-  },
-  "toggleterm.nvim": {
-    "branch": "main",
-    "commit": "9a88eae817ef395952e08650b3283726786fb5fb"
-  },
-  "undotree": {
-    "branch": "master",
-    "commit": "6fa6b57cda8459e1e4b2ca34df702f55242f4e4d"
-  },
-  "vim-fugitive": {
-    "branch": "master",
-    "commit": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0"
-  },
-  "vim-matchup": {
-    "branch": "master",
-    "commit": "0106b1afd4a2f7e1098037b5ceb161bab7471088"
-  },
-  "vim-repeat": {
-    "branch": "master",
-    "commit": "65846025c15494983dafe5e3b46c8f88ab2e9635"
-  },
-  "vim-rsi": {
-    "branch": "master",
-    "commit": "45540637ead22f011e8215f1c90142e49d946a54"
-  },
-  "vim-surround": {
-    "branch": "master",
-    "commit": "3d188ed2113431cf8dac77be61b842acb64433d9"
-  },
-  "vim-tmux-navigator": {
-    "branch": "master",
-    "commit": "e41c431a0c7b7388ae7ba341f01a0d217eb3a432"
-  },
-  "which-key.nvim": {
-    "branch": "main",
-    "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a"
-  }
+  "dashboard-nvim": { "branch": "master", "commit": "f787e3462c2ee2b6117b17c1aa4ddf66cb6f57fe" },
+  "daybreak.nvim": { "branch": "main", "commit": "ef7f7ecc670b16c871a93569975772d460010f53" },
+  "fzf-lua": { "branch": "main", "commit": "78b85d2a522b1e6a2d154216b3e532a1df1ad6d7" },
+  "github-nvim-theme": { "branch": "main", "commit": "c106c9472154d6b2c74b74565616b877ae8ed31d" },
+  "gitsigns.nvim": { "branch": "main", "commit": "070a5d7b985546cc57e1fc61e5bc507fecac6045" },
+  "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
+  "nvim-autopairs": { "branch": "master", "commit": "430522f95fe4fb7c511ec64f8c1a90cc6a66c05c" },
+  "nvim-web-devicons": { "branch": "master", "commit": "58447c1fca354bbf184425e4a8d01deecbd6f3c4" },
+  "oil.nvim": { "branch": "master", "commit": "b73018b75affd13fa38e2fc94ef753b465f770d7" },
+  "persistence.nvim": { "branch": "main", "commit": "b20b2a7887bd39c1a356980b45e03250f3dce49c" },
+  "securemodelines": { "branch": "master", "commit": "53227da8bb2e286501969d3e6180c2b5b21b27e0" },
+  "toggleterm.nvim": { "branch": "main", "commit": "9a88eae817ef395952e08650b3283726786fb5fb" },
+  "undotree": { "branch": "master", "commit": "6fa6b57cda8459e1e4b2ca34df702f55242f4e4d" },
+  "vim-fugitive": { "branch": "master", "commit": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0" },
+  "vim-matchup": { "branch": "master", "commit": "0106b1afd4a2f7e1098037b5ceb161bab7471088" },
+  "vim-repeat": { "branch": "master", "commit": "65846025c15494983dafe5e3b46c8f88ab2e9635" },
+  "vim-rsi": { "branch": "master", "commit": "45540637ead22f011e8215f1c90142e49d946a54" },
+  "vim-surround": { "branch": "master", "commit": "3d188ed2113431cf8dac77be61b842acb64433d9" },
+  "vim-tmux-navigator": { "branch": "master", "commit": "e41c431a0c7b7388ae7ba341f01a0d217eb3a432" },
+  "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
 }
