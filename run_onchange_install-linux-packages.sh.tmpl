@@ -28,7 +28,6 @@ sudo dnf install -y \
 	tree-sitter-cli \
 	tmux \
 	wget2-wget \
-	wl-clipboard \
 	yubico-piv-tool \
 	yubikey-manager \
 	zig
@@ -43,6 +42,7 @@ sudo dnf install -y \
 	meld \
 	powertop \
 	syncthing \
+	wl-clipboard \
 	yt-dlp
 
 flatpak install --assumeyes \
@@ -53,15 +53,147 @@ flatpak install --assumeyes \
 	org.zotero.Zotero
 
 {{ end -}}
-# install opencode
-if ! command -v opencode > /dev/null; then
+# Fish already adds ~/.opencode/bin. --no-modify-path skips the
+# installer's ~/.bashrc PATH edit.
+if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
 	echo '>installing opencode'
-	curl -fsSL https://opencode.ai/install | bash
+	curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
 fi
 
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
 	echo '>installing TPM'
 	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 fi
+{{ else if and (eq .chezmoi.osRelease.id "ubuntu") .server -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Headless Ubuntu only. fish and hugo are intentionally omitted.
+# nodejs is not installed: nothing in this repo requires it.
+set -euo pipefail
 
+sudo apt-get update
+sudo apt-get install -y \
+	ca-certificates \
+	curl \
+	fd-find \
+	fzf \
+	git \
+	git-lfs \
+	golang-go \
+	jq \
+	ncurses-term \
+	neovim \
+	ripgrep \
+	shellcheck \
+	tmux \
+	tree \
+	tree-sitter-cli \
+	wget \
+	xz-utils
+
+# Fedora's fd-find package provides `fd`; Ubuntu's provides `fdfind`.
+if [ ! -e "$HOME/.local/bin/fd" ]; then
+	mkdir -p "$HOME/.local/bin"
+	ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
+fi
+
+# Official GitHub CLI apt repo. Ubuntu's own gh package is absent or
+# stale; a third-party package (snap, pacstall) must not satisfy this.
+if ! dpkg-query -W -f '${Maintainer}' gh 2>/dev/null | grep -qx 'GitHub'; then
+	sudo mkdir -p -m 755 /etc/apt/keyrings
+	keyring="$(mktemp)"
+	wget -qO "$keyring" https://cli.github.com/packages/githubcli-archive-keyring.gpg
+	sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg < "$keyring" > /dev/null
+	rm -f "$keyring"
+	sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+	if [ ! -f /etc/apt/sources.list.d/github-cli.list ]; then
+		echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+			| sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+	fi
+	sudo apt-get update
+	sudo apt-get install -y gh
+fi
+
+# chezmoi's documented binary install. Apt has no chezmoi package.
+if ! command -v chezmoi > /dev/null; then
+	sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+fi
+
+# Exercism publishes release tarballs only; there is no apt package.
+# https://exercism.org/cli-walkthrough
+if ! command -v exercism > /dev/null; then
+	exercism_tag="$(curl -fsSL https://api.github.com/repos/exercism/cli/releases/latest \
+		| jq -r .tag_name)"
+	exercism_version="${exercism_tag#v}"
+	case "$(uname -m)" in
+		x86_64) exercism_arch=x86_64 ;;
+		aarch64) exercism_arch=arm64 ;;
+		*) echo "unsupported architecture for exercism: $(uname -m)" >&2; exit 1 ;;
+	esac
+	exercism_tmp="$(mktemp -d)"
+	curl -fsSL -o "$exercism_tmp/exercism.tar.gz" \
+		"https://github.com/exercism/cli/releases/download/${exercism_tag}/exercism-${exercism_version}-linux-${exercism_arch}.tar.gz"
+	tar -xzf "$exercism_tmp/exercism.tar.gz" -C "$exercism_tmp" exercism
+	install -D -m 755 "$exercism_tmp/exercism" "$HOME/.local/bin/exercism"
+	rm -rf "$exercism_tmp"
+fi
+
+# Latest tagged Zig, not Ubuntu's zig metapackage (pinned to 0.14).
+# https://ziglang.org/download/
+zig_version="$(curl -fsSL https://ziglang.org/download/index.json \
+	| jq -r 'keys[] | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' \
+	| sort -V | tail -n 1)"
+# Compare the copy this script owns. An older zig earlier in PATH,
+# such as ~/bin/zig, must not hide it or force a reinstall.
+if [ ! -x "$HOME/.local/bin/zig" ] || [ "$("$HOME/.local/bin/zig" version)" != "$zig_version" ]; then
+	case "$(uname -m)" in
+		x86_64) zig_arch=x86_64 ;;
+		aarch64) zig_arch=aarch64 ;;
+		*) echo "unsupported architecture for zig: $(uname -m)" >&2; exit 1 ;;
+	esac
+	zig_tarball="zig-${zig_arch}-linux-${zig_version}.tar.xz"
+	zig_url="https://ziglang.org/download/${zig_version}/${zig_tarball}"
+	zig_sha="$(curl -fsSL https://ziglang.org/download/index.json \
+		| jq -r --arg arch "${zig_arch}-linux" --arg ver "$zig_version" '.[$ver][$arch].shasum')"
+	zig_tmp="$(mktemp -d)"
+	curl -fsSL -o "$zig_tmp/$zig_tarball" "$zig_url"
+	echo "$zig_sha  $zig_tmp/$zig_tarball" | sha256sum --check
+	rm -rf "$HOME/.local/zig"
+	tar -xJf "$zig_tmp/$zig_tarball" -C "$HOME/.local"
+	mv "$HOME/.local/zig-${zig_arch}-linux-${zig_version}" "$HOME/.local/zig"
+	mkdir -p "$HOME/.local/bin"
+	ln -sfn "$HOME/.local/zig/zig" "$HOME/.local/bin/zig"
+	rm -rf "$zig_tmp"
+fi
+
+# Official release binary in ~/.local/bin, ahead of any distro package.
+# Apt has no topgrade; deb-get is another installer, not an upstream package.
+if [ ! -x "$HOME/.local/bin/topgrade" ]; then
+	case "$(uname -m)" in
+		x86_64) topgrade_arch=x86_64 ;;
+		aarch64) topgrade_arch=aarch64 ;;
+		*) echo "unsupported architecture for topgrade: $(uname -m)" >&2; exit 1 ;;
+	esac
+	topgrade_tag="$(curl -fsSL https://api.github.com/repos/topgrade-rs/topgrade/releases/latest \
+		| jq -r .tag_name)"
+	topgrade_version="${topgrade_tag#v}"
+	topgrade_tmp="$(mktemp -d)"
+	curl -fsSL -o "$topgrade_tmp/topgrade.tar.gz" \
+		"https://github.com/topgrade-rs/topgrade/releases/download/${topgrade_tag}/topgrade-v${topgrade_version}-${topgrade_arch}-unknown-linux-gnu.tar.gz"
+	tar -xzf "$topgrade_tmp/topgrade.tar.gz" -C "$topgrade_tmp"
+	install -D -m 755 "$topgrade_tmp/topgrade" "$HOME/.local/bin/topgrade"
+	rm -rf "$topgrade_tmp"
+fi
+
+# Fish already adds ~/.opencode/bin. --no-modify-path skips the
+# installer's ~/.bashrc PATH edit.
+if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
+	echo '>installing opencode'
+	curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
+fi
+
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+	echo '>installing TPM'
+	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+fi
 {{ end }}

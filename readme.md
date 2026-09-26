@@ -7,9 +7,9 @@ Prerequisites
 - curl
 - git
 
-Package install scripts target macOS and Fedora Linux. Ubuntu servers only
-receive setup from scripts explicitly gated to that platform. Other distros
-are unsupported.
+Package install scripts target macOS, Fedora Linux, and headless Ubuntu.
+Ubuntu servers get the CLI set only: no fish, hugo, Node, pass, GPG,
+YubiKey, or Wayland clipboard tools. Other distros are unsupported.
 
 Install
 -------

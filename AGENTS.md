@@ -18,8 +18,9 @@ installed globally; do not duplicate them here.
 ## Repository layout
 
 See the source tree for the current layout. Package install scripts target
-macOS and Fedora Linux. Ubuntu servers only receive setup from scripts
-explicitly gated to that platform; other distros are unsupported.
+macOS, Fedora Linux, and headless Ubuntu. Ubuntu servers get the CLI set
+only: no fish, hugo, Node, pass, GPG, YubiKey, or Wayland clipboard tools.
+Other distros are unsupported.
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` (which installs fish) runs before
