@@ -1,6 +1,6 @@
 {
   "dashboard-nvim": { "branch": "master", "commit": "f787e3462c2ee2b6117b17c1aa4ddf66cb6f57fe" },
-  "daybreak.nvim": { "branch": "main", "commit": "ef7f7ecc670b16c871a93569975772d460010f53" },
+  "daybreak.nvim": { "branch": "main", "commit": "6235d2e7a83e8c5f88a210924d4c45506d6ca697" },
   "fzf-lua": { "branch": "main", "commit": "78b85d2a522b1e6a2d154216b3e532a1df1ad6d7" },
   "github-nvim-theme": { "branch": "main", "commit": "c106c9472154d6b2c74b74565616b877ae8ed31d" },
   "gitsigns.nvim": { "branch": "main", "commit": "070a5d7b985546cc57e1fc61e5bc507fecac6045" },

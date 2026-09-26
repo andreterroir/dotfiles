@@ -31,7 +31,7 @@ require('lazy').setup({
    { 'projekt0n/github-nvim-theme' },
    -- match system light/dark mode
    {
-      'REDACTED/daybreak.nvim',
+      'andreterroir/daybreak.nvim',
       opts = {
          light = 'github_light',
          dark = 'github_dark_dimmed',
