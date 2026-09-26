@@ -1,0 +1,80 @@
+# vi: ft=bash
+# shellcheck shell=bash
+
+# Skip if not running interactively
+[[ "$-" == *i* ]] || return
+
+alias ls='ls --classify --color=auto'
+alias cz='chezmoi'
+alias g='git'
+alias grep='grep --color=always'
+alias python='python3'
+alias v='nvim'
+alias vi='nvim'
+alias t='tmux attach || tmux new'
+if ! command -v fd > /dev/null && command -v fdfind > /dev/null ; then
+	alias fd='fdfind'
+fi
+
+# Enable CTRL-S for forward history search
+# (overwrites suspension of terminal output)
+stty -ixon
+
+export HISTSIZE=10000
+# Append history file when shell exits
+shopt -s histappend
+# Display ANSI color escape characters in less
+export LESS="--RAW-CONTROL-CHARS"
+
+# Blinking block cursor, matching the fish prompt hook
+printf '\e[1 q'
+
+# Customize Git repository prompt
+# Load Git helper function and customize repository prompt
+if [ -f /usr/lib/git-core/git-sh-prompt ]; then
+	# Ubuntu
+	source /usr/lib/git-core/git-sh-prompt
+elif [ -f /usr/share/git-core/contrib/completion/git-prompt.sh ]; then
+	# Fedora
+	source /usr/share/git-core/contrib/completion/git-prompt.sh
+elif [ -f /opt/homebrew/etc/bash_completion.d/git-prompt.sh ]; then
+	source /opt/homebrew/etc/bash_completion.d/git-prompt.sh
+fi
+export GIT_PS1_SHOWDIRTYSTATE=1 # +/*
+export GIT_PS1_SHOWSTASHSTATE=1 # $
+export GIT_PS1_SHOWUNTRACKEDFILES=1 # %
+export GIT_PS1_SHOWUPSTREAM=auto
+# Color the classic (user@host:workdir$) prompt
+# 032   - green
+# 034   - blue
+export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " [%s]") \$ '
+# Set terminal window title to user@host: workdir
+export PS1="\[\e]0;\u@\h: \w\a\]$PS1"
+
+# Enable completion. Amp requires Bash 4+ and bash-completion.
+if [ -f /opt/homebrew/share/bash-completion/bash_completion ]; then
+	source /opt/homebrew/share/bash-completion/bash_completion
+elif [ -f /etc/profile.d/bash_completion.sh ]; then
+	source /etc/profile.d/bash_completion.sh
+elif [ -f /usr/share/bash-completion/bash_completion ]; then
+	source /usr/share/bash-completion/bash_completion
+fi
+source <(chezmoi completion bash)
+# Enable Cargo completion
+command -v rustup > /dev/null && source <(rustup completions bash cargo)
+command -v rustup > /dev/null && source <(rustup completions bash rustup)
+# Load Amp completions at runtime (per https://ampcode.com/docs/cli)
+command -v amp > /dev/null && source <(amp completions bash)
+# Enable pass-otp completion (https://github.com/tadfisher/pass-otp/issues/137)
+[ -f /usr/share/bash-completion/completions/pass-otp ] \
+	&& source /usr/share/bash-completion/completions/pass-otp
+
+# Tell GPG pinentry where to prompt for password
+GPG_TTY=$(tty)
+export GPG_TTY
+# ensure gpg-agent is running (macOS some Linuxes do not have socket
+# activation for GPG)
+gpgconf --launch gpg-agent
+
+# Load machine-specific configuration
+[ -f ~/.bashrc.local ] && source ~/.bashrc.local
