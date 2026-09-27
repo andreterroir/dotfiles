@@ -9,8 +9,9 @@ installed globally; do not duplicate them here.
 
 - `dot_agents/AGENTS.md` — user-global instructions (worktree workflow,
   code review, commit conventions, etc.), deployed by chezmoi to
-  `~/.agents/AGENTS.md` and symlinked from `dot_claude/` and
-  `private_dot_config/opencode/`. Edit there, not here.
+  `~/.agents/AGENTS.md` and symlinked from `dot_claude/`,
+  `dot_codex/`, `private_dot_config/opencode/`, and
+  `private_dot_config/private_amp/`. Edit there, not here.
 - `AGENTS.md` (this file) — repo-level instructions only, for anything
   specific to *editing this repository* (chezmoi workflow, file
   conventions, boundaries).
