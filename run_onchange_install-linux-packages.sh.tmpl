@@ -4,6 +4,10 @@
 # vi: set ft=bash
 set -e
 
+# Fedora has no topgrade package. Official method is this Copr.
+# https://copr.fedorainfracloud.org/coprs/lilay/topgrade/
+sudo dnf -y copr enable lilay/topgrade
+
 sudo dnf install -y \
 	ShellCheck \
 	bash-completion \
@@ -29,6 +33,7 @@ sudo dnf install -y \
 	tree \
 	tree-sitter-cli \
 	tmux \
+	topgrade \
 	wget2-wget \
 	yubico-piv-tool \
 	yubikey-manager \
