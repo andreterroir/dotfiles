@@ -2,9 +2,11 @@ theme = light:GitHub Light Default,dark:GitHub Dark
 font-family = JetBrains Mono
 font-feature = -calt, -liga, -dlig
 font-size = 16
-initial-command = {{ lookPath "tmux" }} new -A
+# direct: so Ghostty execs tmux instead of wrapping it in bash --posix.
+# Forcing shell-integration = bash rewrites this argv and tmux rejects --posix.
+initial-command = direct:{{ lookPath "tmux" }} new -A
 confirm-close-surface = false
-shell-integration = bash
+shell-integration = detect
 cursor-style = block
 cursor-style-blink = true
 # prevent shell integration from overriding prompt cursor to bar
