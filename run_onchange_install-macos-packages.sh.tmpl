@@ -14,7 +14,9 @@ tap 'ampcode/tap'
 tap 'anomalyco/tap'
 tap 'cormacrelf/tap'
 
-brew 'ampcode/tap/ampcode'
+# Homebrew 6 refuses to load third-party formulae until they are trusted.
+# Trust the formula, not the tap, so other formulae in the tap stay untrusted.
+brew 'ampcode/tap/ampcode', trusted: true
 brew 'ascii'
 brew 'bash'
 # @2 is the Bash 4.2+ completion package. Unversioned bash-completion
@@ -22,7 +24,7 @@ brew 'bash'
 brew 'bash-completion@2'
 brew 'chezmoi'
 brew 'coreutils'
-brew 'cormacrelf/tap/dark-notify'
+brew 'cormacrelf/tap/dark-notify', trusted: true
 brew 'delve'
 brew 'exercism'
 brew 'fd'
@@ -43,7 +45,7 @@ brew 'mas'
 brew 'neovim'
 brew 'node'
 brew 'npm'
-brew 'anomalyco/tap/opencode'
+brew 'anomalyco/tap/opencode', trusted: true
 brew 'openjdk'
 brew 'pass'
 brew 'pass-otp'
