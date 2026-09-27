@@ -1,4 +1,5 @@
-{{ if and .server (eq .chezmoi.osRelease.id "ubuntu") -}}
+{{ if eq .chezmoi.os "linux" -}}
+{{   if and .server (eq .chezmoi.osRelease.id "ubuntu") -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Install Ghostty's own xterm-ghostty terminfo entry into ~/.terminfo.
@@ -18,4 +19,5 @@ tic -x -o "$HOME/.terminfo" \
 
 infocmp -x xterm-ghostty > /dev/null
 echo '>xterm-ghostty terminfo installed'
+{{   end -}}
 {{ end -}}

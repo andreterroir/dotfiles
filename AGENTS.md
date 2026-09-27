@@ -73,6 +73,9 @@ unintended changes. Do a fast forward only merge when asked to integrate the cha
   hostnames mark Linux desktops via the `linux.desktop` data variable,
   and every other host is a headless machine reached over SSH via the
   `server` data variable (see `.chezmoi.toml.tmpl`).
+  `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
+  `eq .chezmoi.os "linux"`; `text/template` evaluates both sides of
+  `and`, so a combined condition still looks up the missing `id` key.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
   running scripts) rather than `chezmoi source-path`: a nested
   `chezmoi` invocation deadlocks on the parent `chezmoi apply`'s
