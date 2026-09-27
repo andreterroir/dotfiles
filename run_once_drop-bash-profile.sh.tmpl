@@ -1,0 +1,5 @@
+#!/bin/sh
+# Fedora's skel ~/.bash_profile is not managed by chezmoi. While it
+# exists, bash login shells read it instead of ~/.profile, so user
+# PATH never applies. Bash falls through to ~/.profile once it is gone.
+rm -f "$HOME/.bash_profile"
