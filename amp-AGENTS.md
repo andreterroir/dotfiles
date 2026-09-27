@@ -1,0 +1,1 @@
+Only include comments if they speed up reading the code. Include additional context into commit messages and avoid long mutli-line comments. Do not rush to add comments when a reviewer asks questions about the code.
