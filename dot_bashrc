@@ -79,6 +79,41 @@ command -v amp > /dev/null && source <(amp completions bash)
 [ -f /usr/share/bash-completion/completions/pass-otp ] \
 	&& source /usr/share/bash-completion/completions/pass-otp
 
+# fzf key bindings (Ctrl-T, Ctrl-R, Alt-C) and ** completion.
+# fzf --bash (0.48+) embeds both. Older Ubuntu packages have no
+# --bash; completions/fzf is completion.bash, but bash-completion
+# only loads it when completing the fzf command, so source it here.
+if command -v fzf > /dev/null; then
+	_fzf_bash="$(fzf --bash 2>/dev/null)" || true
+	if [ -n "$_fzf_bash" ]; then
+		eval "$_fzf_bash"
+	else
+		for _fzf_bindings in \
+			/usr/share/fzf/shell/key-bindings.bash \
+			/usr/share/doc/fzf/examples/key-bindings.bash \
+			/opt/homebrew/opt/fzf/shell/key-bindings.bash
+		do
+			if [ -r "$_fzf_bindings" ]; then
+				source "$_fzf_bindings"
+				break
+			fi
+		done
+		unset _fzf_bindings
+		for _fzf_completion in \
+			/usr/share/doc/fzf/examples/completion.bash \
+			/usr/share/bash-completion/completions/fzf \
+			/opt/homebrew/opt/fzf/shell/completion.bash
+		do
+			if [ -r "$_fzf_completion" ]; then
+				source "$_fzf_completion"
+				break
+			fi
+		done
+		unset _fzf_completion
+	fi
+	unset _fzf_bash
+fi
+
 # Tell GPG pinentry where to prompt for password. Ubuntu servers do
 # not install GPG.
 if command -v gpgconf > /dev/null; then
