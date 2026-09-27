@@ -54,5 +54,8 @@ run '/opt/homebrew/opt/tpm/share/tpm/tpm'
 set -g @amp-theme-appearance 'auto'
 run '~/.tmux/plugins/tpm/tpm'
 {{- end }}
-# Override after plugins load — amp-theme overwrites this if set earlier
+# Override after plugins load — amp-theme overwrites these if set earlier.
+# amp-{dark,light}.conf repeat status-right; dark-notify re-runs the theme.
 set -g window-status-current-style 'fg=blue,bold'
+set -g status-right-length 60
+set -g status-right "#[bg=#161616,fg=#B8AFA0] #{b:pane_current_path} #[bg=#E7894C,fg=#0F0F0F,bold] %H:%M %a %d %b "
