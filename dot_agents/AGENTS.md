@@ -77,15 +77,14 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 
 ### Attribution Trailers
 
-When committing as an agent, append the following Git trailers to every commit
-message, separated from the body by a blank line:
+When committing as an agent, append the following Git commit trailer to every
+commit message, separated from the body by a blank line:
 
-	Model: <provider/model>
-	Agent: <agent-name>
+	Assisted-by: <agent>:<model>
 
-Use the provider/model and agent name actually in use, e.g. Model values such
-as opencode-go/muse-spark-1.3, opencode-go/minimax-m3, amp/gpt-6-astra
-or bedrock/sonnet-4.6, and Agent values such as amp or opencode.
+Replace `<agent>` with the agent actually in use, e.g. `Amp` or `OpenCode`.
+Replace `<model>` with the model actually in use, with no provider prefix,
+e.g. `gpt-6-astra`, `kimi-k3`, `minimax-m3`, or `sonnet-4.6`.
 
 ## Publishing Changes
 
