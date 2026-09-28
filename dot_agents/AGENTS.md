@@ -9,32 +9,24 @@ conflicts.
 To avoid reading large binary files unintentionally, inspect files without
 extension first using `file` command line tool.
 
-Do not push or pull changes from Git remotes and do not interact with GitHub
-(via `gh` CLI or an API) unless asked. Exception: you may fetch `origin/main`
-to check whether the remote main branch has new commits (see "Before Making
-Changes").
+When Git repository has staged changes, keep your modifications unstaged in the
+working directory, until asked to commit.
 
 ## Before Making Changes
 
-The `main` branch is always checked out in the main worktree. Two operations
-may fetch `origin/main` as an exception to the "Do not push or pull"
-restriction above:
+Keep `main` branch always checked out in the main worktree (repository root).
 
-- To create a new branch or worktree from a fresh `main`, run
-  `git fetch origin && git rebase origin/main` (in the main worktree)
-  before cutting the new branch.
-- When working on `main` directly, fast-forward the local `main` reference
-  with `git fetch origin && git merge --ff-only origin/main`. If a
-  fast-forward is not possible, stop and ask the user — never create a
-  merge commit on `main`.
+Create a Git worktree first, unless asked to make changes to a branch with an
+existing worktree, or the working directory is within a linked worktree. Never create a
+nested worktree inside another worktree.
 
-For any other branch, use the existing worktree if the current working
-directory is already inside a linked one, or if you were asked to work on a
-specific branch that already has one. Otherwise create a new worktree with
-`git worktree add .wt/<branch-name>`. Use a short simple name referencing the
-change being made as the branch name, e.g. `message-length-validation`.
+Make sure the base branch is up to date by fetching it from the remote. If a
+fast-forward is not possible, stop and ask the user — never create a merge
+commit on `main`.
 
-Never create a nested worktree inside another worktree.
+Create worktrees with `git worktree add .wt/<branch-name>` using a short
+simple name referencing the change being made, e.g.
+`message-length-validation`.
 
 ## Making Changes
 
@@ -43,8 +35,8 @@ it down. Extended context belongs in commit messages, not in comments.
 
 ## After Making Changes
 
-Start a code review using the review tool/subagent, if available (avoid review
-within the same context).
+Start a code review using the review tool/subagent, not within the context of
+the main conversation.
 
 ## Code Review
 
@@ -59,10 +51,11 @@ within the same context).
 
 ## Committing Changes
 
-- break down into small logical changes
-- ask what to do with unrelated changes
+Break down changes into small logical commits. Ask what to do with unrelated
+changes. Make sure that all verifications (compilation, linter, test etc.) pass
+as of each commit.
 
-## Commit Messages
+### Commit Messages
 
 Follow https://commit.style unless the repository has its own commit
 instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
