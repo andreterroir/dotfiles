@@ -68,17 +68,6 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 - Wrap the body at 72 characters.
 - Use the body to explain what and why, not how.
 
-### Attribution Trailers
-
-When committing as an agent, append the following Git commit trailer to every
-commit message, separated from the body by a blank line:
-
-	Assisted-by: <agent>:<model>
-
-Replace `<agent>` with the agent actually in use, e.g. `Amp` or `OpenCode`.
-Replace `<model>` with the model actually in use, with no provider prefix,
-e.g. `gpt-6-astra`, `kimi-k3`, `minimax-m3`, or `sonnet-4.6`.
-
 ## Publishing Changes
 
 After pushing a branch, if it has an associated pull request, make sure that
