@@ -96,9 +96,9 @@ on the machine doing the work, one commit per step, ask before pushing.
   (`https://mise.jdx.dev/rpm/mise.repo`), macOS `brew 'mise'`, Ubuntu
   via mise's apt repo (`https://mise.jdx.dev/deb`). Both repos go into
   the existing package scripts; keep the vendor's key-import steps. The
-  vendor's apt key is ASCII-armored, which apt ignores (it recognises
-  only `.gpg` and `.asc` keyring extensions), so it is piped through
-  `gpg --dearmor` into `/etc/apt/keyrings/mise-archive-keyring.gpg`.
+  vendor's apt key is ASCII-armored; apt accepts it as-is when the
+  keyring file is named `.asc`, which avoids a `gpg --dearmor` step (and
+  its gnupg dependency) on a fresh server.
 - Add `run_onchange_after_mise-install.sh.tmpl` that embeds
   `{{ include "private_dot_config/mise/config.toml.tmpl" | sha256sum }}`
   in a comment and runs `mise install --yes`. Desktop Fedora also needs
