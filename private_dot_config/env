@@ -1,0 +1,9 @@
+# Shared environment for bash, fish and environment.d. Values are
+# written literally, so $HOME is expanded by whoever reads the file.
+CARGO_TARGET_DIR=$HOME/.cache/cargo/target
+RUSTUP_HOME=$HOME/.cache/rustup
+GOPATH=$HOME/.cache/go
+EDITOR=nvim
+XZ_DEFAULTS=--threads=0
+ZSTD_COMPRESS=--threads=0
+LESS=--RAW-CONTROL-CHARS

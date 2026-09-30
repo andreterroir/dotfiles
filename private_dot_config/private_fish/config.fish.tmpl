@@ -4,13 +4,19 @@ fish_add_path /opt/homebrew/bin
 {{- end }}
 
 # Rust
-set -gx CARGO_TARGET_DIR "$HOME/.cache/cargo/target"
-set -gx RUSTUP_HOME "$HOME/.cache/rustup"
 fish_add_path $HOME/.cargo/bin
 
 # Go
-set -gx GOPATH "$HOME/.cache/go"
 fish_add_path $HOME/.cache/go/bin
+
+# Shared environment, also installed to environment.d on Linux desktops
+if test -f $HOME/.config/env
+    while read -l line
+        string match -qr '^\s*(#|$)' -- $line; and continue
+        set -l pair (string split -m1 = -- $line)
+        set -gx $pair[1] (string replace -a '$HOME' $HOME -- $pair[2])
+    end < $HOME/.config/env
+end
 
 {{ if eq .chezmoi.os "darwin" -}}
 # Prefer Homebrew coreutils and gnu-sed over macOS defaults
@@ -21,10 +27,6 @@ if command -q brew
 end
 {{ end -}}
 
-set --global --export EDITOR nvim
-set -gx LESS '--RAW-CONTROL-CHARS'
-set -gx XZ_DEFAULTS '--threads=0'
-set -gx ZSTD_COMPRESS '--threads=0'
 set -gx MAKEFLAGS "-j"(nproc)
 
 # Use blinking block cursor for prompt

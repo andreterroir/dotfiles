@@ -1,14 +1,12 @@
 #!/bin/false
 # vi: ft=sh
 
-# Store all Cargo build artifacts in one place
-# This also allows reusing build results between projects
-export CARGO_TARGET_DIR="$HOME/.cache/cargo/target"
-# Relocate Rust toolchains to ~/.cache
-export RUSTUP_HOME="$HOME/.cache/rustup"
-
-# Move GOPATH out of sight
-export GOPATH="$HOME/.cache/go"
+# Shared environment, also installed to environment.d on Linux desktops
+if [ -f "$HOME/.config/env" ]; then
+	set -a
+	. "$HOME/.config/env"
+	set +a
+fi
 
 {{ if eq .chezmoi.os "darwin" -}}
 # Homebrew binaries. User directories are prepended after this so they
@@ -30,10 +28,7 @@ fi
 [ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
 export PATH
 
-export EDITOR=nvim
 # Use all available cores when possible
-export XZ_DEFAULTS='--threads=0'
-export ZSTD_COMPRESS="--threads=0"
 if command -v nproc > /dev/null; then
 	cores=$(nproc)
 else

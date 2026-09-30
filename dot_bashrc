@@ -26,8 +26,6 @@ export HISTSIZE=100000
 export HISTFILESIZE=100000
 # Append history file when shell exits
 shopt -s histappend
-# Display ANSI color escape characters in less
-export LESS="--RAW-CONTROL-CHARS"
 
 # Blinking block cursor, matching the fish prompt hook
 printf '\e[1 q'
