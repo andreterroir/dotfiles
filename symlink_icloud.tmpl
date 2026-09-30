@@ -1,1 +1,4 @@
-{{ .chezmoi.homeDir }}/Library/Mobile Documents/com~apple~CloudDocs
+{{- $target := print .chezmoi.homeDir "/Library/Mobile Documents/com~apple~CloudDocs" -}}
+{{- if stat $target }}
+{{ $target }}
+{{- end }}

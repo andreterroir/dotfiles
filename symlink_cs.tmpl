@@ -1,1 +1,4 @@
-{{ .chezmoi.homeDir }}/notes/cheatsheets
+{{- $target := print .chezmoi.homeDir "/notes/cheatsheets" -}}
+{{- if stat $target }}
+{{ $target }}
+{{- end }}
