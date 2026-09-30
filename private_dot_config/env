@@ -1,5 +1,8 @@
 # Shared environment for bash, fish and environment.d. Values are
 # written literally, so $HOME is expanded by whoever reads the file.
+# age-plugin-yubikey 0.5.1 panics at startup when LANG is unset
+# (locale_config fails to parse Apple's AppleLocale region suffix).
+LANG=en_US.UTF-8
 CARGO_TARGET_DIR=$HOME/.cache/cargo/target
 RUSTUP_HOME=$HOME/.cache/rustup
 GOPATH=$HOME/.cache/go
