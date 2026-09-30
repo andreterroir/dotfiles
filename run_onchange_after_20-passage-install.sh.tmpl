@@ -1,0 +1,14 @@
+{{ if .desktop -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# passage has no package on Fedora or macOS, and it is a shell script,
+# so it is installed from a pinned tag into ~/.local.
+set -euo pipefail
+
+passage_version=1.7.4a2
+passage_src="$(mktemp -d)"
+git clone -c advice.detachedHead=false --quiet --depth 1 --branch "$passage_version" \
+	https://github.com/FiloSottile/passage "$passage_src"
+make -C "$passage_src" install PREFIX="$HOME/.local"
+rm -rf "$passage_src"
+{{ end -}}

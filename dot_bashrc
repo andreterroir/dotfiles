@@ -9,6 +9,8 @@ alias cz='chezmoi'
 alias g='git'
 alias grep='grep --color=always'
 alias python='python3'
+# pass is retired in favour of passage
+alias pass=passage
 alias v='nvim'
 alias vi='nvim'
 alias t='tmux attach || tmux new'

@@ -1,0 +1,17 @@
+{{ if .desktop -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# The store is a private repository, so cloning it needs the GitHub
+# login that the human just did at the terminal.
+set -euo pipefail
+
+if [ ! -t 0 ]; then
+	echo '>passage store: run chezmoi apply from a terminal to finish' >&2
+	exit 0
+fi
+
+if [ ! -d "$HOME/.passage/store" ]; then
+	echo '>cloning the passage store'
+	git clone https://github.com/andreterroir/passwords "$HOME/.passage/store"
+fi
+{{ end -}}
