@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Derive ~/.allowed_signers from the signing keys on GitHub, so every
+# machine verifies every other machine's signature. A machine that is
+# offline keeps the file it already has.
+set -euo pipefail
+
+out="$HOME/.allowed_signers"
+keys=$(curl -fsS --max-time 10 https://api.github.com/users/andreterroir/ssh_signing_keys \
+	| jq -r '.[].key') || { echo '>allowed_signers: offline, keeping current file' >&2; exit 0; }
+[ -n "$keys" ] || exit 0
+
+tmp="$(mktemp)"
+while IFS= read -r key; do
+	printf 'andre@terroir.systems %s\n' "$key"
+done <<<"$keys" > "$tmp"
+
+if [ -f "$out" ] && cmp -s "$tmp" "$out"; then
+	rm -f "$tmp"
+	exit 0
+fi
+mv "$tmp" "$out"
+echo '>allowed_signers updated'
