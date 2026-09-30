@@ -9,8 +9,8 @@ sourceDir = "{{ .chezmoi.homeDir }}/code/dotfiles"
     command = "bash"
     args = [ "-c", "! command -v update-passwords >/dev/null 2>&1 || update-passwords" ]
 [data]
-    {{- $desktop := or (eq .chezmoi.os "darwin") (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "x1") }}
+    {{- $detected := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") }}
+    {{- $desktop := promptBoolOnce . "desktop" "Desktop machine" $detected }}
     desktop = {{ $desktop }}
-    linux.desktop = {{ or (eq .chezmoi.hostname "black") (eq .chezmoi.hostname "x1") }}
-    # every host that is not a desktop: headless machines reached over SSH
+    linux.desktop = {{ and $desktop (eq .chezmoi.os "linux") }}
     server = {{ not $desktop }}

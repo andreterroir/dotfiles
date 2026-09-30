@@ -38,7 +38,8 @@ by another script.
 - `dot_*`            → `~/.<name>` (e.g. `dot_gitconfig.tmpl` → `~/.gitconfig`)
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}`, gate on
-                       `.chezmoi.os` ("linux"/"darwin") and `.chezmoi.hostname`
+                       `.chezmoi.os` ("linux"/"darwin") and the role data
+                       variables (`desktop`, `linux.desktop`, `server`)
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run at most once
 - `symlink_*`        → emit a symlink whose target is the file's contents
@@ -71,10 +72,15 @@ unintended changes. Do a fast forward only merge when asked to integrate the cha
 
 - Do not push to or pull from the `pass` git store unless asked; the
   post-update hook in `.chezmoi.toml.tmpl` already handles that.
-- OS-specific logic is gated on `.chezmoi.os`; the `black` and `x1`
-  hostnames mark Linux desktops via the `linux.desktop` data variable,
-  and every other host is a headless machine reached over SSH via the
-  `server` data variable (see `.chezmoi.toml.tmpl`).
+- Machine role comes from the `desktop` data variable. `chezmoi init`
+  prompts for it once, defaulting to darwin or a machine with
+  `gnome-shell` on PATH, and then keeps the answer until the next
+  `chezmoi init`; override it with
+  `chezmoi init --promptBool 'Desktop machine=false'` (the flag keys on
+  the prompt text, not on `desktop`). Every host that is not a desktop
+  is a headless machine reached over SSH via the `server` data
+  variable, and `linux.desktop` marks Linux desktops (see
+  `.chezmoi.toml.tmpl`).
   `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
   `eq .chezmoi.os "linux"`; `text/template` evaluates both sides of
   `and`, so a combined condition still looks up the missing `id` key.
