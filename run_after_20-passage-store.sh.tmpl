@@ -12,6 +12,7 @@ fi
 
 if [ ! -d "$HOME/.passage/store" ]; then
 	echo '>cloning the passage store'
-	git clone https://github.com/andreterroir/passwords "$HOME/.passage/store"
+	git clone https://github.com/andreterroir/passwords "$HOME/.passage/store" \
+		|| echo '>passage store: clone failed (repo not created yet?); re-run chezmoi apply after Phase 2' >&2
 fi
 {{ end -}}
