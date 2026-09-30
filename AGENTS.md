@@ -25,8 +25,10 @@ Other distros are unsupported.
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` runs before
-`run_onchange_set-up-default-shell` (which runs `chsh`). On macOS
-the install script provides Homebrew Bash; Fedora and Ubuntu use
+`run_onchange_set-up-default-shell` (which runs `chsh`). Scripts with a
+`run_after_` prefix run after all of those, whatever their name, so a
+script that needs a tool the package script installs belongs there. On
+macOS the install script provides Homebrew Bash; Fedora and Ubuntu use
 the distro Bash, which is already present. Keep this ordering in
 mind when adding `run_*` scripts whose preconditions are installed
 by another script.

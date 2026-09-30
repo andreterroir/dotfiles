@@ -8,11 +8,16 @@ set -e
 # https://copr.fedorainfracloud.org/coprs/lilay/topgrade/
 sudo dnf -y copr enable lilay/topgrade
 
+# mise's own RPM repo, which installs zig and exercism. Not Terra.
+# https://mise.jdx.dev/installing-mise.html
+if [ ! -f /etc/yum.repos.d/mise.repo ]; then
+	curl -fsSL https://mise.jdx.dev/rpm/mise.repo | sudo tee /etc/yum.repos.d/mise.repo > /dev/null
+fi
+
 sudo dnf install -y \
 	ShellCheck \
 	bash-completion \
 	chezmoi \
-	exercism \
 	fd-find \
 	fish \
 	fzf \
@@ -23,6 +28,7 @@ sudo dnf install -y \
 	hugo \
 	jetbrains-mono-fonts \
 	jq \
+	mise \
 	neovim \
 	nodejs \
 	npm \
@@ -36,8 +42,7 @@ sudo dnf install -y \
 	topgrade \
 	wget2-wget \
 	yubico-piv-tool \
-	yubikey-manager \
-	zig
+	yubikey-manager
 
 sudo systemctl enable --now pcscd
 
@@ -67,6 +72,19 @@ flatpak install --assumeyes \
 # nodejs is not installed: nothing in this repo requires it.
 set -euo pipefail
 
+# mise's own apt repo, which installs zig, exercism and topgrade.
+# Ubuntu has no mise package. https://mise.jdx.dev/installing-mise.html
+if ! command -v mise > /dev/null; then
+	sudo mkdir -p -m 755 /etc/apt/keyrings
+	keyring="$(mktemp)"
+	wget -qO "$keyring" https://mise.jdx.dev/gpg-key.pub
+	sudo tee /etc/apt/keyrings/mise-archive-keyring.pub < "$keyring" > /dev/null
+	rm -f "$keyring"
+	sudo chmod go+r /etc/apt/keyrings/mise-archive-keyring.pub
+	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mise-archive-keyring.pub] https://mise.jdx.dev/deb stable main" \
+		| sudo tee /etc/apt/sources.list.d/mise.list > /dev/null
+fi
+
 sudo apt-get update
 sudo apt-get install -y \
 	bash-completion \
@@ -78,6 +96,7 @@ sudo apt-get install -y \
 	git-lfs \
 	golang-go \
 	jq \
+	mise \
 	ncurses-term \
 	neovim \
 	ripgrep \
@@ -116,85 +135,6 @@ if ! command -v chezmoi > /dev/null; then
 	sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 fi
 
-# Exercism publishes release tarballs only; there is no apt package.
-# https://exercism.org/cli-walkthrough
-# Pinned: bump the version and checksums together.
-exercism_version=3.5.8
-if ! command -v exercism > /dev/null; then
-	case "$(uname -m)" in
-		x86_64)
-			exercism_arch=x86_64
-			exercism_sha=4ce6a3e5e41e4c51606f8cb94ef6b46e8f45144ef8c613c1ea4b8b69209e02ad
-			;;
-		aarch64)
-			exercism_arch=arm64
-			exercism_sha=0d2474eba53b14a8e4965c0d3c77b74d037058d2d76c55496deda63c7044d281
-			;;
-		*) echo "unsupported architecture for exercism: $(uname -m)" >&2; exit 1 ;;
-	esac
-	exercism_tmp="$(mktemp -d)"
-	curl -fsSL -o "$exercism_tmp/exercism.tar.gz" \
-		"https://github.com/exercism/cli/releases/download/v${exercism_version}/exercism-${exercism_version}-linux-${exercism_arch}.tar.gz"
-	echo "$exercism_sha  $exercism_tmp/exercism.tar.gz" | sha256sum --check
-	tar -xzf "$exercism_tmp/exercism.tar.gz" -C "$exercism_tmp" exercism
-	install -D -m 755 "$exercism_tmp/exercism" "$HOME/.local/bin/exercism"
-	rm -rf "$exercism_tmp"
-fi
-
-# Pinned tagged release, not Ubuntu's zig metapackage (0.14).
-# https://ziglang.org/download/
-# Compare the copy this script owns. An older zig earlier in PATH,
-# such as ~/bin/zig, must not hide it or force a reinstall.
-zig_version=0.16.0
-if [ ! -x "$HOME/.local/bin/zig" ] || [ "$("$HOME/.local/bin/zig" version)" != "$zig_version" ]; then
-	case "$(uname -m)" in
-		x86_64)
-			zig_arch=x86_64
-			zig_sha=70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00
-			;;
-		aarch64)
-			zig_arch=aarch64
-			zig_sha=ea4b09bfb22ec6f6c6ceac57ab63efb6b46e17ab08d21f69f3a48b38e1534f17
-			;;
-		*) echo "unsupported architecture for zig: $(uname -m)" >&2; exit 1 ;;
-	esac
-	zig_tarball="zig-${zig_arch}-linux-${zig_version}.tar.xz"
-	zig_tmp="$(mktemp -d)"
-	curl -fsSL -o "$zig_tmp/$zig_tarball" \
-		"https://ziglang.org/download/${zig_version}/${zig_tarball}"
-	echo "$zig_sha  $zig_tmp/$zig_tarball" | sha256sum --check
-	rm -rf "$HOME/.local/zig"
-	tar -xJf "$zig_tmp/$zig_tarball" -C "$HOME/.local"
-	mv "$HOME/.local/zig-${zig_arch}-linux-${zig_version}" "$HOME/.local/zig"
-	mkdir -p "$HOME/.local/bin"
-	ln -sfn "$HOME/.local/zig/zig" "$HOME/.local/bin/zig"
-	rm -rf "$zig_tmp"
-fi
-
-# Official release binary in ~/.local/bin, ahead of any distro package.
-# Apt has no topgrade; the release .deb is a one-off, not a repo.
-# Pinned: bump the version and checksums together.
-topgrade_version=17.12.2
-if [ ! -x "$HOME/.local/bin/topgrade" ]; then
-	case "$(uname -m)" in
-		x86_64)
-			topgrade_arch=x86_64
-			topgrade_sha=4d6660a2f021cf34c823c1baf4499a7cace581b5415935f6c5fc5484858faf8e
-			;;
-		aarch64)
-			topgrade_arch=aarch64
-			topgrade_sha=ebe0750313da6ae5cca7888f0ca4652272b29b8711b1e8c2ded35b8ce29a57d4
-			;;
-		*) echo "unsupported architecture for topgrade: $(uname -m)" >&2; exit 1 ;;
-	esac
-	topgrade_tmp="$(mktemp -d)"
-	curl -fsSL -o "$topgrade_tmp/topgrade.tar.gz" \
-		"https://github.com/topgrade-rs/topgrade/releases/download/v${topgrade_version}/topgrade-v${topgrade_version}-${topgrade_arch}-unknown-linux-gnu.tar.gz"
-	echo "$topgrade_sha  $topgrade_tmp/topgrade.tar.gz" | sha256sum --check
-	tar -xzf "$topgrade_tmp/topgrade.tar.gz" -C "$topgrade_tmp"
-	install -D -m 755 "$topgrade_tmp/topgrade" "$HOME/.local/bin/topgrade"
-	rm -rf "$topgrade_tmp"
-fi
 {{   end -}}
 {{ end -}}
 

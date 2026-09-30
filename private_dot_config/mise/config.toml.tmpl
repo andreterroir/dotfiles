@@ -1,0 +1,12 @@
+[tools]
+zig = "0.16.0"
+"ubi:exercism/cli" = { version = "3.5.8", exe = "exercism" }
+{{ if and .server (eq .chezmoi.os "linux") -}}
+"ubi:topgrade-rs/topgrade" = "17.12.2"
+{{ end -}}
+{{ if .desktop -}}
+rust = "stable"
+{{ end -}}
+{{ if .linux.desktop -}}
+"cargo:age-plugin-yubikey" = "0.5.1"
+{{ end -}}

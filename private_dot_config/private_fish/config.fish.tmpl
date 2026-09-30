@@ -43,4 +43,9 @@ if status is-interactive; and command -q amp
     amp completions fish | source
 end
 
+# mise-managed tools (zig, exercism, rust, topgrade)
+if status is-interactive; and command -q mise
+    mise activate fish | source
+end
+
 source $__fish_config_dir/config.local.fish 2>/dev/null

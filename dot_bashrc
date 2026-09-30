@@ -126,3 +126,8 @@ fi
 
 # Load machine-specific configuration
 [ -f ~/.bashrc.local ] && source ~/.bashrc.local
+
+# mise-managed tools (zig, exercism, rust, topgrade)
+if command -v mise > /dev/null; then
+	eval "$(mise activate bash)"
+fi
