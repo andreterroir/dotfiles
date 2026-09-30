@@ -4,9 +4,13 @@
 # vi: set ft=bash
 set -e
 
-# Fedora has no topgrade package. Official method is this Copr.
-# https://copr.fedorainfracloud.org/coprs/lilay/topgrade/
-sudo dnf -y copr enable lilay/topgrade
+# Terra's main repo, the documented Ghostty install path. Do not enable
+# terra-release-extras, -mesa or -multimedia.
+if ! rpm -q terra-release >/dev/null; then
+	sudo dnf install -y --nogpgcheck \
+		--repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
+		terra-release terra-gpg-keys
+fi
 
 # mise's own RPM repo, which installs zig and exercism. Not Terra.
 # https://mise.jdx.dev/installing-mise.html
@@ -22,6 +26,7 @@ sudo dnf install -y \
 	fish \
 	fzf \
 	gh \
+	ghostty \
 	git-lfs \
 	gnupg2 \
 	golang \
@@ -32,6 +37,7 @@ sudo dnf install -y \
 	neovim \
 	nodejs \
 	npm \
+	opencode-cli \
 	pass \
 	pass-otp \
 	pcsc-tools \
@@ -139,7 +145,7 @@ fi
 {{ end -}}
 
 {{ if eq .chezmoi.os "linux" -}}
-{{   if or (eq .chezmoi.osRelease.id "fedora") (and (eq .chezmoi.osRelease.id "ubuntu") .server) -}}
+{{   if and (eq .chezmoi.osRelease.id "ubuntu") .server -}}
 # --no-modify-path skips the installer's shell PATH edit. Link the
 # binary into ~/.local/bin, which is already on PATH.
 if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
@@ -149,6 +155,8 @@ fi
 mkdir -p "$HOME/.local/bin"
 ln -sfn "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"
 
+{{   end -}}
+{{   if or (eq .chezmoi.osRelease.id "fedora") (and (eq .chezmoi.osRelease.id "ubuntu") .server) -}}
 if [ ! -x "$HOME/.local/bin/amp" ]; then
 	echo '>installing amp'
 	curl -fsSL https://ampcode.com/install.sh | bash
