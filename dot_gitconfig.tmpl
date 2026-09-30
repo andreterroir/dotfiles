@@ -8,7 +8,9 @@
 	format = ssh
 [gpg "ssh"]
 	allowedSignersFile = ~/.allowed_signers
-	defaultKeyCommand = ~/.bin/git-signing-key
+	# git execs this command itself, so it needs an absolute path; a
+	# leading ~ is not expanded here.
+	defaultKeyCommand = {{ .chezmoi.homeDir }}/.bin/git-signing-key
 [core]
 	excludesfile = ~/.gitignore
 [init]

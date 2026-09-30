@@ -9,6 +9,10 @@ fish_add_path $HOME/.cargo/bin
 # Go
 fish_add_path $HOME/.cache/go/bin
 
+# mise's shims, so shells that never run the interactive activate below
+# still find the tools mise installs
+fish_add_path $HOME/.local/share/mise/shims
+
 # Shared environment, also installed to environment.d on Linux desktops
 if test -f $HOME/.config/env
     while read -l line

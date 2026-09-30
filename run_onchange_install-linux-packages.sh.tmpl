@@ -83,15 +83,17 @@ flatpak install --assumeyes \
 set -euo pipefail
 
 # mise's own apt repo, which installs zig, exercism and topgrade.
-# Ubuntu has no mise package. https://mise.jdx.dev/installing-mise.html
+# Ubuntu has no mise package. apt ignores an ASCII-armored keyring, so
+# the vendor's key is dearmored into a .gpg keyring.
+# https://mise.jdx.dev/installing-mise.html
 if ! command -v mise > /dev/null; then
 	sudo mkdir -p -m 755 /etc/apt/keyrings
 	keyring="$(mktemp)"
-	wget -qO "$keyring" https://mise.jdx.dev/gpg-key.pub
-	sudo tee /etc/apt/keyrings/mise-archive-keyring.pub < "$keyring" > /dev/null
+	curl -fsSL https://mise.jdx.dev/gpg-key.pub | gpg --dearmor > "$keyring"
+	sudo tee /etc/apt/keyrings/mise-archive-keyring.gpg < "$keyring" > /dev/null
 	rm -f "$keyring"
-	sudo chmod go+r /etc/apt/keyrings/mise-archive-keyring.pub
-	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mise-archive-keyring.pub] https://mise.jdx.dev/deb stable main" \
+	sudo chmod go+r /etc/apt/keyrings/mise-archive-keyring.gpg
+	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mise-archive-keyring.gpg] https://mise.jdx.dev/deb stable main" \
 		| sudo tee /etc/apt/sources.list.d/mise.list > /dev/null
 fi
 

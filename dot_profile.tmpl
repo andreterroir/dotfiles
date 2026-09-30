@@ -20,12 +20,15 @@ if [ -d "/opt/homebrew/" ]; then
 fi
 {{ end -}}
 # Prepend in reverse of fish_add_path order. The last prepend here is
-# searched first: cargo, go, ~/bin, ~/.bin, ~/.local/bin.
+# searched first: mise, cargo, go, ~/bin, ~/.bin, ~/.local/bin.
 [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
 [ -e "$HOME/.bin" ] && PATH="$HOME/.bin:$PATH"
 [ -e "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
 [ -d "$HOME/.cache/go/bin" ] && PATH="$HOME/.cache/go/bin:$PATH"
 [ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
+# mise's shims, so shells that never run the interactive activate in
+# ~/.bashrc still find the tools mise installs
+[ -d "$HOME/.local/share/mise/shims" ] && PATH="$HOME/.local/share/mise/shims:$PATH"
 export PATH
 
 # Use all available cores when possible

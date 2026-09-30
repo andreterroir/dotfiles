@@ -95,13 +95,19 @@ on the machine doing the work, one commit per step, ask before pushing.
 - Install mise itself per OS: Fedora `dnf` via mise's own repo
   (`https://mise.jdx.dev/rpm/mise.repo`), macOS `brew 'mise'`, Ubuntu
   via mise's apt repo (`https://mise.jdx.dev/deb`). Both repos go into
-  the existing package scripts; keep the vendor's key-import steps.
+  the existing package scripts; keep the vendor's key-import steps. The
+  vendor's apt key is ASCII-armored, which apt ignores (it recognises
+  only `.gpg` and `.asc` keyring extensions), so it is piped through
+  `gpg --dearmor` into `/etc/apt/keyrings/mise-archive-keyring.gpg`.
 - Add `run_onchange_after_mise-install.sh.tmpl` that embeds
   `{{ include "private_dot_config/mise/config.toml.tmpl" | sha256sum }}`
   in a comment and runs `mise install --yes`. Desktop Fedora also needs
   `pcsc-lite-devel` in its desktop dnf list for the `cargo:` build.
 - Activate: `eval "$(mise activate bash)"` at the end of `dot_bashrc`,
-  `mise activate fish | source` in `config.fish.tmpl`.
+  `mise activate fish | source` in `config.fish.tmpl`, and
+  `~/.local/share/mise/shims` on PATH in `dot_profile.tmpl` and
+  `config.fish.tmpl` so shells that never run the activate still find
+  the tools.
 - Delete the exercism, zig and topgrade blocks from
   `run_onchange_install-linux-packages.sh.tmpl`; leave chezmoi's
   installer, `gh`'s apt repo, opencode/amp/TPM for 0.2.
@@ -180,14 +186,16 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
 
   on desktops only, so `git commit` on a server signs with the plugged
   YubiKey.
-- `dot_gitconfig`: drop `user.signingkey`, add
+- `dot_gitconfig.tmpl`: drop `user.signingkey`, add
 
       [gpg "ssh"]
-          defaultKeyCommand = ~/.bin/git-signing-key
+          defaultKeyCommand = {{ .chezmoi.homeDir }}/.bin/git-signing-key
 
-  with `dot_bin/executable_git-signing-key` printing the first
-  `sk-ssh-ed25519` line of `ssh-add -L`, else `~/.ssh/id_ed25519.pub`
-  if it exists, else exiting 1. One rule for every role: whichever
+  git execs that command itself, so it needs an absolute path — a leading
+  `~` is not expanded, unlike in `allowedSignersFile`, which is a path.
+  `dot_bin/executable_git-signing-key` prints the first `sk-ssh-ed25519`
+  line of `ssh-add -L`, else `~/.ssh/id_ed25519.pub` if it exists, else
+  exits 1. One rule for every role: whichever
   YubiKey is plugged in (or forwarded) signs; a server with no agent
   falls back to its machine key, which is what the unattended runner
   needs.
