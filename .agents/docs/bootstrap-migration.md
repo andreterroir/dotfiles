@@ -266,14 +266,15 @@ Phase 1 — YubiKey preparation [human], black ‖ x1
 Once per key. Both machines in parallel; each machine works on the key
 plugged into it. Needs 0.1–0.3 merged (tooling installed by `chezmoi apply`).
 
-Where the two keys stand after the Phase 0 merge: the 5 NFC (black,
-serial 15596691) already has its PIV management key stored on the YubiKey
-and PIN-protected, with algorithm TDES, and its resident SSH key
-registered — `ssh -T git@github.com` answers `Hi andreterroir!` — so on
-black only steps 1 and 4 remain, and `--protect` must not be repeated.
-The Nano (x1, serial 17644150) still has a custom unprotected TDES
-management key, so it needs `--protect` before it can generate an age
-identity. The `pass` copy of black's old management key is stale.
+Where the two keys stand after the Phase 0 merge: both keys — the 5 NFC
+(black, serial 15596691) and the Nano (x1, serial 17644150) — already
+have their PIV management key stored on the YubiKey and PIN-protected,
+with algorithm TDES, so neither needs `--protect` again. Retired slot 82
+is still empty on both: no age identity exists yet, and the next write to
+either key is `age-plugin-yubikey --generate` (step 4), after the merge
+and a `chezmoi apply`. The 5 NFC also has its resident SSH key registered
+(`ssh -T git@github.com` answers `Hi andreterroir!`). The `pass` copies of
+both old management keys are stale.
 
 1. `chezmoi update && chezmoi init` (re-render config) and confirm
    `chezmoi data | jq .desktop` is `true`.
@@ -282,12 +283,12 @@ identity. The `pass` copy of black's old management key is stale.
    (PIN + touch). Register: `gh ssh-key add ~/.ssh/id_ed25519_sk.pub --title yubikey-<name>`
    and again with `--type signing`. Verify `ssh -T git@github.com`.
    Done on the 5 NFC.
-4. age identity: `age-plugin-yubikey` 0.5.1 neither prompts for the PIV
-   management key nor accepts an unprotected or AES key, so first check
-   `ykman piv info`; only if it does not already report the management
-   key as stored on the YubiKey and PIN-protected (the Nano today), run
-   `ykman piv access change-management-key --protect --algorithm TDES`.
-   Then `age-plugin-yubikey --generate --slot 1 --name <5nfc|nano> --pin-policy once --touch-policy cached > /tmp/id.txt`
+4. age identity: retired slot 82 is empty on both keys, so this is the
+   first write to either of them. `age-plugin-yubikey` 0.5.1 neither
+   prompts for the PIV management key nor accepts an unprotected or AES
+   key, and both keys already store their management key on the YubiKey
+   PIN-protected, so there is no `change-management-key` step here.
+   `age-plugin-yubikey --generate --slot 1 --name <5nfc|nano> --pin-policy once --touch-policy cached > /tmp/id.txt`
    (asks for the PIN). Slot 1 is retired slot 82. Paste the
    `AGE-PLUGIN-YUBIKEY-…` line into
    `private_dot_passage/identities.tmpl` and the
