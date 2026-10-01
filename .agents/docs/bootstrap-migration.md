@@ -137,9 +137,11 @@ on the machine doing the work, one commit per step, ask before pushing.
   `pcsc-lite-devel` and `make` in the desktop block (`pcsc-lite-devel`
   for the `cargo:` build, `make` for the passage install). No `cargo`:
   mise brings the Rust toolchain.
-- macOS Brewfile: add `age`, `age-plugin-yubikey` and `mise`; keep
-  `ykman`. There is no `passage` formula, so it is installed from source
-  by the desktop run script (0.7).
+- macOS Brewfile: add `age`, `age-plugin-yubikey`, `mise` and `openssh`;
+  keep `ykman`. Apple's OpenSSH lacks built-in FIDO2 support; Homebrew
+  OpenSSH depends on libfido2 and provides the `ssh-keygen -K` and
+  `ssh-add -K` used by the identity script. There is no `passage` formula,
+  so it is installed from source by the desktop run script (0.7).
 - Ubuntu: nothing new; still no Node.
 
 ### 0.4 Role detection at init

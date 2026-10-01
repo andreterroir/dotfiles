@@ -14,6 +14,11 @@ fi
 
 GH_ACCOUNT=andreterroir
 
+{{ if eq .chezmoi.os "darwin" -}}
+PATH="/opt/homebrew/opt/openssh/bin:$PATH"
+export PATH
+{{ end -}}
+
 {{ if .desktop -}}
 # FIDO2 resident key on the YubiKey. ssh-keygen -K downloads it from the
 # authenticator into id_ed25519_sk_rk{,.pub} in the current directory.
