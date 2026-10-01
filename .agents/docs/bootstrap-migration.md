@@ -18,7 +18,7 @@ Target state
 | Machine role | hostname allowlist frozen at `chezmoi init` | detected (`gnome-shell`, darwin), confirmed once at `init` |
 | Interactive setup | `run_once_` scripts, alphabetical order | `run_` scripts with state checks, no-op without a TTY |
 | Pinned CLI tools | sha-pinned tarballs in the Ubuntu script, copr, `curl \| bash` | `mise` from one `config.toml`; Terra RPMs on Fedora |
-| SSH identity (desktop) | per-machine ed25519 + PIV fallback | one FIDO2 resident key per YubiKey (`ed25519-sk`), touch per use |
+| SSH identity (desktop) | per-machine ed25519 + PIV fallback | one FIDO2 resident key per YubiKey (`ed25519-sk`) for interactive signing; machine ed25519 for unattended signing |
 | SSH identity (server) | per-machine ed25519 | unchanged, registered on GitHub as auth + signing |
 | `~/.allowed_signers` | committed per machine by a script | derived from GitHub's signing-key API on every apply |
 | Secrets | `pass` + GnuPG on the YubiKey OpenPGP applet, store on netcup | `passage` + `age-plugin-yubikey` (PIV retired slot), store in a private GitHub repo |
@@ -194,11 +194,10 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
   git execs that command itself, so it needs an absolute path — a leading
   `~` is not expanded, unlike in `allowedSignersFile`, which is a path.
   `dot_bin/executable_git-signing-key` prints the first `sk-ssh-ed25519`
-  line of `ssh-add -L`, else `~/.ssh/id_ed25519.pub` if it exists, else
-  exits 1. One rule for every role: whichever
-  YubiKey is plugged in (or forwarded) signs; a server with no agent
-  falls back to its machine key, which is what the unattended runner
-  needs.
+  line of `ssh-add -L` only when stdin is a TTY; otherwise it prints
+  `~/.ssh/id_ed25519.pub` if it exists, else exits 1. Interactive work
+  therefore uses a plugged-in (or forwarded) YubiKey, while unattended
+  work signs with the machine key without waiting for a touch.
 - Replace `run_once_set-up-3-ssh.sh.tmpl` with `run_after_10-ssh-identity.sh.tmpl`:
   - `[ -t 0 ] || { echo '>ssh identity: run chezmoi apply from a terminal to finish'; exit 0; }`
   - desktop: if no `~/.ssh/id_ed25519_sk*`, **[human]** `ssh-keygen -K`
@@ -398,9 +397,12 @@ works on every desktop.
   `yubico-piv-tool`, `pinentry-mac`, `gnupg` (macOS). Keep `gnupg2` on
   Fedora (system dependency), `yubikey-manager`/`ykman`, `pcsc-tools`.
 - `private_dot_ssh/private_config.tmpl`: drop `IdentityFile ~/.ssh/id_ed25519`
-  on desktops. Machines may delete `~/.ssh/id_ed25519*` and remove
-  those keys from GitHub and from `~/.ssh/authorized_keys` on the
-  servers (the sk keys must be in `authorized_keys` first: `ssh-copy-id -i ~/.ssh/id_ed25519_sk.pub greenhouse`).
+  on desktops and remove those keys from GitHub authentication and from
+  `~/.ssh/authorized_keys` on the servers (the sk keys must be in
+  `authorized_keys` first: `ssh-copy-id -i ~/.ssh/id_ed25519_sk.pub greenhouse`).
+  Retain `~/.ssh/id_ed25519{,.pub}` and its GitHub signing-key
+  registration: non-interactive Git signing continues to use the
+  machine key.
 - `.chezmoi.toml.tmpl`: the `hooks.update.post` line keeps calling
   `update-passwords`, now passage-backed.
 - On netcup, archive then delete `~/.password-store` (`tar` to a
