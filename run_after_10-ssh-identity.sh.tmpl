@@ -21,14 +21,29 @@ export PATH
 
 {{ if .desktop -}}
 # FIDO2 resident key on the YubiKey. ssh-keygen -K downloads it from the
-# authenticator into id_ed25519_sk_rk{,.pub} in the current directory.
+# authenticator into an id_ed25519_sk_rk* pair in the current directory.
 SK_KEY="$HOME/.ssh/id_ed25519_sk"
-if [ ! -f "$SK_KEY" ] || [ ! -f "$SK_KEY.pub" ]; then
+if { [ -f "$SK_KEY" ] && [ ! -f "$SK_KEY.pub" ]; } ||
+	{ [ ! -f "$SK_KEY" ] && [ -f "$SK_KEY.pub" ]; }; then
+	echo "error: incomplete resident key pair at $SK_KEY" >&2
+	exit 1
+fi
+if [ ! -f "$SK_KEY" ]; then
 	echo '>downloading the resident key from the YubiKey (touch it when it blinks)'
 	sk_tmp="$(mktemp -d)"
 	( cd "$sk_tmp" && ssh-keygen -K )
-	mv "$sk_tmp/id_ed25519_sk_rk" "$SK_KEY"
-	mv "$sk_tmp/id_ed25519_sk_rk.pub" "$SK_KEY.pub"
+	sk_keys=()
+	for candidate in "$sk_tmp"/id_ed25519_sk_rk*; do
+		[ -f "$candidate" ] || continue
+		[[ "$candidate" == *.pub ]] && continue
+		[ -f "$candidate.pub" ] && sk_keys+=("$candidate")
+	done
+	if [ "${#sk_keys[@]}" -ne 1 ]; then
+		echo "error: expected one resident key pair in $sk_tmp, found ${#sk_keys[@]}" >&2
+		exit 1
+	fi
+	mv "${sk_keys[0]}" "$SK_KEY"
+	mv "${sk_keys[0]}.pub" "$SK_KEY.pub"
 	rm -rf "$sk_tmp"
 	ssh-add -K
 fi
