@@ -1,0 +1,26 @@
+{{ if .desktop -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+passage_dir="$HOME/.passage"
+plugins="$passage_dir/plugin-identities"
+local_identities="$passage_dir/local-identities"
+identities="$passage_dir/identities"
+
+umask 077
+tmp="$(mktemp "$passage_dir/.identities.XXXXXX")"
+trap 'rm -f "$tmp"' EXIT
+cat "$plugins" > "$tmp"
+if [ -f "$local_identities" ]; then
+	chmod 600 "$local_identities"
+	cat "$local_identities" >> "$tmp"
+fi
+
+if [ -f "$identities" ] && cmp -s "$tmp" "$identities"; then
+	chmod 600 "$identities"
+	exit 0
+fi
+mv "$tmp" "$identities"
+trap - EXIT
+{{ end -}}

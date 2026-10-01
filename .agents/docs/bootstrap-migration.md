@@ -214,9 +214,13 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
 
 ### 0.7 passage replaces pass
 
-- `private_dot_passage/identities.tmpl` (desktop): both YubiKeys'
+- `private_dot_passage/plugin-identities.tmpl` (desktop): both YubiKeys'
   `AGE-PLUGIN-YUBIKEY-…` identity lines, filled in during Phase 1. The
   file holds slot references only, no secret material.
+- `run_after_21-passage-identities.sh.tmpl` atomically builds Passage's
+  `~/.passage/identities` from the managed plugin identities plus an
+  optional, untracked `~/.passage/local-identities`. This lets Slate add
+  its local age secret without chezmoi overwriting it or putting it in Git.
 - `run_onchange_after_20-passage-install.sh.tmpl` (desktop): install
   passage from a pinned git tag into `~/.local` with `make install`, the
   same way on Fedora and macOS (there is no package on either).
@@ -320,9 +324,15 @@ only decryption does).
 
    `pass-otp` has zero `otpauth://` entries; eyeball the list anyway.
 4. `passage git add -A && passage git commit -m 'Migrate from pass' && passage git push -u origin main`.
-5. Verify on black (5 NFC, touch): `passage show <entry>`. Verify on x1
-   after Phase 3 with the Nano. Only then treat the pass store as read-only.
-6. Fill both `AGE-PLUGIN-YUBIKEY-…` lines into `identities.tmpl`, merge.
+5. The `work/` subtree remains Slate-only. Before migrating it, generate
+   an age identity in `~/.passage/local-identities` on Slate and commit
+   only its recipient to `work/.age-recipients`. Passage uses the nearest
+   recipients file, so `work/*` does not inherit the root YubiKey recipients.
+   Never export or commit Slate's local identity.
+6. Verify on black (5 NFC, touch): `passage show <entry>`. Verify on x1
+   after Phase 3 with the Nano, and verify a `work/*` entry only on Slate.
+   Only then treat the pass store as read-only.
+7. Fill both `AGE-PLUGIN-YUBIKEY-…` lines into `plugin-identities.tmpl`, merge.
 
 Phase 3 — per-machine rollout (parallel)
 ----------------------------------------
