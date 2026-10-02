@@ -181,13 +181,10 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
 ### 0.6 SSH identity model
 
 - `private_dot_ssh/private_config.tmpl`: add `IdentityFile ~/.ssh/id_ed25519_sk`
-  under `Host *` on desktops (keep `~/.ssh/id_ed25519` too until 4.1), and
-
-      Host REDACTED greenhouse slate
-          ForwardAgent yes
-
-  on desktops only, so `git commit` on a server signs with the plugged
-  YubiKey.
+  under `Host *` on desktops (keep `~/.ssh/id_ed25519` too until 4.1).
+  Do not forward the desktop agent to servers: the resident YubiKey key is
+  for desktop authentication only, while each server uses its local
+  `id_ed25519` key for authentication and signing.
 - `dot_gitconfig.tmpl`: drop `user.signingkey`, add
 
       [gpg "ssh"]
@@ -196,10 +193,11 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
   git execs that command itself, so it needs an absolute path — a leading
   `~` is not expanded, unlike in `allowedSignersFile`, which is a path.
   `dot_bin/executable_git-signing-key` prints the first `sk-ssh-ed25519`
-  line of `ssh-add -L` only when stdin is a TTY; otherwise it prints
-  `~/.ssh/id_ed25519.pub` if it exists, else exits 1. Interactive work
-  therefore uses a plugged-in (or forwarded) YubiKey, while unattended
-  work signs with the machine key without waiting for a touch.
+  line of `ssh-add -L` only when a controlling terminal is present;
+  otherwise it prints `~/.ssh/id_ed25519.pub` if it exists, else exits 1.
+  On a desktop, interactive work therefore uses a plugged-in YubiKey.
+  Unattended work and server commits sign with the local machine key
+  without waiting for a touch.
 - Replace `run_once_set-up-3-ssh.sh.tmpl` with `run_after_10-ssh-identity.sh.tmpl`:
   - `[ -t 0 ] || { echo '>ssh identity: run chezmoi apply from a terminal to finish'; exit 0; }`
   - desktop: if no `~/.ssh/id_ed25519_sk*`, **[human]** `ssh-keygen -K`
@@ -372,8 +370,9 @@ it.
    `gh` login).
 3. Unattended signing check as the runner does it: `git -C ~/code/dotfiles commit --allow-empty -m test`
    with no forwarded agent → Good signature from the machine key.
-4. From a desktop: `ssh -A greenhouse 'ssh-add -L'` shows the sk key;
-   a commit there signs via the YubiKey.
+4. From a desktop, authenticate to the server with the resident key. The
+   server uses its local `id_ed25519` key for GitHub authentication and
+   signing; do not forward the desktop SSH agent.
 
 ### Chloes-MBP (macOS desktop, no runner)
 
