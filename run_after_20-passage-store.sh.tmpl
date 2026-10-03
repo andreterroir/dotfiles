@@ -14,7 +14,7 @@ remote='git@git.terroir.systems:passwords.git'
 if [ ! -d "$store" ]; then
 	echo '>cloning the passage store'
 	git clone "$remote" "$store" \
-		|| echo '>passage store: clone failed (repo not created yet?); re-run chezmoi apply after Phase 2' >&2
+		|| echo '>passage store: clone failed; re-run chezmoi apply with an authorized key' >&2
 elif git -C "$store" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
 	if git -C "$store" remote get-url origin > /dev/null 2>&1; then
 		git -C "$store" remote set-url origin "$remote"

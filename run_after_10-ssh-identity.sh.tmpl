@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Finish this machine's SSH identity: put its key on disk and make sure
-# GitHub holds it as both an authentication and a signing key. The sk
-# key download needs a YubiKey touch and the registration may need a
+# GitHub holds its machine key for signing and its YubiKey for signing and
+# authentication. x1's machine key is also an authentication fallback.
+# The sk key download needs a YubiKey touch and registration may need a
 # browser login, so a non-tty apply only says how to finish. Re-runs are
-# idempotent: a machine whose key is already on GitHub does nothing.
+# idempotent: a machine whose keys are already on GitHub does nothing.
 set -euo pipefail
 
 if [ ! -t 0 ]; then
@@ -13,6 +14,17 @@ if [ ! -t 0 ]; then
 fi
 
 GH_ACCOUNT=andreterroir
+approved_yubikeys=(
+	'sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIBvW6Zw+GAYm4zXEt6Cumdv82ORF0Jhw2Qh9Nq48pdJpAAAACHNzaDo1bmZj'
+	'sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHeTStXm0VUd8cz/M2HJWf1WVb7oa+OyWtFnOyqIlLViAAAAC3NzaDo1Yy1uYW5v'
+)
+is_approved_yubikey() {
+	local key="$1" approved_yubikey
+	for approved_yubikey in "${approved_yubikeys[@]}"; do
+		[ "$key" != "$approved_yubikey" ] || return 0
+	done
+	return 1
+}
 
 {{ if eq .chezmoi.os "darwin" -}}
 PATH="/opt/homebrew/opt/openssh/bin:$PATH"
@@ -58,12 +70,24 @@ if [ ! -f "$SK_KEY" ]; then
 	done
 	if [ "${#sk_keys[@]}" -ne 1 ]; then
 		echo "error: expected one resident key pair in $sk_tmp, found ${#sk_keys[@]}" >&2
+		rm -rf "$sk_tmp"
+		exit 1
+	fi
+	downloaded_key="$(awk '{print $1, $2}' "${sk_keys[0]}.pub")"
+	if ! is_approved_yubikey "$downloaded_key"; then
+		echo 'error: downloaded resident key is not one of the approved YubiKeys' >&2
+		rm -rf "$sk_tmp"
 		exit 1
 	fi
 	mv "${sk_keys[0]}" "$SK_KEY"
 	mv "${sk_keys[0]}.pub" "$SK_KEY.pub"
 	rm -rf "$sk_tmp"
 	ssh-add -K
+fi
+sk_key="$(awk '{print $1, $2}' "$SK_KEY.pub")"
+if ! is_approved_yubikey "$sk_key"; then
+	echo 'error: resident key is not one of the approved YubiKeys' >&2
+	exit 1
 fi
 signing_keys_to_add+=("$SK_KEY.pub")
 auth_keys_to_add+=("$SK_KEY.pub")

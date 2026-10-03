@@ -75,9 +75,6 @@ command -v rustup > /dev/null && source <(rustup completions bash cargo)
 command -v rustup > /dev/null && source <(rustup completions bash rustup)
 # Load Amp completions at runtime (per https://ampcode.com/docs/cli)
 command -v amp > /dev/null && source <(amp completions bash)
-# Enable pass-otp completion (https://github.com/tadfisher/pass-otp/issues/137)
-[ -f /usr/share/bash-completion/completions/pass-otp ] \
-	&& source /usr/share/bash-completion/completions/pass-otp
 
 # fzf key bindings (Ctrl-T, Ctrl-R, Alt-C) and ** completion.
 # fzf --bash (0.48+) embeds both. Older Ubuntu packages have no
@@ -112,16 +109,6 @@ if command -v fzf > /dev/null; then
 		unset _fzf_completion
 	fi
 	unset _fzf_bash
-fi
-
-# Tell GPG pinentry where to prompt for password. Ubuntu servers do
-# not install GPG.
-if command -v gpgconf > /dev/null; then
-	GPG_TTY=$(tty)
-	export GPG_TTY
-	# ensure gpg-agent is running (macOS and some Linuxes do not have
-	# socket activation for GPG)
-	gpgconf --launch gpg-agent
 fi
 
 # Load machine-specific configuration

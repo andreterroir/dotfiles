@@ -20,7 +20,7 @@ installed globally; do not duplicate them here.
 
 See the source tree for the current layout. Package install scripts target
 macOS, Fedora Linux, and headless Ubuntu. Ubuntu servers get the CLI set
-only: no fish, hugo, Node, pass, GPG, YubiKey, or Wayland clipboard tools.
+only: no fish, hugo, Node, YubiKey, or Wayland clipboard tools.
 Other distros are unsupported.
 
 `run_*` scripts fire in alphabetical order of their target names, so
@@ -70,7 +70,7 @@ unintended changes. Do a fast forward only merge when asked to integrate the cha
 
 ## Boundaries
 
-- Do not push to or pull from the `pass` git store unless asked; the
+- Do not push to or pull from the Passage git store unless asked; the
   post-update hook in `.chezmoi.toml.tmpl` already handles that.
 - Machine role comes from the `desktop` data variable. `chezmoi init`
   prompts for it once, defaulting to darwin or a machine with

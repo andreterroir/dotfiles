@@ -5,17 +5,21 @@ set -euo pipefail
 
 passage_dir="$HOME/.passage"
 plugins="$passage_dir/plugin-identities"
+{{ if eq .chezmoi.hostname "slate" -}}
 local_identities="$passage_dir/local-identities"
+{{ end -}}
 identities="$passage_dir/identities"
 
 umask 077
 tmp="$(mktemp "$passage_dir/.identities.XXXXXX")"
 trap 'rm -f "$tmp"' EXIT
 cat "$plugins" > "$tmp"
+{{ if eq .chezmoi.hostname "slate" -}}
 if [ -f "$local_identities" ]; then
 	chmod 600 "$local_identities"
 	cat "$local_identities" >> "$tmp"
 fi
+{{ end -}}
 
 if [ -f "$identities" ] && cmp -s "$tmp" "$identities"; then
 	chmod 600 "$identities"
