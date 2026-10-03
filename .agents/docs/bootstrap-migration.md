@@ -19,11 +19,33 @@ Target state
 | Interactive setup | `run_once_` scripts, alphabetical order | `run_` scripts with state checks, no-op without a TTY |
 | Pinned CLI tools | sha-pinned tarballs in the Ubuntu script, copr, `curl \| bash` | `mise` from one `config.toml`; Terra RPMs on Fedora |
 | SSH identity (desktop) | per-machine ed25519 + PIV fallback | one FIDO2 resident key per YubiKey (`ed25519-sk`) for interactive signing; machine ed25519 for unattended signing |
-| SSH identity (server) | per-machine ed25519 | unchanged, registered on GitHub as auth + signing |
+| SSH identity (server) | per-machine ed25519 | forwarded FIDO2 key for interactive signing and authentication; machine ed25519 for unattended signing only |
 | `~/.allowed_signers` | committed per machine by a script | derived from GitHub's signing-key API on every apply |
-| Secrets | `pass` + GnuPG on the YubiKey OpenPGP applet, store on netcup | `passage` + `age-plugin-yubikey` (PIV retired slot), store in a private GitHub repo |
+| Secrets | `pass` + GnuPG on the YubiKey OpenPGP applet, store on greenhouse | `passage` + `age-plugin-yubikey` (PIV retired slot), store at `git.terroir.systems` |
 | Shared env vars | duplicated in `.profile` and `config.fish` | one `~/.config/env`, installed to `environment.d` on Linux desktops |
 | Repo visibility | private | public, after the store host is scrubbed from history |
+
+Provisioning and use model
+--------------------------
+
+The four credential concerns are independent. A YubiKey represents an
+interactive human; a machine-local key represents unattended work. `gh`
+uses its OAuth token for GitHub API and HTTPS access, so no unattended
+Git-over-SSH access is required.
+
+| Aspect | Standard desktop | x1 | Interactive SSH session on a server | Unattended desktop or server | Slate exception |
+| --- | --- | --- | --- | --- | --- |
+| age passwords | Either YubiKey's `age-plugin-yubikey` identity decrypts the Passage store; the store remote is `git.terroir.systems` over SSH | Same | Not available | Not available | Slate is a desktop, but a machine-local age identity decrypts only its `work/` subtree; it never decrypts the root store, and repository sync still requires a YubiKey |
+| Commit signing | Resident YubiKey SSH key; fail if it is unavailable | Same; the backup authentication key is not used for interactive signing | Forwarded resident YubiKey SSH key; fail if it is unavailable | Machine-local SSH key | No exception; standard desktop policy |
+| Remote server access | Resident YubiKey SSH key; forward the agent to the server | Resident YubiKey preferred, with x1's machine-local SSH key as backup; forward the selected agent | The forwarded YubiKey authenticates onward connections | Not available by default; a local key may be explicitly authorized for a specific use | No exception; standard desktop policy |
+| GitHub access | `gh` OAuth for API/HTTPS; resident YubiKey for SSH | `gh` OAuth for API/HTTPS; resident YubiKey or x1's machine-local backup key for SSH | `gh` OAuth for API/HTTPS; forwarded YubiKey for SSH | `gh` OAuth for API/HTTPS; no Git-over-SSH requirement | No exception; standard desktop policy |
+
+Both YubiKey resident SSH keys are GitHub authentication and signing
+keys and are authorized on the remote servers. Every machine-local key
+is a GitHub signing key. Only x1's machine-local key is also a general
+GitHub and remote-server authentication key. Local authentication keys
+remain possible when explicitly authorized, but are not provisioned as
+the default path.
 
 Machines
 --------
@@ -32,9 +54,9 @@ Machines
 | --- | --- | --- | --- | --- |
 | black | Fedora 45 Workstation | desktop | yes | YubiKey 5 NFC (serial 15596691) |
 | x1 | Fedora Workstation | desktop | yes | YubiKey 5C Nano (serial 17644150) |
-| netcup (`greenhouse`) | Ubuntu, headless | server, Amp runner | yes | none |
+| greenhouse | Ubuntu, headless | server, Amp runner | yes | none |
 | Chloes-MBP | macOS | desktop | no | either, when plugged in |
-| slate | *unknown; assumed Ubuntu server* | server | no | none |
+| slate | *unknown* | desktop, work machine | no | none |
 
 Verified on both YubiKeys (firmware 5.4.3): PIV retired slots 82–95
 free, FIDO2 resident keys supported, OpenSSH 10.x with `sk-ssh-ed25519`
@@ -53,7 +75,7 @@ Phase 0  repository changes           one worktree, one agent (orb or any machin
 Phase 1  YubiKey prep [human]         black ║ x1          parallel, needs Phase 0.6 merged
 Phase 2  password store move [human]  black               after Phase 1 on both keys
 
-Phase 3  per-machine rollout          black ║ x1 ║ netcup ║ Chloes-MBP ║ slate
+Phase 3  per-machine rollout          black ║ x1 ║ greenhouse ║ Chloes-MBP ║ slate
                                       parallel, after Phase 2 (desktops) / Phase 0 (servers)
 
 Phase 4  retire old paths             one agent, after every machine reports Phase 3 done
@@ -61,9 +83,9 @@ Phase 4  retire old paths             one agent, after every machine reports Pha
          → 4.4 every machine re-clones the source dir
 ```
 
-Servers only depend on Phase 0; they may start Phase 3 as soon as
-`main` carries the Phase 0 commits. Desktops wait for Phase 2 because
-their `run_` scripts clone the new store.
+Servers only depend on Phase 0; they may start Phase 3 as soon as `main`
+carries the Phase 0 commits. Desktops, including Slate, wait for Phase 2
+because their `run_` scripts clone the new store.
 
 Phase 0 — repository changes
 ----------------------------
@@ -180,15 +202,20 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
 
 ### 0.6 SSH identity model
 
-- `private_dot_ssh/private_config.tmpl`: add `IdentityFile ~/.ssh/id_ed25519_sk`
-  under `Host *` on desktops (keep `~/.ssh/id_ed25519` too until 4.1), and
+- `private_dot_ssh/private_config.tmpl`: keep authentication identities in
+  host-specific blocks rather than under `Host *`. The managed config
+  names only `github.com` and `git.terroir.systems`; both use
+  `~/.ssh/id_ed25519_sk`, while x1 additionally offers its machine-local
+  `~/.ssh/id_ed25519` as a backup:
 
-      Host REDACTED greenhouse slate
-          ForwardAgent yes
+      Host github.com git.terroir.systems
+          IdentityFile ~/.ssh/id_ed25519_sk
 
-  on desktops only. The forwarded resident YubiKey key is for SSH
-  authentication only; remote commits use each server's local `id_ed25519`
-  key for signing.
+  Other remote aliases and their `ForwardAgent yes` entries belong in
+  untracked `~/.ssh/local_config` so the public repository does not name
+  them.
+  Both YubiKey public keys must be in each server's `authorized_keys`.
+  x1's machine key is the only generally provisioned local-key backup.
 - `dot_gitconfig.tmpl`: drop `user.signingkey`, add
 
       [gpg "ssh"]
@@ -197,25 +224,30 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
   git execs that command itself, so it needs an absolute path — a leading
   `~` is not expanded, unlike in `allowedSignersFile`, which is a path.
   `dot_bin/executable_git-signing-key` prints the first `sk-ssh-ed25519`
-  line of `ssh-add -L` only for an interactive desktop terminal (not an
-  SSH session); otherwise it prints `~/.ssh/id_ed25519.pub` if it exists,
-  else exits 1.
-  On a desktop, interactive work therefore uses a plugged-in YubiKey.
-  Unattended work and server commits sign with the local machine key
-  without waiting for a touch.
+  line of `ssh-add -L` for any interactive terminal, including an SSH
+  session. It must fail when an interactive session has no YubiKey key;
+  it must not silently identify that commit as automation. For a
+  non-interactive process it prints `~/.ssh/id_ed25519.pub`. Provide an
+  explicit machine-key override for trusted tools that allocate a PTY,
+  and document that override in the agent instructions.
 - Replace `run_once_set-up-3-ssh.sh.tmpl` with `run_after_10-ssh-identity.sh.tmpl`:
   - `[ -t 0 ] || { echo '>ssh identity: run chezmoi apply from a terminal to finish'; exit 0; }`
   - desktop: if no `~/.ssh/id_ed25519_sk*`, **[human]** `ssh-keygen -K`
     in a temp dir, move the `_rk` files to `~/.ssh/id_ed25519_sk{,.pub}`,
     `ssh-add -K`.
-  - server: if no `~/.ssh/id_ed25519`, `ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)"`.
-  - both: check the public key against `api.github.com/users/andreterroir/keys`
-    and `/ssh_signing_keys` (already in the old script); if missing,
-    **[human]** `gh auth login --web` if needed, then `gh ssh-key add`
-    as auth and as signing. No `git commit`, no `remote set-url`.
+  - every machine: if no `~/.ssh/id_ed25519`, generate a per-machine key
+    for unattended signing.
+  - register both YubiKey keys on GitHub as authentication and signing
+    keys. Register every machine key as signing-only. Register x1's
+    machine key additionally as an authentication key. Server machine
+    keys do not need GitHub authentication because unattended Git uses
+    HTTPS through `gh`.
+  - use **[human]** `gh auth login --web` when registration needs it. No
+    `git commit`, no `remote set-url`.
 - Delete `run_once_set-up-1-gpg.sh.tmpl`.
-- Check: `ssh -T git@github.com` (touch), `git commit --allow-empty -m test`
-  signs, `git log --show-signature -1` says Good.
+- Check local and remote interactive commits use a YubiKey signature;
+  both fail without that key. Check unattended commits use the local
+  machine signature. `git log --show-signature -1` says Good for each.
 
 ### 0.7 passage replaces pass
 
@@ -223,18 +255,20 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
   `AGE-PLUGIN-YUBIKEY-…` identity lines, filled in during Phase 1. The
   file holds slot references only, no secret material.
 - `run_after_21-passage-identities.sh.tmpl` atomically builds Passage's
-  `~/.passage/identities` from the managed plugin identities plus an
-  optional, untracked `~/.passage/local-identities`. This lets Slate add
-  its local age secret without chezmoi overwriting it or putting it in Git.
+  `~/.passage/identities` from the managed plugin identities. Slate is
+  the sole exception: its untracked `~/.passage/local-identities` holds
+  the machine-local identity for the `work/` subtree.
 - `run_onchange_after_20-passage-install.sh.tmpl` (desktop): install
   passage from a pinned git tag into `~/.local` with `make install`, the
-  same way on Fedora and macOS (there is no package on either).
+  same way on Fedora, macOS, and Ubuntu (there is no package used here).
 - `run_after_20-passage-store.sh.tmpl` (desktop): no-op without TTY; if
   `~/.passage/store` is missing, **[human]**
-  `git clone https://github.com/andreterroir/passwords ~/.passage/store`.
+  `git clone git@git.terroir.systems:passwords.git ~/.passage/store`.
 - `dot_bin/executable_update-passwords`: `passage git pull --rebase --quiet && passage git push --quiet`,
-  exiting 0 when passage is absent so the `chezmoi update` hook is a
-  no-op on servers.
+  exiting 0 when passage is absent or no permitted SSH authentication
+  key is available. Desktops sync with a local YubiKey; x1 may use its
+  backup machine key. The hook is a no-op on servers and during
+  unattended runs without an authorized key.
 - fish/bash: alias `pass=passage` for muscle memory; `PASSAGE_DIR` unset (default).
 - Delete `run_once_set-up-2-pass.sh.tmpl`. Leave `pass`, `pass-otp`,
   gnupg config in place until Phase 4 so the migration machine has both.
@@ -307,7 +341,7 @@ both old management keys are stale.
    `age-plugin-yubikey --generate --slot 1 --name <5nfc|nano> --pin-policy once --touch-policy cached > /tmp/id.txt`
    (asks for the PIN). Slot 1 is retired slot 82. Paste the
    `AGE-PLUGIN-YUBIKEY-…` line into
-   `private_dot_passage/identities.tmpl` and the
+   `private_dot_passage/plugin-identities.tmpl` and the
    `age1yubikey1…` recipient into the store's `.age-recipients` (Phase 2).
 5. Commit the identity line to the dotfiles branch; x1 sends its
    recipient/identity to black (public data, any channel).
@@ -319,9 +353,12 @@ Needs both recipients from Phase 1 and both keys' identities on black
 (the Nano can stay in x1: encryption to a recipient needs no hardware,
 only decryption does).
 
-1. `gh repo create andreterroir/passwords --private` (empty).
+1. Create an empty private bare repository at
+   `git@git.terroir.systems:passwords.git`. Authorize both YubiKey SSH
+   keys and x1's backup key on the host; do not link the repository to
+   an external identity provider.
 2. `mkdir -p ~/.passage/store && printf '%s\n' age1yubikey1…5nfc age1yubikey1…nano > ~/.passage/store/.age-recipients`;
-   `passage git init`; `passage git remote add origin https://github.com/andreterroir/passwords.git`.
+   `passage git init`; `passage git remote add origin git@git.terroir.systems:passwords.git`.
 3. Migrate (312 entries; GnuPG user PIN once, agent caches it):
 
        cd ~/.password-store && find . -name '*.gpg' -printf '%P\n' | sed 's/\.gpg$//' |
@@ -357,10 +394,16 @@ from a real terminal (the **[human]** `run_` steps need it). Check
 2. `passage show <entry>` decrypts with the local key.
 3. `git commit --allow-empty -m test` in any repo: YubiKey blinks, touch,
    `git log --show-signature -1` → Good.
-4. New GNOME session; `systemctl --user show-environment | grep -c 'GOPATH\|EDITOR'` → 2.
-5. Report: `chezmoi status` empty, `mise ls`, `dnf repolist | grep terra`.
+4. Remove the YubiKey and confirm an interactive commit fails. Run an
+   unattended commit with the machine-key override and confirm its
+   signature is the local machine key.
+5. Confirm SSH authentication without a YubiKey fails on black. On x1,
+   confirm the machine-local backup still authenticates to a remote
+   server, GitHub, and `git.terroir.systems`.
+6. New GNOME session; `systemctl --user show-environment | grep -c 'GOPATH\|EDITOR'` → 2.
+7. Report: `chezmoi status` empty, `mise ls`, `dnf repolist | grep terra`.
 
-### netcup / greenhouse (Ubuntu server, Amp runner)
+### greenhouse (Ubuntu server, Amp runner)
 
 `~/code/dotfiles` already resolves to the live repository (it is a
 symlink to the runner's `~/.local/share/chezmoi`), so there is no
@@ -370,14 +413,17 @@ it.
 1. Common step; `desktop` must be `false`.
 2. Expect: mise from its apt repo with `topgrade`, `zig`, `exercism`;
    the tarball code is gone. `~/.ssh/id_ed25519` already exists; the
-   ssh script registers it on GitHub as **signing** key if missing
+   ssh script registers it on GitHub as a **signing-only** key if missing
    (**[human]** `gh auth login` once, or reuse the runner's existing
    `gh` login).
 3. Unattended signing check as the runner does it: `git -C ~/code/dotfiles commit --allow-empty -m test`
    with no forwarded agent → Good signature from the machine key.
-4. From a desktop, authenticate to the server with the forwarded resident
-   key. The server uses its local `id_ed25519` key for GitHub
-   authentication and signing, not the forwarded YubiKey.
+4. From a desktop, authenticate to the server and forward the resident
+   key. An interactive commit on the server uses that forwarded key and
+   fails if it is absent. Unattended commits use the server's local key.
+5. GitHub API and unattended Git access use `gh` OAuth and HTTPS. In an
+   interactive session, `ssh -T git@github.com` uses the forwarded
+   YubiKey; it fails when that key is unavailable.
 
 ### Chloes-MBP (macOS desktop, no runner)
 
@@ -390,20 +436,28 @@ it.
    `ssh-add -K` loads it; macOS `UseKeychain` is unaffected because
    there is no PKCS#11 provider any more.
 3. `passage show`, signed commit, as on Fedora.
-4. `environment.d` does not apply; check `fish -c 'echo $GOPATH'` and a
+4. Repeat Fedora's interactive-without-YubiKey and unattended-signing
+   checks. SSH authentication without a YubiKey must fail.
+5. `environment.d` does not apply; check `fish -c 'echo $GOPATH'` and a
    login bash instead.
 
-### slate (assumed Ubuntu server)
+### slate (work desktop)
 
-Same as netcup, minus the runner-specific source-dir fix. If slate is
-in fact a Mac or a desktop, run the Chloes-MBP or Fedora list instead;
-confirm with `chezmoi data` before applying.
+Run the desktop rollout for Slate's OS; `chezmoi data` must report
+`desktop: true`. Plug in either YubiKey for initial store cloning, root
+password decryption, interactive signing, and SSH authentication. Place
+Slate's machine-local age identity in untracked
+`~/.passage/local-identities`; verify it decrypts a `work/*` entry but
+not a root entry. Also run the standard desktop checks: an interactive
+commit without a YubiKey fails, an unattended commit uses Slate's local
+SSH key, and SSH authentication without a YubiKey fails.
 
 Phase 4 — retire the old paths
 ------------------------------
 
-Only after all five machines report Phase 3 complete and `passage`
-works on every desktop.
+Only after all five machines report Phase 3 complete, `passage` works
+on every desktop, and Slate's local age identity can decrypt only its
+`work/` subtree.
 
 ### 4.1 Remove GnuPG, pass, PIV (repo)
 
@@ -412,24 +466,26 @@ works on every desktop.
 - Package lists: drop `pass`, `pass-otp`, `gnupg2-scdaemon`,
   `yubico-piv-tool`, `pinentry-mac`, `gnupg` (macOS). Keep `gnupg2` on
   Fedora (system dependency), `yubikey-manager`/`ykman`, `pcsc-tools`.
-- `private_dot_ssh/private_config.tmpl`: drop `IdentityFile ~/.ssh/id_ed25519`
-  on desktops and remove those keys from GitHub authentication and from
-  `~/.ssh/authorized_keys` on the servers (the sk keys must be in
-  `authorized_keys` first: `ssh-copy-id -i ~/.ssh/id_ed25519_sk.pub greenhouse`).
+- `private_dot_ssh/private_config.tmpl`: remove desktop machine keys from
+  authentication except for x1's host-specific backup. Remove the other
+  machine keys from GitHub authentication and server `authorized_keys`;
+  both YubiKey keys must be authorized first.
   Retain `~/.ssh/id_ed25519{,.pub}` and its GitHub signing-key
   registration: non-interactive Git signing continues to use the
   machine key.
 - `.chezmoi.toml.tmpl`: the `hooks.update.post` line keeps calling
   `update-passwords`, now passage-backed.
-- On netcup, archive then delete `~/.password-store` (`tar` to a
-  passage-encrypted blob or just delete once GitHub has the history).
-  Remove the PIV public key from netcup's `authorized_keys` and GitHub.
+- On greenhouse, archive then delete `~/.password-store` (`tar` to a
+  passage-encrypted blob or just delete once the new store has the history).
+  Remove the PIV public key from greenhouse's `authorized_keys` and GitHub.
 
 ### 4.2 Scrub the store host from history [human]
 
-`git filter-repo --replace-text <(printf 'REDACTED==>REDACTED\nREDACTED@netcup==>REDACTED\n')`
-on a fresh clone, review `git log -p -S netcup`, then force-push
-`main` — **ask before the push**. Every machine then re-clones:
+On a fresh clone, put the legacy store hostname and account identifiers
+in a private `git filter-repo --replace-text` file, replace each with
+`REDACTED`, and search the rewritten history for every original value.
+Delete the replacements file, then force-push `main` — **ask before the
+push**. Every machine then re-clones:
 `rm -rf ~/code/dotfiles && chezmoi init --apply --source=~/code/dotfiles andreterroir`
 (state is in `~/.config/chezmoi`, so `run_once_` history survives;
 the new `run_` scripts do not depend on it).
