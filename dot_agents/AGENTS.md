@@ -33,6 +33,13 @@ simple name referencing the change being made, e.g.
 Keep comments brief. A good comment should speed up reading the code, not slow
 it down. Extended context belongs in commit messages, not in comments.
 
+## Git Signing
+
+Interactive commits require an authorized resident YubiKey SSH key from the
+agent. For a trusted tool that allocates a PTY but must sign as automation,
+prefix the command with `GIT_SIGNING_KEY=machine` to explicitly select the
+machine key.
+
 ## After Making Changes
 
 Start a code review using the review tool/subagent, not within the context of

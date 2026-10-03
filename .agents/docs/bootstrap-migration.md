@@ -223,13 +223,14 @@ drop the `black`/`x1` hostname rule from the Boundaries section.
 
   git execs that command itself, so it needs an absolute path — a leading
   `~` is not expanded, unlike in `allowedSignersFile`, which is a path.
-  `dot_bin/executable_git-signing-key` prints the first `sk-ssh-ed25519`
-  line of `ssh-add -L` for any interactive terminal, including an SSH
-  session. It must fail when an interactive session has no YubiKey key;
-  it must not silently identify that commit as automation. For a
-  non-interactive process it prints `~/.ssh/id_ed25519.pub`. Provide an
-  explicit machine-key override for trusted tools that allocate a PTY,
-  and document that override in the agent instructions.
+  `dot_bin/executable_git-signing-key` prints an authorized resident
+  YubiKey key from `ssh-add -L` for any interactive terminal, including
+  an SSH session. It must fail when an interactive session has no
+  authorized YubiKey key; it must not silently identify that commit as
+  automation. For a non-interactive process it prints
+  `~/.ssh/id_ed25519.pub`. Trusted tools that allocate a PTY use
+  `GIT_SIGNING_KEY=machine` for an explicit machine-key override;
+  document it in the agent instructions.
 - Replace `run_once_set-up-3-ssh.sh.tmpl` with `run_after_10-ssh-identity.sh.tmpl`:
   - `[ -t 0 ] || { echo '>ssh identity: run chezmoi apply from a terminal to finish'; exit 0; }`
   - desktop: if no `~/.ssh/id_ed25519_sk*`, **[human]** `ssh-keygen -K`

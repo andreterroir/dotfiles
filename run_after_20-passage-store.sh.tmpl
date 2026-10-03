@@ -1,8 +1,7 @@
 {{ if .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-# The store is a private repository, so cloning it needs the GitHub
-# login that the human just did at the terminal.
+# The store is private, so its SSH authentication requires a terminal.
 set -euo pipefail
 
 if [ ! -t 0 ]; then
@@ -10,9 +9,19 @@ if [ ! -t 0 ]; then
 	exit 0
 fi
 
-if [ ! -d "$HOME/.passage/store" ]; then
+store="$HOME/.passage/store"
+remote='git@git.terroir.systems:passwords.git'
+if [ ! -d "$store" ]; then
 	echo '>cloning the passage store'
-	git clone https://github.com/andreterroir/passwords "$HOME/.passage/store" \
+	git clone "$remote" "$store" \
 		|| echo '>passage store: clone failed (repo not created yet?); re-run chezmoi apply after Phase 2' >&2
+elif git -C "$store" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+	if git -C "$store" remote get-url origin > /dev/null 2>&1; then
+		git -C "$store" remote set-url origin "$remote"
+	else
+		git -C "$store" remote add origin "$remote"
+	fi
+else
+	echo '>passage store: existing directory is not a Git repository' >&2
 fi
 {{ end -}}

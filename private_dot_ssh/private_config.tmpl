@@ -11,11 +11,15 @@ Host *
 	UseKeychain yes
 	{{- end }}
 	HashKnownHosts no
-{{- if .desktop }}
+	IdentityFile none
+
+Host github.com git.terroir.systems
 	IdentityFile ~/.ssh/id_ed25519_sk
+
+{{- if .desktop }}
+	IdentitiesOnly yes
+{{- if eq .chezmoi.hostname "x1" }}
+	# x1's machine key is an intentional authentication fallback.
 	IdentityFile ~/.ssh/id_ed25519
 {{- end }}
-{{ if .desktop }}
-Host REDACTED greenhouse slate
-	ForwardAgent yes
-{{ end -}}
+{{- end }}

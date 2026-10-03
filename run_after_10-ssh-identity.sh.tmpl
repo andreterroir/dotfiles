@@ -19,6 +19,24 @@ PATH="/opt/homebrew/opt/openssh/bin:$PATH"
 export PATH
 {{ end -}}
 
+# Every machine signs unattended commits with its own ed25519 key.
+MACHINE_KEY="$HOME/.ssh/id_ed25519"
+if { [ -f "$MACHINE_KEY" ] && [ ! -f "$MACHINE_KEY.pub" ]; } ||
+	{ [ ! -f "$MACHINE_KEY" ] && [ -f "$MACHINE_KEY.pub" ]; }; then
+	echo "error: incomplete machine key pair at $MACHINE_KEY" >&2
+	exit 1
+fi
+if [ ! -f "$MACHINE_KEY" ]; then
+	echo '>generating per-machine ed25519 key'
+	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"
+fi
+
+signing_keys_to_add=("$MACHINE_KEY.pub")
+auth_keys_to_add=()
+{{ if and .desktop (eq .chezmoi.hostname "x1") -}}
+auth_keys_to_add+=("$MACHINE_KEY.pub")
+{{ end -}}
+
 {{ if .desktop -}}
 # FIDO2 resident key on the YubiKey. ssh-keygen -K downloads it from the
 # authenticator into an id_ed25519_sk_rk* pair in the current directory.
@@ -47,26 +65,27 @@ if [ ! -f "$SK_KEY" ]; then
 	rm -rf "$sk_tmp"
 	ssh-add -K
 fi
-PUB_KEY="$SK_KEY.pub"
-{{ else -}}
-# Per-machine ed25519 key.
-KEY="$HOME/.ssh/id_ed25519"
-if [ ! -f "$KEY" ] || [ ! -f "$KEY.pub" ]; then
-	echo '>generating per-machine ed25519 key'
-	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$KEY"
-fi
-PUB_KEY="$KEY.pub"
+signing_keys_to_add+=("$SK_KEY.pub")
+auth_keys_to_add+=("$SK_KEY.pub")
 {{ end -}}
 
 # Key registrations are public, so check them before touching gh auth:
 # re-runs skip the browser flow when nothing needs uploading. Buffering
 # the JSON avoids curl|grep SIGPIPE false negatives under pipefail.
-KEY_MAT="$(awk '{print $1, $2}' "$PUB_KEY")"
-auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")"
-signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"
+registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")"
+registered_signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"
 
-if grep -qF "$KEY_MAT" <<<"$auth_keys" && grep -qF "$KEY_MAT" <<<"$signing_keys"; then
-	echo '>public key already on GitHub (auth + signing)'
+needs_registration=false
+for public_key in "${auth_keys_to_add[@]}"; do
+	key_material="$(awk '{print $1, $2}' "$public_key")"
+	grep -qF "$key_material" <<<"$registered_auth_keys" || needs_registration=true
+done
+for public_key in "${signing_keys_to_add[@]}"; do
+	key_material="$(awk '{print $1, $2}' "$public_key")"
+	grep -qF "$key_material" <<<"$registered_signing_keys" || needs_registration=true
+done
+if [ "$needs_registration" = false ]; then
+	echo '>public keys already on GitHub'
 	exit 0
 fi
 
@@ -95,12 +114,17 @@ if ! grep -qF admin:ssh_signing_key \
 		--scopes admin:public_key --scopes admin:ssh_signing_key
 fi
 
-title="$(whoami)@$(hostname -s)"
-if ! grep -qF "$KEY_MAT" <<<"$auth_keys"; then
-	echo '>registering key on GitHub as an authentication key'
-	gh ssh-key add "$PUB_KEY" --title "$title"
-fi
-if ! grep -qF "$KEY_MAT" <<<"$signing_keys"; then
-	echo '>registering key on GitHub as a signing key'
-	gh ssh-key add "$PUB_KEY" --title "$title" --type signing
-fi
+for public_key in "${auth_keys_to_add[@]}"; do
+	key_material="$(awk '{print $1, $2}' "$public_key")"
+	if ! grep -qF "$key_material" <<<"$registered_auth_keys"; then
+		echo '>registering key on GitHub as an authentication key'
+		gh ssh-key add "$public_key" --title "$(whoami)@$(hostname -s)-$(basename "$public_key" .pub)"
+	fi
+done
+for public_key in "${signing_keys_to_add[@]}"; do
+	key_material="$(awk '{print $1, $2}' "$public_key")"
+	if ! grep -qF "$key_material" <<<"$registered_signing_keys"; then
+		echo '>registering key on GitHub as a signing key'
+		gh ssh-key add "$public_key" --title "$(whoami)@$(hostname -s)-$(basename "$public_key" .pub)" --type signing
+	fi
+done
