@@ -9,8 +9,7 @@ sourceDir = "{{ .chezmoi.homeDir }}/code/dotfiles"
     command = "bash"
     args = [ "-c", "! command -v update-passwords >/dev/null 2>&1 || update-passwords" ]
 [data]
-    {{- $detected := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") }}
-    {{- $desktop := promptBoolOnce . "desktop" "Desktop machine" $detected }}
+    {{- $desktop := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") }}
     desktop = {{ $desktop }}
     linux.desktop = {{ and $desktop (eq .chezmoi.os "linux") }}
     server = {{ not $desktop }}
