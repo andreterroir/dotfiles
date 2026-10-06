@@ -1,8 +1,6 @@
 .profile
-.config/fish/config.fish
-.config/fish/functions/cz.fish
-.config/fish/functions/g.fish
-.config/fish/functions/pass.fish
-.config/fish/functions/python.fish
-.config/fish/functions/t.fish
-.config/fish/functions/v.fish
+# fish was dropped from this repository: retire its configuration and
+# state so no machine keeps a shell this repo no longer configures.
+.config/fish
+.local/share/fish
+.cache/fish

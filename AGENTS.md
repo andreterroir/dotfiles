@@ -45,9 +45,10 @@ by another script.
 - `symlink_*`        → emit a symlink whose target is the file's contents
 - `executable_*`     → emitted with the executable bit set
 - `.chezmoiignore.tmpl` / `.chezmoi.toml.tmpl` → chezmoi config; edit deliberately
-- `.chezmoiremove`   → target paths (relative to `$HOME`) that chezmoi
-                       removes on every apply; retires files dropped from
-                       the source tree
+- `.chezmoiremove`   → glob patterns (relative to `$HOME`) for targets
+                       chezmoi removes on every apply; retires files
+                       dropped from the source tree and state left over
+                       from retired tools
 
 ## Workflow
 
