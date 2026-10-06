@@ -10,7 +10,7 @@ fi
 
 {{ if eq .chezmoi.os "darwin" -}}
 # Homebrew binaries. User directories are prepended after this so they
-# win, matching fish_add_path.
+# win.
 if [ -d "/opt/homebrew/" ]; then
 	export HOMEBREW_NO_AUTO_UPDATE
 	eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -20,8 +20,8 @@ if [ -d "/opt/homebrew/" ]; then
 	PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
 fi
 {{ end -}}
-# Prepend in reverse of fish_add_path order. The last prepend here is
-# searched first: mise, cargo, go, ~/bin, ~/.bin, ~/.local/bin.
+# Prepend user directories; the last prepended is searched first:
+# mise, cargo, go, ~/bin, ~/.bin, ~/.local/bin.
 [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
 [ -e "$HOME/.bin" ] && PATH="$HOME/.bin:$PATH"
 [ -e "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
@@ -45,8 +45,8 @@ if [ -f "$HOME/.config/opencode/opencode.local.json" ]; then
 	export OPENCODE_CONFIG="$HOME/.config/opencode/opencode.local.json"
 fi
 
-# Source local profile
-[ -f "$HOME/.profile.local" ] && source "$HOME/.profile.local"
+# Source machine-local login override
+[ -f "$HOME/.bash_profile.local" ] && source "$HOME/.bash_profile.local"
 
-# Source bashrc for bash login sessions too
-[ "$BASH" ] && [ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
+# Source the interactive config
+[ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
