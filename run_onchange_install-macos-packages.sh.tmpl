@@ -85,4 +85,12 @@ mas 'WhatsApp', id: 310633997
 
 EOF
 
+# Homebrew ships no godoc formula; install it with the Go toolchain.
+# GOPATH is explicit because run_* scripts do not source ~/.config/env,
+# and it keeps the module cache next to the one interactive shells use.
+if [ ! -x "$HOME/.cache/go/bin/godoc" ]; then
+	GOPATH="$HOME/.cache/go" GOBIN="$HOME/.cache/go/bin" \
+		go install golang.org/x/tools/cmd/godoc@latest
+fi
+
 {{ end }}
