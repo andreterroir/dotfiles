@@ -73,6 +73,15 @@ elif [ -r /etc/profile.d/bash_completion.sh ]; then
 elif [ -r /usr/share/bash-completion/bash_completion ]; then
 	source /usr/share/bash-completion/bash_completion
 fi
+# passage's completion covers `passage`, but `pass` is an alias and bash looks
+# completions up by the typed name, so the alias needs its own registration.
+# The file comes from run_onchange_after_20-passage-install.sh.tmpl.
+passage_completion="$HOME/.local/share/bash-completion/completions/passage"
+if [ -r "$passage_completion" ]; then
+	source "$passage_completion"
+	complete -o filenames -F _pass pass
+fi
+unset passage_completion
 source <(chezmoi completion bash)
 # Enable Cargo completion
 command -v rustup > /dev/null && source <(rustup completions bash cargo)
