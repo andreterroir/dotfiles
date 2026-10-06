@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+socket="$HOME/.ssh/homebrew-agent.sock"
+pid_file="$HOME/.ssh/homebrew-agent.pid"
+
+rm -f "$socket" "$pid_file"
+/opt/homebrew/bin/ssh-agent -D -a "$socket" &
+agent_pid=$!
+trap 'kill "$agent_pid" 2>/dev/null || true; rm -f "$socket" "$pid_file"' EXIT
+printf '%s\n' "$agent_pid" > "$pid_file"
+
+export SSH_AUTH_SOCK="$socket"
+for _ in {1..50}; do
+	[ -S "$socket" ] && break
+	sleep 0.1
+done
+[ -S "$socket" ]
+if ! /opt/homebrew/bin/ssh-add "$HOME/.ssh/id_ed25519_sk"; then
+	echo 'homebrew-ssh-agent: could not load the resident key' >&2
+fi
+wait "$agent_pid"

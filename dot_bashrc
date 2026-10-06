@@ -4,6 +4,10 @@
 # Skip if not running interactively
 [[ "$-" == *i* ]] || return
 
+if [ -x /opt/homebrew/bin/ssh-add ]; then
+	export SSH_AUTH_SOCK="$HOME/.ssh/homebrew-agent.sock"
+fi
+
 alias ls='ls --classify --color=auto'
 alias cz='chezmoi'
 alias g='git'

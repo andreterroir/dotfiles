@@ -14,6 +14,7 @@ fi
 if [ -d "/opt/homebrew/" ]; then
 	export HOMEBREW_NO_AUTO_UPDATE
 	eval "$(/opt/homebrew/bin/brew shellenv)"
+	export SSH_AUTH_SOCK="$HOME/.ssh/homebrew-agent.sock"
 	# Use homebrew utilities instead of macOS provided commands
 	PATH="$(brew --prefix)/opt/gnu-sed/libexec/gnubin:$PATH"
 	PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"

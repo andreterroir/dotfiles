@@ -1,0 +1,12 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+domain="gui/$(id -u)"
+label="systems.terroir.homebrew-ssh-agent"
+plist="$HOME/Library/LaunchAgents/$label.plist"
+
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+{{ end -}}

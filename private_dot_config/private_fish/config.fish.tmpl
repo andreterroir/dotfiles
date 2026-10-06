@@ -25,6 +25,7 @@ end
 {{ if eq .chezmoi.os "darwin" -}}
 # Prefer Homebrew coreutils and gnu-sed over macOS defaults
 set -gx HOMEBREW_NO_AUTO_UPDATE 1
+set -gx SSH_AUTH_SOCK $HOME/.ssh/homebrew-agent.sock
 if command -q brew
     fish_add_path (brew --prefix)/opt/gnu-sed/libexec/gnubin
     fish_add_path (brew --prefix)/opt/coreutils/libexec/gnubin
