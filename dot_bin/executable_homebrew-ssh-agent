@@ -20,4 +20,7 @@ done
 if ! /opt/homebrew/bin/ssh-add "$HOME/.ssh/id_ed25519_sk"; then
 	echo 'homebrew-ssh-agent: could not load the resident key' >&2
 fi
+if ! /opt/homebrew/bin/ssh-add "$HOME/.ssh/id_ed25519"; then
+	echo 'homebrew-ssh-agent: could not load the machine key' >&2
+fi
 wait "$agent_pid"

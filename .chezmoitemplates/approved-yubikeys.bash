@@ -1,0 +1,4 @@
+approved_yubikeys=(
+	'sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIBvW6Zw+GAYm4zXEt6Cumdv82ORF0Jhw2Qh9Nq48pdJpAAAACHNzaDo1bmZj'
+	'sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHeTStXm0VUd8cz/M2HJWf1WVb7oa+OyWtFnOyqIlLViAAAAC3NzaDo1Yy1uYW5v'
+)

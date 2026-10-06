@@ -14,10 +14,7 @@ if [ ! -t 0 ]; then
 fi
 
 GH_ACCOUNT=andreterroir
-approved_yubikeys=(
-	'sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIBvW6Zw+GAYm4zXEt6Cumdv82ORF0Jhw2Qh9Nq48pdJpAAAACHNzaDo1bmZj'
-	'sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHeTStXm0VUd8cz/M2HJWf1WVb7oa+OyWtFnOyqIlLViAAAAC3NzaDo1Yy1uYW5v'
-)
+{{ include ".chezmoitemplates/approved-yubikeys.bash" }}
 is_approved_yubikey() {
 	local key="$1" approved_yubikey
 	for approved_yubikey in "${approved_yubikeys[@]}"; do
@@ -33,6 +30,7 @@ export PATH
 
 # Every machine signs unattended commits with its own ed25519 key.
 MACHINE_KEY="$HOME/.ssh/id_ed25519"
+identity_changed=false
 if { [ -f "$MACHINE_KEY" ] && [ ! -f "$MACHINE_KEY.pub" ]; } ||
 	{ [ ! -f "$MACHINE_KEY" ] && [ -f "$MACHINE_KEY.pub" ]; }; then
 	echo "error: incomplete machine key pair at $MACHINE_KEY" >&2
@@ -41,6 +39,7 @@ fi
 if [ ! -f "$MACHINE_KEY" ]; then
 	echo '>generating per-machine ed25519 key'
 	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"
+	identity_changed=true
 fi
 
 signing_keys_to_add=("$MACHINE_KEY.pub")
@@ -83,6 +82,7 @@ if [ ! -f "$SK_KEY" ]; then
 	mv "${sk_keys[0]}.pub" "$SK_KEY.pub"
 	rm -rf "$sk_tmp"
 	ssh-add -K
+	identity_changed=true
 fi
 sk_key="$(awk '{print $1, $2}' "$SK_KEY.pub")"
 if ! is_approved_yubikey "$sk_key"; then
@@ -96,8 +96,15 @@ auth_keys_to_add+=("$SK_KEY.pub")
 # Key registrations are public, so check them before touching gh auth:
 # re-runs skip the browser flow when nothing needs uploading. Buffering
 # the JSON avoids curl|grep SIGPIPE false negatives under pipefail.
-registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")"
-registered_signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"
+if ! registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")" ||
+	! registered_signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"; then
+	if [ "$identity_changed" = true ]; then
+		echo 'error: GitHub API unavailable; newly provisioned keys require registration' >&2
+		exit 1
+	fi
+	echo '>ssh identity: GitHub API unavailable; skipped key registration' >&2
+	exit 0
+fi
 
 needs_registration=false
 for public_key in "${auth_keys_to_add[@]}"; do

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Git passes a temporary public-key file to ssh-keygen. Replace the machine
+# key with its private counterpart so unattended signing needs no agent.
+set -euo pipefail
+
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+	[ "${args[i]}" = -f ] || continue
+	key_file="${args[i + 1]:-}"
+	machine_key="$HOME/.ssh/id_ed25519"
+	if [ -f "$key_file" ] && [ -f "$machine_key.pub" ] &&
+		[ "$(awk '{print $1, $2}' "$key_file")" = "$(awk '{print $1, $2}' "$machine_key.pub")" ]; then
+		args[i + 1]="$machine_key"
+		for ((j = 0; j < ${#args[@]}; j++)); do
+			[ "${args[j]}" = -U ] && unset 'args[j]'
+		done
+	fi
+	break
+done
+
+exec ssh-keygen "${args[@]}"
