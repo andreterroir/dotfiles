@@ -8,7 +8,7 @@ Prerequisites
 - git
 
 Package install scripts target macOS, Fedora Linux, and headless Ubuntu.
-Ubuntu servers get the CLI set only: no fish, hugo, Node, YubiKey, or
+Ubuntu servers get the CLI set only: no hugo, Node, YubiKey, or
 Wayland clipboard tools. Other distros are unsupported.
 
 Install

@@ -31,7 +31,7 @@ export HISTFILESIZE=100000
 # Append history file when shell exits
 shopt -s histappend
 
-# Blinking block cursor, matching the fish prompt hook
+# Blinking block cursor
 printf '\e[1 q'
 
 # Customize Git repository prompt

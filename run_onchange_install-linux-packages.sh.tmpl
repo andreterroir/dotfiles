@@ -24,7 +24,6 @@ sudo dnf install -y \
 	bash-completion \
 	chezmoi \
 	fd-find \
-	fish \
 	fzf \
 	gh \
 	ghostty \
@@ -81,7 +80,7 @@ flatpak install --assumeyes \
 {{   else if and (eq .chezmoi.osRelease.id "ubuntu") .server -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-# Headless Ubuntu only. fish and hugo are intentionally omitted.
+# Headless Ubuntu only. hugo is intentionally omitted.
 # nodejs is not installed: nothing in this repo requires it.
 set -euo pipefail
 
