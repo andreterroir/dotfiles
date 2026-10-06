@@ -9,3 +9,5 @@
 .swival/
 # Git worktrees
 .wt/
+# Amp
+.amp/portals/
