@@ -1,0 +1,7 @@
+.config/fish/config.fish
+.config/fish/functions/cz.fish
+.config/fish/functions/g.fish
+.config/fish/functions/pass.fish
+.config/fish/functions/python.fish
+.config/fish/functions/t.fish
+.config/fish/functions/v.fish
