@@ -1,5 +1,15 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "lsp": true,
-  "formatter": true
+  "formatter": true,
+  "permission": {
+    "external_directory": {
+      "/tmp/**": "allow",
+      "/private/tmp/**": "allow",
+      "~/.agents/**": "allow"
+    },
+    "edit": {
+      "~/.agents/**": "deny"
+    }
+  }
 }
