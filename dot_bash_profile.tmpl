@@ -2,12 +2,17 @@
 # shellcheck shell=bash
 # vi: ft=bash
 
-# Shared environment, also installed to environment.d on Linux desktops
-if [ -f "$HOME/.config/env" ]; then
-	set -a
-	. "$HOME/.config/env"
-	set +a
-fi
+# Shared environment
+# age-plugin-yubikey 0.5.1 panics at startup when LANG is unset
+# (locale_config fails to parse Apple's AppleLocale region suffix).
+export LANG=en_US.UTF-8
+export CARGO_TARGET_DIR="$HOME/.cache/cargo/target"
+export RUSTUP_HOME="$HOME/.cache/rustup"
+export GOPATH="$HOME/.cache/go"
+export EDITOR=nvim
+export XZ_DEFAULTS=--threads=0
+export ZSTD_COMPRESS=--threads=0
+export LESS=--RAW-CONTROL-CHARS
 
 {{ if eq .chezmoi.os "darwin" -}}
 # Homebrew binaries. User directories are prepended after this so they

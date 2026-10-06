@@ -1,4 +1,7 @@
 .profile
+# the shared environment moved into .bash_profile
+.config/env
+.config/environment.d/10-dotfiles.conf
 # fish was dropped from this repository: retire its configuration and
 # state so no machine keeps a shell this repo no longer configures.
 .config/fish
