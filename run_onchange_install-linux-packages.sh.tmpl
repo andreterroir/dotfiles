@@ -31,7 +31,6 @@ sudo dnf install -y \
 	git-lfs \
 	gnupg2 \
 	golang \
-	golang-godoc \
 	hugo \
 	jetbrains-mono-fonts \
 	jq \
@@ -48,6 +47,13 @@ sudo dnf install -y \
 	topgrade \
 	wget2-wget \
 	yubikey-manager
+
+# Fedora no longer ships godoc. Install it with the Go toolchain, as on
+# macOS and Ubuntu, using the configured per-user Go cache.
+if [ ! -x "$HOME/.cache/go/bin/godoc" ]; then
+	GOPATH="$HOME/.cache/go" GOBIN="$HOME/.cache/go/bin" \
+		go install golang.org/x/tools/cmd/godoc@latest
+fi
 
 sudo systemctl enable --now pcscd
 
