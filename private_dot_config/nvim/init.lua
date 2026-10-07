@@ -317,6 +317,7 @@ vim.keymap.set('', '<leader>tw', function()
    vim.o.linebreak = wrap
 end, { desc = '[t]oggle [w]rapping' })
 vim.keymap.set('', '<leader>tc', vim.cmd.NoNeckPain, { desc = '[t]oggle [c]entering' })
+vim.keymap.set('', '<leader>tu', vim.cmd.UndotreeToggle, { desc = '[t]oggle [u]ndo tree' })
 
 -- save the pinky
 vim.keymap.set('', '<leader>;', ':', { desc = 'Normal mode without shift' })
@@ -388,7 +389,6 @@ vim.api.nvim_create_user_command('JournalToday', function() journal_for_offset(0
 vim.api.nvim_create_user_command('JournalTomorrow', function() journal_for_offset(1) end, { desc = "Open tomorrow's journal" })
 vim.api.nvim_create_user_command('JournalYesterday', function() journal_for_offset(-1) end, { desc = "Open yesterday's journal" })
 
-vim.keymap.set('', '<leader>U', vim.cmd.UndotreeToggle, { desc = 'Toggle [U] undo tree' })
 vim.keymap.set('', '<leader>w', '<cmd>:write<cr>', { desc = '[W]rite current buffer' })
 vim.keymap.set('', '<leader>q', '<cmd>:confirm quitall<cr>', { desc = '[Q]uit with confirmation' })
 vim.keymap.set('', '<C-w>go', '<cmd>:tabonly<cr>')
