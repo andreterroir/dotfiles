@@ -195,7 +195,7 @@ require('lazy').setup({
             map('n', '<leader>hR', gs.reset_buffer)
             map('n', '<leader>hp', gs.preview_hunk)
             map('n', '<leader>hb', function() gs.blame_line { full = true } end)
-            map('n', '<leader>tb', gs.toggle_current_line_blame)
+            map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = '[t]oggle [b]lame' })
             map('n', '<leader>hd', gs.diffthis)
             map('n', '<leader>hD', function() gs.diffthis('~') end)
             -- show_deleted / toggle_deleted are deprecated
@@ -303,9 +303,9 @@ vim.opt.undofile = true
 -- Empty string is an equivalent of :map, which applies to
 -- normal, visual, select and operator-pending mode.
 
--- toggle highlights
-vim.keymap.set('', '<leader>Th', '<cmd>set hlsearch!<CR>', { desc = '[T]oggle search [H]ighlighting' })
-vim.keymap.set('', '<leader>Ts', '<cmd>set spell!<CR>', { desc = '[T]oggle [S]pellchecking' })
+-- toggles
+vim.keymap.set('', '<leader>th', '<cmd>set hlsearch!<CR>', { desc = '[t]oggle search [h]ighlighting' })
+vim.keymap.set('', '<leader>ts', '<cmd>set spell!<CR>', { desc = '[t]oggle [s]pellchecking' })
 
 -- save the pinky
 vim.keymap.set('', '<leader>;', ':', { desc = 'Normal mode without shift' })
