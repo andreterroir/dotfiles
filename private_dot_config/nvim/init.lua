@@ -13,6 +13,18 @@ if not vim.uv.fs_stat(lazypath) then
       '--branch=stable',
       lazypath,
    })
+   -- pin the manager to the lockfile revision so machines agree on it
+   local lockfile = vim.fn.stdpath('config') .. '/lazy-lock.json'
+   local ok, lock = pcall(function()
+      return vim.json.decode(table.concat(vim.fn.readfile(lockfile), '\n'))
+   end)
+   local pin = ok and type(lock) == 'table' and lock['lazy.nvim']
+   if pin and pin.commit then
+      vim.fn.system({ 'git', '-C', lazypath, 'checkout', '--quiet', pin.commit })
+      if vim.v.shell_error ~= 0 then
+         vim.notify('lazy.nvim ' .. pin.commit .. ' from the lockfile is unavailable', vim.log.levels.WARN)
+      end
+   end
 end
 -- add lazy.nvim to runtimepath first
 vim.opt.rtp:prepend(lazypath)
