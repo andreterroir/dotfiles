@@ -1,0 +1,21 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Run the Amp runner that serves ~/code on every Linux machine, so
+# threads can be created on it from ampcode.com. Linger starts the user
+# manager, and so the runner, at boot rather than at login.
+set -euo pipefail
+
+if [ ! -x "$HOME/.local/bin/amp" ]; then
+	echo '>amp-runner: amp is not installed; skipping' >&2
+	exit 0
+fi
+
+loginctl enable-linger "$(id -un)" >/dev/null 2>&1 || true
+
+if ! systemctl --user daemon-reload 2>/dev/null; then
+	echo '>amp-runner: no systemd user manager; run chezmoi apply from a session' >&2
+	exit 0
+fi
+systemctl --user enable --now amp-runner.service
+{{ end -}}

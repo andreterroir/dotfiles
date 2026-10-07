@@ -1,0 +1,15 @@
+[Unit]
+Description=Amp runner serving ~/code
+
+[Service]
+Type=simple
+WorkingDirectory=%h/code
+# Threads inherit this service's environment, not a login shell's, so put
+# the user directories from ~/.bash_profile on PATH.
+Environment=PATH=%h/.local/share/mise/shims:%h/.cargo/bin:%h/.cache/go/bin:%h/.bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/bin/amp --no-tui --runner-id %H --dir %h/code/dotfiles --discover-dirs
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target

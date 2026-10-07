@@ -33,3 +33,10 @@ public keys with GitHub. It tolerates GitHub API outages when its local keys
 already exist, but fails after creating a key because registration is then
 required. The approved resident-key list has one source in
 `.chezmoitemplates/approved-yubikeys.bash`.
+
+`run_after_30-amp-runner.sh.tmpl` enables the systemd user unit
+`~/.config/systemd/user/amp-runner.service` on every Linux machine. It runs
+`amp --no-tui` from `~/code`, names the runner after the machine's hostname,
+serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
+`~/code`, so threads can be created on the machine from ampcode.com. Linger
+keeps the runner up without a login, as it does for the servers' ssh-agent.
