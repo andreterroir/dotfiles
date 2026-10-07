@@ -310,6 +310,12 @@ vim.opt.undofile = true
 -- toggles
 vim.keymap.set('', '<leader>th', '<cmd>set hlsearch!<CR>', { desc = '[t]oggle search [h]ighlighting' })
 vim.keymap.set('', '<leader>ts', '<cmd>set spell!<CR>', { desc = '[t]oggle [s]pellchecking' })
+vim.keymap.set('', '<leader>tl', '<cmd>set list!<CR>', { desc = '[t]oggle [l]ist chars' })
+vim.keymap.set('', '<leader>tw', function()
+   local wrap = not vim.wo.wrap
+   vim.o.wrap = wrap
+   vim.o.linebreak = wrap
+end, { desc = '[t]oggle [w]rapping' })
 vim.keymap.set('', '<leader>tc', vim.cmd.NoNeckPain, { desc = '[t]oggle [c]entering' })
 
 -- save the pinky
