@@ -292,7 +292,7 @@ vim.opt.undofile = true
 -- normal, visual, select and operator-pending mode.
 
 -- toggle highlights
-vim.keymap.set('', '<leader>Th', '<cmd>set hlsearch!<CR>', { desc = '[T]oggle [S]earch highlighting' })
+vim.keymap.set('', '<leader>Th', '<cmd>set hlsearch!<CR>', { desc = '[T]oggle search [H]ighlighting' })
 vim.keymap.set('', '<leader>Ts', '<cmd>set spell!<CR>', { desc = '[T]oggle [S]pellchecking' })
 
 -- save the pinky
