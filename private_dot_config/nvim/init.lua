@@ -49,6 +49,11 @@ require('lazy').setup({
          dark = 'github_dark_dimmed',
       }
    },
+   -- center the focused buffer
+   {
+      'shortcuts/no-neck-pain.nvim',
+      opts = {},
+   },
    -- restrict allowed modeline options
    'ypcrts/securemodelines',
    -- readline style editing keybindings
@@ -306,6 +311,7 @@ vim.opt.undofile = true
 -- toggles
 vim.keymap.set('', '<leader>th', '<cmd>set hlsearch!<CR>', { desc = '[t]oggle search [h]ighlighting' })
 vim.keymap.set('', '<leader>ts', '<cmd>set spell!<CR>', { desc = '[t]oggle [s]pellchecking' })
+vim.keymap.set('', '<leader>tc', vim.cmd.NoNeckPain, { desc = '[t]oggle [c]entering' })
 
 -- save the pinky
 vim.keymap.set('', '<leader>;', ':', { desc = 'Normal mode without shift' })
