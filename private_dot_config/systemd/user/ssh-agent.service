@@ -1,0 +1,14 @@
+[Unit]
+Description=SSH agent for Git commit signing
+
+[Service]
+Type=forking
+Environment=SSH_AUTH_SOCK=%t/ssh-agent.sock
+ExecStart=/usr/bin/ssh-agent -a %t/ssh-agent.sock
+ExecStartPre=-/usr/bin/rm -f %t/ssh-agent.sock
+ExecStartPost=-/usr/bin/systemctl --user set-environment SSH_AUTH_SOCK=%t/ssh-agent.sock
+ExecStartPost=-/usr/bin/ssh-add %h/.ssh/id_ed25519
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

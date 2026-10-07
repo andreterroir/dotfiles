@@ -51,6 +51,33 @@ if [ -f "$HOME/.config/opencode/opencode.local.json" ]; then
 	export OPENCODE_CONFIG="$HOME/.config/opencode/opencode.local.json"
 fi
 
+# Commit-signing agent, so unattended commits find a key through the
+# agent. Interactive commits still sign with the YubiKey resident key.
+{{ if .linux.desktop -}}
+# GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not,
+# then preload the signing keys so an unattended commit finds the machine
+# key in the agent; loading a key needs no touch, signing with the
+# resident key does.
+if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]; then
+	export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
+fi
+if [ -S "${SSH_AUTH_SOCK:-}" ]; then
+	for _signing_key in "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519_sk"; do
+		if [ -f "$_signing_key" ]; then
+			ssh-add "$_signing_key" >/dev/null 2>&1 || true
+		fi
+	done
+	unset _signing_key
+fi
+{{ end -}}
+{{ if and .server (eq .chezmoi.os "linux") -}}
+# The ssh-agent user service owns this socket and loads the machine key
+# at boot; a forwarded agent, when present, takes precedence.
+if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/ssh-agent.sock" ]; then
+	export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$XDG_RUNTIME_DIR/ssh-agent.sock}"
+fi
+{{ end -}}
+
 # Source machine-local login override
 [ -f "$HOME/.bash_profile.local" ] && source "$HOME/.bash_profile.local"
 

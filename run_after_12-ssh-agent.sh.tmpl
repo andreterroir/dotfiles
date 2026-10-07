@@ -1,0 +1,17 @@
+{{ if and .server (eq .chezmoi.os "linux") -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Run the SSH agent that signs unattended commits from boot rather than
+# login, and load the machine key into it. Servers only.
+set -euo pipefail
+
+# Linger keeps the user manager, and so the agent, alive without a login.
+# Enabling it for one's own user needs no root.
+loginctl enable-linger "$(id -un)" >/dev/null 2>&1 || true
+
+if ! systemctl --user daemon-reload 2>/dev/null; then
+	echo '>ssh-agent: no systemd user manager; run chezmoi apply from a session' >&2
+	exit 0
+fi
+systemctl --user enable --now ssh-agent.service
+{{ end -}}
