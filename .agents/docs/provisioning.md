@@ -15,10 +15,11 @@ YubiKeys represent interactive human actions. Machine-local
 | Remote server access | Use a resident key and forward its agent. | The machine key is the only general backup authentication key. | Use the forwarded resident key for onward access; no machine-key access is provisioned by default. |
 | GitHub access | `gh` OAuth and HTTPS provide unattended access; a resident key is used for interactive SSH. | The machine key is also a GitHub SSH authentication fallback. | `gh` OAuth and HTTPS provide unattended access; a forwarded resident key is used for interactive SSH. |
 
-Git invokes `git-ssh-keygen` for unattended machine-key signatures, so an
-agent is not needed. A trusted tool that allocates a PTY must set
-`GIT_SIGNING_KEY=machine`. The macOS Homebrew SSH agent loads both the
-resident and machine keys.
+Every signing key goes through an agent: git runs `ssh-keygen -Y sign`, which
+resolves the key `gpg.ssh.defaultKeyCommand` printed through `SSH_AUTH_SOCK`.
+The macOS Homebrew agent, GNOME's gcr-ssh-agent, and a systemd user ssh-agent
+on servers each make the machine key reachable. A trusted tool that allocates a
+PTY must set `GIT_SIGNING_KEY=machine`.
 
 Managed SSH configuration applies only to `github.com` and
 `git.terroir.systems`. Both resident keys are authentication and signing keys.

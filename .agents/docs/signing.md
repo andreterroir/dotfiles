@@ -12,20 +12,24 @@ keys represent automation:
 
 ## Configuration
 
-`dot_gitconfig.tmpl` wires git to two scripts in `~/.bin`:
+`dot_gitconfig.tmpl` wires git to one selector in `~/.bin`:
 
 | Setting | Value | Purpose |
 | --- | --- | --- |
 | `gpg.ssh.defaultKeyCommand` | `~/.bin/git-signing-key` | prints the public key git signs with |
-| `gpg.ssh.program` | `~/.bin/git-ssh-keygen` | wraps `ssh-keygen` |
 | `gpg.ssh.allowedSignersFile` | `~/.allowed_signers` | verifies signatures |
 
-Git only accepts a bare key line when the type starts with `ssh-`, so the
-selector prints `key::<public key>` for a FIDO2 key.
+Git runs the command itself and validates its output as a literal public key,
+not a path. `git-signing-key` prints the machine key bare, because an
+`ssh-ed25519` line is a literal key to every git with SSH signing (2.34+), and
+the resident key as `key::<sk-ssh-ed25519>`, because git only accepts a bare
+key when its type starts with `ssh-` (git 2.35+).
 
-Git turns that into `ssh-keygen -Y sign -n git -f <public key> -U <buffer>`,
-writing the public key to a temporary file when the selector printed `key::`.
-`-U` asks `ssh-keygen` to sign with the matching key in `ssh-agent`.
+Git writes that literal key to a temporary file and runs
+`ssh-keygen -Y sign -n git -f <file>`. Since git 2.40 it also passes `-U`;
+without it `ssh-keygen` still resolves the key through the agent when the agent
+holds it. Either way the private key never leaves the agent, so every signing
+key must be loaded into an agent that `SSH_AUTH_SOCK` reaches.
 
 ## Key selection: `git-signing-key`
 
@@ -38,21 +42,57 @@ writing the public key to a temporary file when the selector printed `key::`.
   must be signed by a YubiKey.
 - Without a terminal, it falls back to the machine key.
 
-## Signature: `git-ssh-keygen`
-
-The wrapper replaces a `-f` argument whose key matches `~/.ssh/id_ed25519.pub`
-with `~/.ssh/id_ed25519` and drops `-U`: the unattended signature is made
-straight from the private key file, without an agent.
+A resident key carries user presence only, not user verification, so signing
+never asks for the FIDO PIN, just a touch.
 
 ```
-interactive:  git -> git-signing-key -> ssh-add -L -> ssh-keygen -U -f <sk pubkey>  -> agent -> YubiKey touch
-unattended:   git -> git-signing-key -> ssh-keygen     -f ~/.ssh/id_ed25519         -> private key file
+interactive:  git -> git-signing-key -> ssh-add -L -> ssh-keygen -U -f <sk pubkey>       -> agent -> YubiKey touch
+unattended:   git -> git-signing-key              -> ssh-keygen     -f <machine pubkey>  -> agent -> machine key
 ```
 
-A resident key does not match the machine key, so its arguments pass through
-unchanged and `-U` remains: the agent performs the FIDO2 signature. Each
-signature needs one YubiKey touch; the resident keys carry user presence only,
-not user verification, so signing never asks for the FIDO PIN.
+## The agent per platform
+
+### macOS
+
+Apple's OpenSSH has no FIDO provider (`ssh-keygen -t ed25519-sk` fails with
+"No FIDO SecurityKeyProvider specified", and `ssh-keygen -K` with "Cannot
+download keys without provider"), so the `openssh` formula provides the
+binaries and `run_after_10-ssh-identity.sh.tmpl` prepends
+`/opt/homebrew/opt/openssh/bin` to `PATH`.
+
+The system agent (`com.openssh.ssh-agent`, the default `SSH_AUTH_SOCK`) loads a
+resident key but refuses FIDO signatures with "agent refused operation", so
+signing uses Homebrew's agent instead. `Library/LaunchAgents/systems.terroir.homebrew-ssh-agent.plist`
+runs `~/.bin/homebrew-ssh-agent`, bootstrapped by
+`run_after_11-homebrew-ssh-agent.sh.tmpl`; it serves
+`~/.ssh/homebrew-agent.sock` and loads the resident and machine keys.
+`dot_bash_profile.tmpl` and `dot_bashrc` export `SSH_AUTH_SOCK` at that socket.
+`UseKeychain` and `AddKeysToAgent` in `private_dot_ssh/private_config.tmpl`
+concern `ssh`, not this signing path.
+
+### Fedora GNOME desktop
+
+GNOME 46 moved SSH support out of `gnome-keyring-daemon` into gcr's
+`gcr-ssh-agent`: a socket-activated systemd user socket at
+`$XDG_RUNTIME_DIR/gcr/ssh`. It relays to an OpenSSH agent and, on a signature
+request, runs `ssh-add` for the matching private key in `~/.ssh` itself, so
+both the machine key and the resident key file are used without preloading.
+`dot_bash_profile.tmpl` exports the socket if the session has not, and preloads
+the keys anyway.
+
+### Headless servers
+
+`run_after_12-ssh-agent.sh.tmpl` enables a systemd user service
+(`~/.config/systemd/user/ssh-agent.service`) that runs
+`ssh-agent -a $XDG_RUNTIME_DIR/ssh-agent.sock`, loads the machine key, and sets
+`SSH_AUTH_SOCK` in the user manager environment. It also enables linger, so the
+agent runs from boot rather than from a login. `dot_bash_profile.tmpl` exports
+the socket to login shells, keeping a forwarded agent if one is present.
+
+A process signs only if `SSH_AUTH_SOCK` points at an agent holding its key.
+Login shells get it from `dot_bash_profile.tmpl` and systemd user units from
+the user manager environment, but a bare cron job inherits neither and cannot
+sign. Give such a job `SSH_AUTH_SOCK` explicitly.
 
 ## Registration and verification
 
@@ -72,30 +112,12 @@ git log --show-signature -1
 git verify-commit HEAD
 ```
 
-## macOS
-
-Apple's OpenSSH has no FIDO provider (`ssh-keygen -t ed25519-sk` fails with
-"No FIDO SecurityKeyProvider specified", and `ssh-keygen -K` with "Cannot
-download keys without provider"), so the `openssh` formula provides the
-binaries and `run_after_10-ssh-identity.sh.tmpl` prepends
-`/opt/homebrew/opt/openssh/bin` to `PATH`.
-
-The system agent (`com.openssh.ssh-agent`, the default `SSH_AUTH_SOCK`) loads a
-resident key but refuses FIDO signatures with "agent refused operation", so
-signing uses Homebrew's agent instead. `Library/LaunchAgents/systems.terroir.homebrew-ssh-agent.plist`
-runs `~/.bin/homebrew-ssh-agent`, bootstrapped by
-`run_after_11-homebrew-ssh-agent.sh.tmpl`; it serves
-`~/.ssh/homebrew-agent.sock` and loads the resident and machine keys.
-`dot_bash_profile.tmpl` and `dot_bashrc` export `SSH_AUTH_SOCK` at that socket.
-`UseKeychain` and `AddKeysToAgent` in `private_dot_ssh/private_config.tmpl`
-concern `ssh`, not this signing path.
-
 ## Failures
 
 | Message | Cause |
 | --- | --- |
 | `git-signing-key: no authorized resident YubiKey key in the agent` | interactive commit, no approved resident key in the agent |
 | `git-signing-key: no SSH signing key available` | no machine key and no resident key |
-| `Couldn't get agent socket?` | `-U` with no agent at `SSH_AUTH_SOCK` |
+| `No private key found for ...`, `Couldn't get agent socket?` | the key is not loaded in the agent `SSH_AUTH_SOCK` points at |
 | `agent refused operation` | the agent cannot perform the FIDO2 signature, e.g. the loaded key is not the resident key or the socket points at a dead agent |
 | `fatal: failed to write commit object` | git aborts the commit when the signer fails |
