@@ -203,8 +203,7 @@ require('lazy').setup({
             map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = '[t]oggle [b]lame' })
             map('n', '<leader>hd', gs.diffthis)
             map('n', '<leader>hD', function() gs.diffthis('~') end)
-            -- show_deleted / toggle_deleted are deprecated
-            map('n', '<leader>td', gs.preview_hunk_inline)
+            map('n', '<leader>hi', gs.preview_hunk_inline)
 
             -- text object
             map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
