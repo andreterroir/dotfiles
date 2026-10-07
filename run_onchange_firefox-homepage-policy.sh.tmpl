@@ -1,0 +1,23 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if and (eq .chezmoi.osRelease.id "fedora") .linux.desktop -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Fedora ships the start page as a package default that every firefox update
+# reinstalls, so browser.startup.homepage falls back to
+# start.fedoraproject.org. A system policy overrides package defaults and is
+# not owned by the RPM, so it survives updates. Left unlocked: still editable.
+# {{ include "assets/firefox-policies.json" | sha256sum }}
+set -euo pipefail
+
+policy=/etc/firefox/policies/policies.json
+source_file="$CHEZMOI_SOURCE_DIR/assets/firefox-policies.json"
+
+if [ -r "$policy" ] && cmp -s "$source_file" "$policy"; then
+	echo '>firefox homepage policy already installed'
+	exit 0
+fi
+
+sudo install -D -m 0644 "$source_file" "$policy"
+echo '>firefox homepage policy installed'
+{{   end -}}
+{{ end -}}
