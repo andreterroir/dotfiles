@@ -8,6 +8,10 @@
       "/private/tmp/**": "allow",
       "~/.agents/**": "allow"
     },
+    "read": {
+      "~/.agents/**": "allow",
+      "~/.config/opencode/AGENTS.md": "allow"
+    },
     "edit": {
       "~/.agents/**": "deny"
     }
