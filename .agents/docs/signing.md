@@ -77,8 +77,10 @@ GNOME 46 moved SSH support out of `gnome-keyring-daemon` into gcr's
 `$XDG_RUNTIME_DIR/gcr/ssh`. It relays to an OpenSSH agent and, on a signature
 request, runs `ssh-add` for the matching private key in `~/.ssh` itself, so
 both the machine key and the resident key file are used without preloading.
-`dot_bash_profile.tmpl` exports the socket if the session has not, and preloads
-the keys anyway.
+`dot_bash_profile.tmpl` only exports the socket if the session has not:
+preloading with its own `ssh-add` would prompt for the machine key's passphrase
+in every login shell, because `ssh-add` decrypts the key file itself instead of
+asking gcr for the passphrase it has stored.
 
 ### Headless servers
 

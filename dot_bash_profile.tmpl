@@ -54,20 +54,12 @@ fi
 # Commit-signing agent, so unattended commits find a key through the
 # agent. Interactive commits still sign with the YubiKey resident key.
 {{ if .linux.desktop -}}
-# GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not,
-# then preload the signing keys so an unattended commit finds the machine
-# key in the agent; loading a key needs no touch, signing with the
-# resident key does.
+# GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not.
+# gcr advertises every ~/.ssh public key and loads it on demand, so
+# preloading here would only make ssh-add prompt for the machine key's
+# passphrase in every login shell.
 if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]; then
 	export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
-fi
-if [ -S "${SSH_AUTH_SOCK:-}" ]; then
-	for _signing_key in "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519_sk"; do
-		if [ -f "$_signing_key" ]; then
-			ssh-add "$_signing_key" >/dev/null 2>&1 || true
-		fi
-	done
-	unset _signing_key
 fi
 {{ end -}}
 {{ if and .server (eq .chezmoi.os "linux") -}}
