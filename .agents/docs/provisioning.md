@@ -11,7 +11,7 @@ YubiKeys represent interactive human actions. Machine-local
 | Aspect | Desktop | x1 exception | Headless server |
 | --- | --- | --- | --- |
 | Git commit signing | Interactive commits require an approved resident `ed25519-sk` key; unattended commits use the machine key. | The same signing policy applies. | A forwarded resident key signs interactive commits; unattended commits use the machine key. |
-| Passwords | Passage uses either YubiKey identity for `git@git.terroir.systems:passwords.git`. Slate's untracked identity may decrypt only `work/*`. | The machine key can synchronize Passage after login when no YubiKey is loaded. | Passage is not provisioned. |
+| Passwords | Passage uses the 5 NFC YubiKey identity for `git@git.terroir.systems:passwords.git`. Slate's untracked identity may decrypt only `work/*`. | Passage uses the 5C Nano attached to x1; the machine key can synchronize Passage after login when no YubiKey is loaded. | Passage is not provisioned. |
 | Remote server access | Use a resident key and forward its agent. | The machine key is the only general backup authentication key. | Use the forwarded resident key for onward access; no machine-key access is provisioned by default. |
 | GitHub access | `gh` OAuth and HTTPS provide unattended access; a resident key is used for interactive SSH. | The machine key is also a GitHub SSH authentication fallback. | `gh` OAuth and HTTPS provide unattended access; a forwarded resident key is used for interactive SSH. |
 

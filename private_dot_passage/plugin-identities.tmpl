@@ -1,8 +1,10 @@
 {{ if .desktop -}}
-# YubiKey slot references managed by chezmoi. The passage identities
-# run script adds a machine-local identity only on Slate.
-# YubiKey 5C Nano
+# YubiKey slot references managed by chezmoi: the 5C Nano stays in x1, every
+# other machine uses the 5 NFC that travels between them. The passage
+# identities run script adds a machine-local identity only on Slate.
+{{ if eq .chezmoi.hostname "x1" -}}
 AGE-PLUGIN-YUBIKEY-1WCAQ6QVZ797L4HG7XWX8W
-# YubiKey 5 NFC
+{{ else -}}
 AGE-PLUGIN-YUBIKEY-1J07W6QYZ0S9AMNC4FGR7D
+{{ end -}}
 {{ end -}}
