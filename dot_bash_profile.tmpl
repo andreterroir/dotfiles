@@ -27,10 +27,11 @@ if [ -d "/opt/homebrew/" ]; then
 fi
 {{ end -}}
 # Prepend user directories; the last prepended is searched first:
-# mise, cargo, go, ~/bin, ~/.bin, ~/.local/bin.
+# mise, cargo, go, ~/.bin, ~/bin, ~/.local/bin. Managed binaries live in
+# ~/.bin, so they win over hand-installed ones in ~/bin.
 [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
-[ -e "$HOME/.bin" ] && PATH="$HOME/.bin:$PATH"
 [ -e "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
+[ -e "$HOME/.bin" ] && PATH="$HOME/.bin:$PATH"
 [ -d "$HOME/.cache/go/bin" ] && PATH="$HOME/.cache/go/bin:$PATH"
 [ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
 # mise's shims, so shells that never run the interactive activate in

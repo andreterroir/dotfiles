@@ -7,3 +7,10 @@
 .config/fish
 .local/share/fish
 .cache/fish
+# binaries moved to ~/.bin; ~/bin keeps hand-installed tools only. Retire
+# the pre-move copies, which otherwise shadow the managed ones on PATH.
+bin/git-cleanup
+bin/swap_ctrl_caps
+bin/update-passwords
+# the Git signing ssh-keygen shim was dropped from dot_bin
+.bin/git-ssh-keygen
