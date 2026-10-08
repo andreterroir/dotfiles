@@ -8,7 +8,8 @@ install.sh
 icloud
 {{ end -}}
 {{ if eq .chezmoi.os "darwin" -}}
-dot_bin/executable_swap_ctrl_caps
+# the target path, not the dot_bin/ source name
+.bin/swap_ctrl_caps
 {{ end -}}
 {{ if ne .chezmoi.os "darwin" -}}
 Library
