@@ -3,6 +3,7 @@ no_self_update = true
 disable = [
     "vim",
 {{ if eq .chezmoi.os "darwin" -}}
+    "brew_cask",
     "mas",
     "system",
 {{ end -}}
@@ -11,8 +12,14 @@ assume_yes = true
 
 {{- if eq .chezmoi.os "darwin" }}
 [brew]
-greedy_cask = true
 autoremove = true
+{{ end -}}
+
+{{- if eq .chezmoi.os "darwin" }}
+# Replaces the disabled brew_cask step: topgrade cannot exclude casks, and
+# MS Office must not be updated behind the user's back.
+[commands]
+"Brew casks (without MS Office)" = "brew outdated --cask --greedy --quiet | grep -v '^microsoft-' | xargs brew upgrade --cask --greedy"
 {{ end -}}
 
 # vim: ft=toml
