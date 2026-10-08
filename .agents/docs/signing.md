@@ -66,6 +66,10 @@ signing uses Homebrew's agent instead. `Library/LaunchAgents/systems.terroir.hom
 runs `~/.bin/homebrew-ssh-agent`, bootstrapped by
 `run_after_11-homebrew-ssh-agent.sh.tmpl`; it serves
 `~/.ssh/homebrew-agent.sock` and loads the resident and machine keys.
+The machine key is passphrase-protected, and only the system `ssh-add` can
+unlock it from the Keychain, so the wrapper loads it with
+`/usr/bin/ssh-add --apple-use-keychain`; Homebrew's `ssh-add` has no Keychain
+support.
 `dot_bash_profile.tmpl` and `dot_bashrc` export `SSH_AUTH_SOCK` at that socket.
 `UseKeychain` and `AddKeysToAgent` in `private_dot_ssh/private_config.tmpl`
 concern `ssh`, not this signing path.
