@@ -2,8 +2,9 @@
 no_self_update = true
 disable = [
     "vim",
-{{ if eq .chezmoi.os "darwin" -}}
+{{- if eq .chezmoi.os "darwin" }}
     "mas",
+    "microsoft_office",
     "system",
 {{ end -}}
 ]
