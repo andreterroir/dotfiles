@@ -64,7 +64,7 @@ The system agent (`com.openssh.ssh-agent`, the default `SSH_AUTH_SOCK`) loads a
 resident key but refuses FIDO signatures with "agent refused operation", so
 signing uses Homebrew's agent instead. `Library/LaunchAgents/systems.terroir.homebrew-ssh-agent.plist`
 runs `~/.bin/homebrew-ssh-agent`, bootstrapped by
-`run_after_11-homebrew-ssh-agent.sh.tmpl`; it serves
+`run_onchange_after_11-homebrew-ssh-agent.sh.tmpl`; it serves
 `~/.ssh/homebrew-agent.sock` and loads the resident and machine keys.
 The machine key is passphrase-protected, and only the system `ssh-add` can
 unlock it from the Keychain, so the wrapper loads it with

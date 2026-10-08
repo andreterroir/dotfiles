@@ -1,6 +1,11 @@
 {{ if eq .chezmoi.os "darwin" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
+# Reload the agent so launchd picks up a changed plist or wrapper. The
+# includes below hash both, so the reload happens only when one of them or
+# this script changes; RunAtLoad and KeepAlive cover login and crash.
+# {{ include "Library/LaunchAgents/systems.terroir.homebrew-ssh-agent.plist" | sha256sum }}
+# {{ include "dot_bin/executable_homebrew-ssh-agent" | sha256sum }}
 set -euo pipefail
 
 domain="gui/$(id -u)"
