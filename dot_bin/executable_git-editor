@@ -1,0 +1,39 @@
+#!/bin/sh
+# Preserve a commit message across a failed commit: git rewrites
+# .git/COMMIT_EDITMSG from its template on every attempt.
+set -u
+
+file=$1
+case $file in
+    */COMMIT_EDITMSG) ;;
+    *) exec nvim "$@" ;;
+esac
+
+git_dir=$(git rev-parse --absolute-git-dir 2>/dev/null) || exec nvim "$@"
+[ -n "$git_dir" ] || exec nvim "$@"
+keep=$git_dir/COMMIT_EDITMSG.keep
+tmpl=$git_dir/COMMIT_EDITMSG.tmpl
+
+# the message git would commit, without the comment and scissors sections
+message_part() {
+    sed -e '/^# ------------------------ >8 /,$d' -- "$1" | git stripspace --strip-comments
+}
+
+head=$(git rev-parse -q --verify HEAD 2>/dev/null || true)
+cur_part=$(message_part "$file")
+
+# restore only a retry: HEAD has not moved and git wrote the same template
+if [ -f "$keep" ] && [ -f "$tmpl" ] \
+   && [ "$(sed -n 1p -- "$keep")" = "$head" ] \
+   && [ "$cur_part" = "$(cat -- "$tmpl")" ]; then
+    { tail -n +2 -- "$keep"; sed -n '/^#/,$p' -- "$file"; } > "$file.new"
+    mv -- "$file.new" "$file"
+fi
+
+printf '%s\n' "$cur_part" > "$tmpl"
+
+status=0
+nvim "$@" || status=$?
+
+{ printf '%s\n' "$head"; message_part "$file"; } > "$keep"
+exit $status

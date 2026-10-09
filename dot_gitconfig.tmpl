@@ -13,6 +13,8 @@
 	defaultKeyCommand = {{ .chezmoi.homeDir }}/.bin/git-signing-key
 [core]
 	excludesfile = ~/.gitignore
+	# keep the commit message when a commit fails (e.g. a missing signing key)
+	editor = {{ .chezmoi.homeDir }}/.bin/git-editor
 [init]
         defaultBranch = main
 [pull]
