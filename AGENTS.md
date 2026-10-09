@@ -72,6 +72,13 @@ validate changes against the worktree instead.
 Run validation before committing to catch template syntax errors and
 unintended changes. Do a fast forward only merge when asked to integrate the changes into main branch.
 
+## Shipping
+
+Treat a request to ship (or to integrate into `main`) as confirmation to apply:
+fast-forward `main`, push, then apply from the main checkout and report what
+changed. Apply from the main checkout, not from a linked worktree, so symlinks
+keep pointing at `~/code/dotfiles`.
+
 ## Boundaries
 
 - Do not push to or pull from the Passage git store unless asked; the
