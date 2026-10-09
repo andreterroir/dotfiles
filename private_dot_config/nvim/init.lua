@@ -52,7 +52,7 @@ require('lazy').setup({
    -- center the focused buffer
    {
       'shortcuts/no-neck-pain.nvim',
-      opts = {},
+      opts = { width = 80 },
    },
    -- restrict allowed modeline options
    'ypcrts/securemodelines',
