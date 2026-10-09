@@ -18,6 +18,9 @@ Library
 {{   if not .server -}}
 .config/systemd/user/ssh-agent.service
 {{   end -}}
+{{   if not .linux.desktop -}}
+.config/systemd/user/gcr-ssh-agent.service.d
+{{   end -}}
 {{ else -}}
 .config/systemd
 {{ end -}}

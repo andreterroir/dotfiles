@@ -86,6 +86,14 @@ preloading with its own `ssh-add` would prompt for the machine key's passphrase
 in every login shell, because `ssh-add` decrypts the key file itself instead of
 asking gcr for the passphrase it has stored.
 
+The agent runs without a terminal, so OpenSSH would render its "Confirm user
+presence" notice for a touch through `$SSH_ASKPASS` — Fedora's
+`/usr/libexec/openssh/gnome-ssh-askpass`, whose window grabs the keyboard and
+makes GNOME ask to allow shortcut inhibition on every signature.
+`gcr-ssh-agent.service.d/no-ssh-askpass.conf` empties `SSH_ASKPASS` for the
+agent, leaving the YubiKey's blink as the prompt; a touch-only resident key
+never needs the PIN that the agent would otherwise have to ask for.
+
 ### Headless servers
 
 `run_after_12-ssh-agent.sh.tmpl` enables a systemd user service
