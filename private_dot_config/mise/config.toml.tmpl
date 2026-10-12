@@ -1,8 +1,8 @@
 [tools]
 zig = "0.16.0"
-"ubi:exercism/cli" = { version = "3.5.8", exe = "exercism" }
+"github:exercism/cli" = "3.5.8"
 {{ if and .server (eq .chezmoi.os "linux") -}}
-"ubi:topgrade-rs/topgrade" = "17.12.2"
+"github:topgrade-rs/topgrade" = "17.12.2"
 {{ end -}}
 {{ if .desktop -}}
 rust = "stable"
