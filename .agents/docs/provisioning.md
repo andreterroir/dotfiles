@@ -21,10 +21,11 @@ The macOS Homebrew agent, GNOME's gcr-ssh-agent, and a systemd user ssh-agent
 on servers each make the machine key reachable. A trusted tool that allocates a
 PTY must set `GIT_SIGNING_KEY=machine`.
 
-Managed SSH configuration applies only to `github.com` and
-`git.terroir.systems`. Both resident keys are authentication and signing keys.
-Only x1's machine key is a general backup authentication key. Other hosts,
-aliases, and forwarding rules belong in untracked `~/.ssh/local_config`.
+Managed SSH configuration applies only to `github.com`,
+`git.terroir.systems`, and `chalon`. Both resident keys are authentication and
+signing keys. Only x1's machine key is a general backup authentication key.
+Other hosts, aliases, and forwarding rules belong in untracked
+`~/.ssh/local_config`.
 
 ## Operations
 
