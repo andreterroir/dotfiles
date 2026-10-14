@@ -79,6 +79,27 @@ fast-forward `main`, push, then apply from the main checkout and report what
 changed. Apply from the main checkout, not from a linked worktree, so symlinks
 keep pointing at `~/code/dotfiles`.
 
+## Machines
+
+Every hostname this repository names, whether a `chezmoi.hostname` that
+templates gate on or an SSH destination. Role is derived at bootstrap from
+the OS, not from the hostname, and describes only the machines chezmoi
+manages (see Boundaries).
+
+| Hostname | OS | Role | Notes |
+| --- | --- | --- | --- |
+| slate | macOS | desktop | the only work machine; its machine-local age identity decrypts only the store's `work/*` subtree |
+| x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
+| black | Fedora Linux | desktop | the desktop workstation |
+| Chloes-MBP | macOS | desktop | a laptop |
+| greenhouse | Ubuntu Linux | server | headless Amp runner; planned for decommissioning; older commits call it `netcup` |
+| chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
+| git.terroir.systems | unrecorded | server | an externally managed host serving the Passage store; an SSH destination, not a chezmoi target |
+
+`github.com` is a service, not a machine. `xps13` appears in older commits
+but is retired: a hostname found in the history is not evidence that the
+machine still exists.
+
 ## Boundaries
 
 - Do not push to or pull from the Passage git store unless asked; the

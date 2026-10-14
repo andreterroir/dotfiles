@@ -24,6 +24,8 @@ PTY must set `GIT_SIGNING_KEY=machine`.
 Managed SSH configuration applies only to `github.com`,
 `git.terroir.systems`, and `chalon`. Both resident keys are authentication and
 signing keys. Only x1's machine key is a general backup authentication key.
+Chezmoi manages neither `git.terroir.systems` nor `chalon`; both are SSH
+destinations only. `AGENTS.md` names every hostname with its OS and role.
 Other hosts, aliases, and forwarding rules belong in untracked
 `~/.ssh/local_config`.
 
