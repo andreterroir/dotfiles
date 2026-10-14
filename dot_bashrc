@@ -82,6 +82,13 @@ if [ -r "$passage_completion" ]; then
 	complete -o filenames -F _pass pass
 fi
 unset passage_completion
+# pass-otp's fragment registers the `otp` subcommand with passage's _pass.
+# It comes from the same run_ script as the completion above.
+otp_completion="$HOME/.local/share/bash-completion/completions/pass-otp"
+if [ -r "$otp_completion" ]; then
+	source "$otp_completion"
+fi
+unset otp_completion
 source <(chezmoi completion bash)
 # Enable Cargo completion
 command -v rustup > /dev/null && source <(rustup completions bash cargo)

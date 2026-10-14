@@ -13,4 +13,20 @@ git clone -c advice.detachedHead=false --quiet --depth 1 --branch "$passage_vers
 	https://github.com/FiloSottile/passage "$passage_src"
 make -C "$passage_src" install PREFIX="$HOME/.local" WITH_BASHCOMP=yes
 rm -rf "$passage_src"
+
+# passage has no `otp` command; pass-otp provides it as an extension, and
+# only develop knows about passage (no release since 1.2.0), so the commit
+# is pinned. This is the SYSTEM_EXTENSION_DIR baked in from PREFIX above.
+otp_commit=7bb50dbc4b6073f12f40be66a5ee371b9652a646
+otp_src="$(mktemp -d)"
+git -C "$otp_src" init --quiet
+git -C "$otp_src" fetch --quiet --depth 1 \
+	https://github.com/pass-extension/pass-otp "$otp_commit"
+git -C "$otp_src" checkout --quiet FETCH_HEAD
+install -d "$HOME/.local/lib/passage/extensions" \
+	"$HOME/.local/share/bash-completion/completions"
+install -m 0755 "$otp_src/otp.bash" "$HOME/.local/lib/passage/extensions/otp.bash"
+install -m 0644 "$otp_src/pass-otp.bash.completion" \
+	"$HOME/.local/share/bash-completion/completions/pass-otp"
+rm -rf "$otp_src"
 {{ end -}}
