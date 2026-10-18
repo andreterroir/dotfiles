@@ -21,7 +21,11 @@ Library
 {{   if not .linux.desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
 {{   end -}}
+{{   if not (and (eq .chezmoi.osRelease.id "fedora") .linux.desktop) -}}
+.config/autostart/syncthing-start.desktop
+{{   end -}}
 {{ else -}}
 .config/systemd
+.config/autostart/syncthing-start.desktop
 {{ end -}}
 .config/opencode/opencode.local.json
