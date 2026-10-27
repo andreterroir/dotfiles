@@ -17,6 +17,11 @@ explicitly installed resident key or agent forwarding. VM setup never tries
 to download one. The VM's passphrase-free machine key is registered for
 GitHub authentication and signing, not for access to the password server.
 
+Both VMs and remote servers use machine-local SSH keys without passphrases
+so their agents can load them at boot for unattended, non-interactive Git
+commit signing. This does not make server interactive signing passwordless:
+non-VM servers still require an approved forwarded YubiKey for human commits.
+
 VM policy takes precedence over the other columns; desktop/server still
 determines which tools and SSH agent are installed.
 
@@ -26,6 +31,7 @@ determines which tools and SSH agent are installed.
 | Passwords | Passage uses the travelling 5 NFC identity for `git@git.terroir.systems:passwords.git`. Slate's untracked local age identity decrypts only `work/*`. | Passage uses the travelling 5 NFC identity.\* | Passage is not provisioned. | Passage is not provisioned. |
 | Remote server access | Use a resident key and forward its agent. | Use a resident key and forward its agent.\* | Use a forwarded resident key for onward access; no machine-key access is provisioned by default. | Use an explicitly installed or forwarded resident key; no machine-key fallback is configured for managed remote servers. |
 | GitHub access | `gh` OAuth and HTTPS provide unattended access; a resident key provides SSH access. | `gh` OAuth and HTTPS provide unattended access; a resident key provides SSH access.\* | `gh` OAuth and HTTPS provide unattended access; a forwarded resident key provides SSH access. | `gh` OAuth and HTTPS are available; SSH accepts an approved resident key or the VM machine key. |
+| Sudo | Existing system policy; no passwordless grant. | Existing system policy; no passwordless grant. | Must require a password to prevent unattended system changes and security risks; no passwordless grant. | Passwordless sudo for the provisioning user, because these VMs are snapshotted and disposable. |
 
 \* On x1, Passage uses the attached 5C Nano instead of the travelling 5 NFC.
 Its machine key is also an authentication fallback for the managed SSH
@@ -55,6 +61,14 @@ Other hosts, aliases, and forwarding rules belong in untracked
 
 ## Operations
 
+`run_onchange_before_00-vm-sudo.sh.tmpl` installs a VM-only, root-owned
+`0440` rule at `/etc/sudoers.d/99-chezmoi-<uid>` before package installation.
+It validates the rule with `visudo` before activation and checks passwordless
+sudo without a cached credential. The first apply needs a terminal and the
+user's existing sudo password. No sudo grant is installed on remote servers;
+administrators must remove any pre-existing passwordless grants there.
+If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
+
 Run `chezmoi init` before apply/update when adopting this policy or after
 changing `vm`. Init recomputes `passage` rather than preserving its previous
 value, and removes an obsolete password-update hook when Passage is disabled.
@@ -65,8 +79,12 @@ not existing store contents or machine-local identities.
 `run_after_10-ssh-identity.sh.tmpl` creates missing machine keys and registers
 public keys with GitHub. It tolerates GitHub API outages when its local keys
 already exist, but fails after creating a key because registration is then
-required. The approved resident-key list has one source in
-`.chezmoidata.toml`, used by the Bash selectors and VM public-only SSH
+required. VM/server machine keys are created without a passphrase even on
+non-interactive apply; GitHub registration still needs a terminal. Existing
+encrypted keys are never rewritten: apply stops with instructions to run
+`ssh-keygen -p -f ~/.ssh/id_ed25519` and leave the new passphrase empty.
+This preserves the key and its registrations. The approved resident-key list
+has one source in `.chezmoidata.toml`, used by the Bash selectors and VM public-only SSH
 identities. The public-only files allow forwarded keys to match SSH's
 identity filter without installing resident private-key references.
 

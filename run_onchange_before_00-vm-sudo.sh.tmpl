@@ -1,0 +1,17 @@
+{{ if .vm -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+policy="/etc/sudoers.d/99-chezmoi-$(id -u)"
+candidate="$(mktemp)"
+trap 'rm -f "$candidate"' EXIT
+printf '#%s ALL=(ALL:ALL) NOPASSWD: ALL\n' "$(id -u)" > "$candidate"
+visudo -cf "$candidate"
+
+# A dot makes sudo ignore the staging file until the validated rename.
+sudo install -o root -m 0440 "$candidate" "$policy.tmp"
+sudo visudo -cf "$policy.tmp"
+sudo mv -f "$policy.tmp" "$policy"
+sudo -k -n true
+{{ end -}}

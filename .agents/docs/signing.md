@@ -105,6 +105,10 @@ never needs the PIN that the agent would otherwise have to ask for.
 
 ### Headless servers
 
+Server and VM machine keys have no passphrase, allowing their agents to load
+them without human input. Provisioning rejects existing encrypted keys with
+instructions to remove the passphrase manually, without replacing the key.
+
 `run_after_12-ssh-agent.sh.tmpl` enables a systemd user service
 (`~/.config/systemd/user/ssh-agent.service`) that runs
 `ssh-agent -a $XDG_RUNTIME_DIR/ssh-agent.sock`, loads the machine key, and sets

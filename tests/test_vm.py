@@ -174,19 +174,89 @@ done
                     subprocess.run(["ssh-keygen", "-l", "-f", str(self.home / path)],
                                    check=True, capture_output=True)
 
-    def test_vm_bootstrap_needs_neither_terminal_nor_yubikey(self):
+    def test_vm_and_server_bootstrap_without_terminal_or_yubikey(self):
+        root = self.home
+        for desktop, vm in ((True, True), (False, True), (False, False)):
+            with self.subTest(desktop=desktop, vm=vm):
+                self.home = root / f"machine-{desktop}-{vm}"
+                (self.home / ".ssh").mkdir(parents=True)
+                script = self.render(vm, "run_after_10-ssh-identity.sh.tmpl", desktop=desktop)
+                env = dict(os.environ, HOME=str(self.home))
+                private = self.home / ".ssh/id_ed25519"
+                for _ in range(2):
+                    result = subprocess.run(["bash", "-c", script], env=env,
+                                            stdin=subprocess.DEVNULL, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("machine key ready", result.stderr)
+                    public = subprocess.check_output(
+                        ["ssh-keygen", "-y", "-P", "", "-f", str(private)], text=True)
+                    self.assertEqual(public.strip(), private.with_suffix(".pub").read_text().strip())
+                self.assertFalse((self.home / ".ssh/id_ed25519_sk").exists())
+
+    def test_encrypted_machine_keys_are_preserved_with_migration_instructions(self):
         (self.home / ".ssh").mkdir()
-        script = self.render(True, "run_after_10-ssh-identity.sh.tmpl")
-        env = dict(os.environ, HOME=str(self.home))
-        for _ in range(2):
-            result = subprocess.run(["bash", "-c", script], env=env,
-                                    stdin=subprocess.DEVNULL, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("machine key ready", result.stderr)
         private = self.home / ".ssh/id_ed25519"
-        public = subprocess.check_output(["ssh-keygen", "-y", "-P", "", "-f", str(private)], text=True)
-        self.assertEqual(public.strip(), private.with_suffix(".pub").read_text().strip())
-        self.assertFalse((self.home / ".ssh/id_ed25519_sk").exists())
+        subprocess.run(["ssh-keygen", "-t", "ed25519", "-N", "test-passphrase",
+                        "-f", str(private)], check=True, capture_output=True)
+        before = private.read_bytes(), private.with_suffix(".pub").read_bytes()
+        for desktop, vm in ((True, True), (False, True), (False, False)):
+            with self.subTest(desktop=desktop, vm=vm):
+                script = self.render(vm, "run_after_10-ssh-identity.sh.tmpl", desktop=desktop)
+                result = subprocess.run(["bash", "-c", script], env=dict(os.environ, HOME=str(self.home)),
+                                        stdin=subprocess.DEVNULL, capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("ssh-keygen -p", result.stderr)
+                self.assertIn("leave the new passphrase empty", result.stderr)
+                self.assertEqual((private.read_bytes(), private.with_suffix(".pub").read_bytes()), before)
+
+    def test_passwordless_sudo_is_vm_only_and_validated_before_activation(self):
+        bin_dir = self.home / "bin"
+        bin_dir.mkdir()
+        sudo = bin_dir / "sudo"
+        sudo.write_text('''#!/usr/bin/env python3
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+args = sys.argv[1:]
+if args == ["-k", "-n", "true"]:
+    sys.exit(0 if (Path(os.environ["TEST_SUDO_DIR"]) / f"99-chezmoi-{os.getuid()}").exists() else 1)
+if args[:3] == ["install", "-o", "root"]:
+    del args[1:3]
+args = [str(Path(os.environ["TEST_SUDO_DIR"]) / Path(arg).name)
+        if arg.startswith("/etc/sudoers.d/") else arg for arg in args]
+if args[0] == "visudo" and os.environ.get("TEST_REJECT_POLICY"):
+    sys.exit(1)
+sys.exit(subprocess.run(args).returncode)
+''')
+        sudo.chmod(0o755)
+        for os_name, desktop in (("linux", True), ("linux", False), ("darwin", True)):
+            for vm in (False, True):
+                with self.subTest(os=os_name, desktop=desktop, vm=vm):
+                    script = self.render(vm, "run_onchange_before_00-vm-sudo.sh.tmpl",
+                                         desktop=desktop, os_name=os_name)
+                    self.assertEqual(bool(script.strip()), vm)
+                    directory = self.home / f"sudoers-{os_name}-{desktop}-{vm}"
+                    directory.mkdir()
+                    env = dict(os.environ, TEST_SUDO_DIR=str(directory),
+                               PATH=f"{bin_dir}:{os.environ['PATH']}")
+                    for _ in range(2):
+                        subprocess.run(["bash", "-c", script], env=env,
+                                       check=True, capture_output=True)
+                    policy = directory / f"99-chezmoi-{os.getuid()}"
+                    if not vm:
+                        self.assertEqual(list(directory.iterdir()), [])
+                        continue
+                    expected = f"#{os.getuid()} ALL=(ALL:ALL) NOPASSWD: ALL\n"
+                    self.assertEqual(policy.read_text(), expected)
+                    self.assertEqual(policy.stat().st_mode & 0o777, 0o440)
+                    policy.chmod(0o600)
+                    policy.write_text("# Existing policy must survive failed validation\n")
+                    result = subprocess.run(["bash", "-c", script],
+                                            env=dict(env, TEST_REJECT_POLICY="1"), capture_output=True)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(policy.read_text(), "# Existing policy must survive failed validation\n")
 
     def test_signing_with_and_without_optional_yubikey(self):
         (self.home / ".ssh").mkdir()

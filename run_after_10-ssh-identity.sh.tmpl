@@ -5,11 +5,11 @@
 # authentication. x1's machine key is also an authentication fallback.
 # VMs use their machine key for GitHub and only register existing sk keys.
 # The sk key download needs a YubiKey touch and registration may need a
-# browser login; a non-tty VM apply creates only its machine key. Re-runs are
-# idempotent: a machine whose keys are already on GitHub does nothing.
+# browser login; a non-tty VM/server apply creates only its machine key.
+# Re-runs are idempotent when the keys are already on GitHub.
 set -euo pipefail
 
-{{ if not .vm -}}
+{{ if not (or .vm .server) -}}
 if [ ! -t 0 ]; then
 	echo '>ssh identity: run chezmoi apply from a terminal to finish' >&2
 	exit 0
@@ -41,9 +41,15 @@ if { [ -f "$MACHINE_KEY" ] && [ ! -f "$MACHINE_KEY.pub" ]; } ||
 fi
 if [ ! -f "$MACHINE_KEY" ]; then
 	echo '>generating per-machine ed25519 key'
-	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"{{ if .vm }} -N ''{{ end }}
+	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"{{ if or .vm .server }} -N ''{{ end }}
 	identity_changed=true
 fi
+{{ if or .vm .server -}}
+if ! ssh-keygen -y -P '' -f "$MACHINE_KEY" > /dev/null 2>&1; then
+	echo "error: machine key must have no passphrase for unattended signing; run ssh-keygen -p -f $MACHINE_KEY from a terminal and leave the new passphrase empty" >&2
+	exit 1
+fi
+{{ end -}}
 
 signing_keys_to_add=("$MACHINE_KEY.pub")
 auth_keys_to_add=()
@@ -104,7 +110,7 @@ fi
 {{ end -}}
 {{ end -}}
 
-{{ if .vm -}}
+{{ if or .vm .server -}}
 if [ ! -t 0 ]; then
 	echo '>ssh identity: machine key ready; run chezmoi apply from a terminal for GitHub registration' >&2
 	exit 0
