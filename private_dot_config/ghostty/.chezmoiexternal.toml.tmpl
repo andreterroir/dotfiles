@@ -1,0 +1,7 @@
+{{- $revision := "27cbbb5ee7e98ff15484e7342b07a20606260176" -}}
+# Terra's Ghostty package omits bundled themes.
+{{ range $theme := list "GitHub Light Default" "GitHub Dark" }}
+["themes/{{ $theme }}"]
+type = "file"
+url = "https://raw.githubusercontent.com/mbadolato/iTerm2-Color-Schemes/{{ $revision }}/ghostty/{{ $theme | replace " " "%20" }}"
+{{ end -}}
