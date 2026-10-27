@@ -39,7 +39,7 @@ by another script.
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}`, gate on
                        `.chezmoi.os` ("linux"/"darwin") and the role data
-                       variables (`desktop`, `linux.desktop`, `server`)
+                       variables (`desktop`, `linux.desktop`, `server`, `vm`, `passage`)
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run at most once
 - `symlink_*`        → emit a symlink whose target is the file's contents
@@ -52,10 +52,11 @@ by another script.
 
 ## Workflow
 
-When working in a Git worktree (per global agent instructions), chezmoi's
-configured `sourceDir` (`~/code/dotfiles`) points to the main checkout, not
-the worktree.  Use `chezmoi --source "$(git rev-parse --show-toplevel)"` to
-validate changes against the worktree instead.
+The default installation uses `~/code/dotfiles` as chezmoi's `sourceDir`.
+Initializing with `--source` pointing to a worktree persists that path
+instead. When working in a Git worktree (per global agent instructions),
+use `chezmoi --source "$(git rev-parse --show-toplevel)"` to validate the
+worktree regardless of the configured source.
 
 0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
@@ -92,6 +93,7 @@ manages (see Boundaries).
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
 | black | Fedora Linux | desktop | the desktop workstation |
 | Chloes-MBP | macOS | desktop | a laptop |
+| slate-vm-work | Fedora Linux | desktop, vm | VM with no provisioned password-store access; YubiKey optional |
 | greenhouse | Ubuntu Linux | server | headless Amp runner; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
 | git.terroir.systems | unrecorded | server | an externally managed host serving the Passage store; an SSH destination, not a chezmoi target |
@@ -109,6 +111,15 @@ machine still exists.
   `gnome-shell` on PATH. Every host that is not a desktop is a headless
   machine reached over SSH via the `server` data variable, and
   `linux.desktop` marks Linux desktops (see `.chezmoi.toml.tmpl`).
+  `vm` is independent of that role: Linux init detects virtual machines
+  with `systemd-detect-virt --vm`, preserving an existing configured value.
+  `passage` is strictly derived at init as `desktop && !vm`; use that flag
+  for all Passage provisioning and synchronization, not role checks.
+  Run `chezmoi init` before apply/update when adopting the policy or
+  changing `vm`; missing or contradictory policy data fails closed.
+  VMs never provision Passage and may sign interactive commits with their
+  machine key when no approved resident key is loaded. Their machine key
+  is a GitHub authentication fallback only, not a password-server key.
   `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
   `eq .chezmoi.os "linux"`; `text/template` evaluates both sides of
   `and`, so a combined condition still looks up the missing `id` key.

@@ -13,6 +13,16 @@ Host *
 	HashKnownHosts no
 	IdentityFile none
 
+{{ if .vm -}}
+Host github.com git.terroir.systems chalon
+	IdentityFile ~/.ssh/id_ed25519_sk
+	IdentityFile ~/.ssh/identities/yubikey-1
+	IdentityFile ~/.ssh/identities/yubikey-2
+	IdentitiesOnly yes
+
+Host github.com
+	IdentityFile ~/.ssh/id_ed25519
+{{ else -}}
 Host github.com git.terroir.systems chalon
 	IdentityFile ~/.ssh/id_ed25519_sk
 
@@ -21,5 +31,6 @@ Host github.com git.terroir.systems chalon
 {{- if eq .chezmoi.hostname "x1" }}
 	# x1's machine key is an intentional authentication fallback.
 	IdentityFile ~/.ssh/id_ed25519
+{{- end }}
 {{- end }}
 {{- end }}

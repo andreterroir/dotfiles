@@ -1,9 +1,22 @@
+{{- if not (hasKey . "passage") -}}
+{{- fail "Passage provisioning policy is missing; run chezmoi init before apply or update" -}}
+{{- end -}}
+{{- if ne .passage (and .desktop (not .vm)) -}}
+{{- fail "Passage provisioning policy is stale; run chezmoi init before apply or update" -}}
+{{- end -}}
 AGENTS.md
 assets
 license
 readme.md
 lazy-lock.json
 install.sh
+tests
+{{ if not .passage -}}
+.passage
+20-passage-install.sh
+20-passage-store.sh
+21-passage-identities.sh
+{{ end -}}
 {{ if eq .chezmoi.os "linux" -}}
 icloud
 {{ end -}}

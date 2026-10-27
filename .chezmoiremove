@@ -14,3 +14,6 @@ bin/swap_ctrl_caps
 bin/update-passwords
 # the Git signing ssh-keygen shim was dropped from dot_bin
 .bin/git-ssh-keygen
+{{ if not .passage -}}
+.passage/plugin-identities
+{{ end -}}

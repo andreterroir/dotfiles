@@ -17,7 +17,9 @@ tap 'cormacrelf/tap'
 # Homebrew 6 refuses to load third-party formulae until they are trusted.
 # Trust the formula, not the tap, so other formulae in the tap stay untrusted.
 brew 'age'
+{{ if .passage -}}
 brew 'age-plugin-yubikey'
+{{ end -}}
 brew 'ampcode/tap/ampcode', trusted: true
 brew 'ascii'
 brew 'bash'

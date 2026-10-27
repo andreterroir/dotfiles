@@ -10,6 +10,15 @@ keys represent automation:
 | Unattended (no terminal) | this machine's `~/.ssh/id_ed25519` |
 | `GIT_SIGNING_KEY=machine` | the machine key, for a trusted tool that allocates a PTY |
 
+VMs are the exception: interactive signing falls back to the machine key
+when no approved resident key is in the agent. Setup never downloads a
+resident key on a VM; an explicitly installed or forwarded key still works.
+VM machine keys have no passphrase and are also registered for GitHub
+authentication, but not for password-server access.
+Public-only identities in `~/.ssh/identities/yubikey-{1,2}` let SSH match
+forwarded resident keys with `IdentitiesOnly yes`. They have no `.pub`
+suffix and live in a subdirectory so gcr does not advertise absent keys.
+
 ## Configuration
 
 `dot_gitconfig.tmpl` wires git to one selector in `~/.bin`:
@@ -35,11 +44,11 @@ key must be loaded into an agent that `SSH_AUTH_SOCK` reaches.
 
 - `GIT_SIGNING_KEY=machine` prints the machine key and never consults an agent.
 - Otherwise it lists the agent keys with `ssh-add -L` and keeps the first match
-  among `approved_yubikeys`, the single source of which is
-  `.chezmoitemplates/approved-yubikeys.bash` (one entry per YubiKey, named by
-  its FIDO2 application, e.g. `ssh:5nfc`).
+  among `approvedYubiKeys` in `.chezmoidata.toml`, rendered into the
+  `approved_yubikeys` Bash array (one entry per YubiKey, named by its FIDO2
+  application, e.g. `ssh:5nfc`).
 - With stdin on a terminal, a missing match is an error: an interactive commit
-  must be signed by a YubiKey.
+  must be signed by a YubiKey, except on VMs, which use the machine key.
 - Without a terminal, it falls back to the machine key.
 
 A resident key carries user presence only, not user verification, so signing
@@ -115,6 +124,8 @@ downloads the resident key with `ssh-keygen -K` (touch and PIN) on a desktop if
 it is missing, and registers both on GitHub for `andreterroir`: the machine key
 as a signing key, the resident key as an authentication and signing key, and
 x1's machine key additionally as an authentication key.
+On VMs the machine key is also a GitHub authentication key, and resident
+keys are registered only if explicitly installed beforehand.
 
 `run_after_allowed-signers.sh.tmpl` rewrites `~/.allowed_signers` from GitHub's
 `ssh_signing_keys` under the principal `andre@terroir.systems`, so every machine

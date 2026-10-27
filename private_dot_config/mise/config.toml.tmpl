@@ -7,6 +7,6 @@ zig = "0.16.0"
 {{ if .desktop -}}
 rust = "stable"
 {{ end -}}
-{{ if .linux.desktop -}}
+{{ if and .linux.desktop .passage -}}
 "cargo:age-plugin-yubikey" = "0.5.1"
 {{ end -}}

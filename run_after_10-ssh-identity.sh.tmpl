@@ -3,18 +3,21 @@
 # Finish this machine's SSH identity: put its key on disk and make sure
 # GitHub holds its machine key for signing and its YubiKey for signing and
 # authentication. x1's machine key is also an authentication fallback.
+# VMs use their machine key for GitHub and only register existing sk keys.
 # The sk key download needs a YubiKey touch and registration may need a
-# browser login, so a non-tty apply only says how to finish. Re-runs are
+# browser login; a non-tty VM apply creates only its machine key. Re-runs are
 # idempotent: a machine whose keys are already on GitHub does nothing.
 set -euo pipefail
 
+{{ if not .vm -}}
 if [ ! -t 0 ]; then
 	echo '>ssh identity: run chezmoi apply from a terminal to finish' >&2
 	exit 0
 fi
+{{ end -}}
 
 GH_ACCOUNT=andreterroir
-{{ include ".chezmoitemplates/approved-yubikeys.bash" }}
+{{ includeTemplate ".chezmoitemplates/approved-yubikeys.bash" . }}
 is_approved_yubikey() {
 	local key="$1" approved_yubikey
 	for approved_yubikey in "${approved_yubikeys[@]}"; do
@@ -38,25 +41,29 @@ if { [ -f "$MACHINE_KEY" ] && [ ! -f "$MACHINE_KEY.pub" ]; } ||
 fi
 if [ ! -f "$MACHINE_KEY" ]; then
 	echo '>generating per-machine ed25519 key'
-	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"
+	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"{{ if .vm }} -N ''{{ end }}
 	identity_changed=true
 fi
 
 signing_keys_to_add=("$MACHINE_KEY.pub")
 auth_keys_to_add=()
-{{ if and .desktop (eq .chezmoi.hostname "x1") -}}
+{{ if or .vm (and .desktop (eq .chezmoi.hostname "x1")) -}}
 auth_keys_to_add+=("$MACHINE_KEY.pub")
 {{ end -}}
 
-{{ if .desktop -}}
+{{ if or .desktop .vm -}}
 # FIDO2 resident key on the YubiKey. ssh-keygen -K downloads it from the
 # authenticator into an id_ed25519_sk_rk* pair in the current directory.
 SK_KEY="$HOME/.ssh/id_ed25519_sk"
+{{ if .vm -}}
+if [ -f "$SK_KEY" ] || [ -f "$SK_KEY.pub" ]; then
+{{ end -}}
 if { [ -f "$SK_KEY" ] && [ ! -f "$SK_KEY.pub" ]; } ||
 	{ [ ! -f "$SK_KEY" ] && [ -f "$SK_KEY.pub" ]; }; then
 	echo "error: incomplete resident key pair at $SK_KEY" >&2
 	exit 1
 fi
+{{ if not .vm -}}
 if [ ! -f "$SK_KEY" ]; then
 	echo '>downloading the resident key from the YubiKey (touch it when it blinks)'
 	sk_tmp="$(mktemp -d)"
@@ -84,6 +91,7 @@ if [ ! -f "$SK_KEY" ]; then
 	ssh-add -K
 	identity_changed=true
 fi
+{{ end -}}
 sk_key="$(awk '{print $1, $2}' "$SK_KEY.pub")"
 if ! is_approved_yubikey "$sk_key"; then
 	echo 'error: resident key is not one of the approved YubiKeys' >&2
@@ -91,6 +99,16 @@ if ! is_approved_yubikey "$sk_key"; then
 fi
 signing_keys_to_add+=("$SK_KEY.pub")
 auth_keys_to_add+=("$SK_KEY.pub")
+{{ if .vm -}}
+fi
+{{ end -}}
+{{ end -}}
+
+{{ if .vm -}}
+if [ ! -t 0 ]; then
+	echo '>ssh identity: machine key ready; run chezmoi apply from a terminal for GitHub registration' >&2
+	exit 0
+fi
 {{ end -}}
 
 # Key registrations are public, so check them before touching gh auth:

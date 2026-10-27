@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
-# Print the public key Git signs with. Interactive commits require a
-# FIDO2 resident key; automated commits use this machine's ed25519 key.
+# Print the public key Git signs with. Interactive commits prefer a
+# FIDO2 resident key; only VMs may fall back to the machine key.
 set -euo pipefail
 
 machine_key="$HOME/.ssh/id_ed25519.pub"
-{{ include ".chezmoitemplates/approved-yubikeys.bash" }}
+{{ includeTemplate ".chezmoitemplates/approved-yubikeys.bash" . }}
 
 print_machine_key() {
 	if [ -f "$machine_key" ]; then
@@ -32,9 +32,10 @@ done
 
 if tty -s; then
 	if [ -z "$sk_key" ]; then
-		echo 'git-signing-key: no authorized resident YubiKey key in the agent' >&2
+{{ if .vm }}		print_machine_key
+{{ else }}		echo 'git-signing-key: no authorized resident YubiKey key in the agent' >&2
 		exit 1
-	fi
+{{ end }}	fi
 	# git only accepts a bare key when the type starts with ssh-; a FIDO2
 	# key is sk-ssh-…, so it needs the key:: prefix.
 	printf 'key::%s\n' "$sk_key"

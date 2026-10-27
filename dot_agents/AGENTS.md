@@ -36,9 +36,10 @@ it down. Extended context belongs in commit messages, not in comments.
 ## Git Signing
 
 Interactive commits require an authorized resident YubiKey SSH key from the
-agent. For a trusted tool that allocates a PTY but must sign as automation,
-prefix the command with `GIT_SIGNING_KEY=machine` to explicitly select the
-machine key.
+agent, except on machines classified as `vm`, where the machine key is an
+allowed fallback. For a trusted tool that allocates a PTY but must sign as
+automation, prefix the command with `GIT_SIGNING_KEY=machine` to explicitly
+select the machine key.
 
 ## After Making Changes
 
