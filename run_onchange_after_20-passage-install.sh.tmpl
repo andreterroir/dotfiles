@@ -11,6 +11,11 @@ passage_version=1.7.4a2
 passage_src="$(mktemp -d)"
 git clone -c advice.detachedHead=false --quiet --depth 1 --branch "$passage_version" \
 	https://github.com/FiloSottile/passage "$passage_src"
+platform="$passage_src/src/platform/darwin.sh"
+sed "s#hdid -drivekey system-image=yes -nomount 'ram://32768' | cut -d ' ' -f 1#diskutil image attach --noMount 'ram://32768' | cut -f 1#" \
+	"$platform" > "$platform.new"
+mv "$platform.new" "$platform"
+grep -Fq "diskutil image attach --noMount 'ram://32768' | cut -f 1" "$platform"
 make -C "$passage_src" install PREFIX="$HOME/.local" WITH_BASHCOMP=yes
 rm -rf "$passage_src"
 

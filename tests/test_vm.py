@@ -109,6 +109,38 @@ done
                     mise = self.render(vm, "private_dot_config/mise/config.toml.tmpl", **options)
                     self.assertEqual("cargo:age-plugin-yubikey" in mise, enabled and os_name == "linux")
 
+    def test_macos_passage_install_uses_diskutil_for_its_ramdisk(self):
+        bin_dir = self.home / "bin"
+        bin_dir.mkdir()
+        git = bin_dir / "git"
+        git.write_text('''#!/bin/sh
+set -eu
+if [ "$1" = clone ]; then
+    for target; do :; done
+    mkdir -p "$target/src/platform"
+    cat > "$target/src/platform/darwin.sh" <<'EOF'
+DARWIN_RAMDISK_DEV="$(hdid -drivekey system-image=yes -nomount 'ram://32768' | cut -d ' ' -f 1)"
+EOF
+elif [ "$1" = -C ] && [ "$3" = checkout ]; then
+    : > "$2/otp.bash"
+    : > "$2/pass-otp.bash.completion"
+fi
+''')
+        git.chmod(0o755)
+        make = bin_dir / "make"
+        make.write_text('''#!/bin/sh
+set -eu
+source=$2
+grep -Fq "diskutil image attach --noMount 'ram://32768' | cut -f 1" "$source/src/platform/darwin.sh"
+''')
+        make.chmod(0o755)
+        script = self.render(False, "run_onchange_after_20-passage-install.sh.tmpl",
+                             desktop=True, os_name="darwin")
+        result = subprocess.run(["bash", "-c", script],
+                                env=dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}"),
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_vm_migration_preserves_local_secrets(self):
         root = self.home
         for desktop, vm in ((True, True), (False, False), (False, True)):
