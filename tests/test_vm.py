@@ -22,11 +22,13 @@ class VMTest(unittest.TestCase):
         self.config = self.home / "chezmoi.toml"
         self.config.write_text('[data]\ndesktop = true\nserver = false\nlinux.desktop = true\n')
 
-    def chezmoi(self, vm, *args, text=None, desktop=True, os_name="linux"):
+    def chezmoi(self, vm, *args, text=None, desktop=True, os_name="linux", arch=None):
         data = {"vm": vm, "desktop": desktop, "server": not desktop,
                 "linux": {"desktop": desktop and os_name == "linux"},
                 "passage": desktop and not vm,
                 "chezmoi": {"os": os_name, "osRelease": {"id": "fedora"} if os_name == "linux" else {}}}
+        if arch is not None:
+            data["chezmoi"]["arch"] = arch
         return subprocess.run(
             [CHEZMOI, "--source", str(SOURCE), "--destination", str(self.home),
              "--config", str(self.config), "--persistent-state", str(self.home / "state.db"),
@@ -36,6 +38,43 @@ class VMTest(unittest.TestCase):
 
     def render(self, vm, path, **kwargs):
         return self.chezmoi(vm, "execute-template", text=(SOURCE / path).read_text(), **kwargs)
+
+    def test_fedora_flatpaks_match_architecture(self):
+        bin_dir = self.home / "bin"
+        bin_dir.mkdir()
+        for command in ("sudo", "rpm", "curl", "git", "go"):
+            stub = bin_dir / command
+            stub.write_text("#!/bin/sh\nexit 0\n")
+            stub.chmod(0o755)
+        flatpak = bin_dir / "flatpak"
+        flatpak.write_text('''#!/bin/sh
+set -eu
+for app do
+    case "$app" in install|--assumeyes) continue ;; esac
+    if [ "$app" = com.spotify.Client ] && [ "$TEST_ARCH" != amd64 ]; then
+        echo "No remote refs found for $app" >&2
+        exit 1
+    fi
+    mkdir -p "$HOME/installed"
+    touch "$HOME/installed/$app"
+done
+''')
+        flatpak.chmod(0o755)
+        for vm in (False, True):
+            for arch in ("arm64", "amd64"):
+                with self.subTest(vm=vm, arch=arch):
+                    script = self.render(vm, "run_onchange_install-linux-packages.sh.tmpl", arch=arch)
+                    home = self.home / f"machine-{vm}-{arch}"
+                    home.mkdir()
+                    env = dict(os.environ, HOME=str(home), TEST_ARCH=arch,
+                               PATH=f"{bin_dir}:{os.environ['PATH']}")
+                    subprocess.run(["bash", "-c", script], env=env, check=True, capture_output=True)
+                    installed = {path.name for path in (home / "installed").iterdir()}
+                    expected = {"md.obsidian.Obsidian", "org.signal.Signal",
+                                "org.telegram.desktop", "org.zotero.Zotero"}
+                    if arch == "amd64":
+                        expected.add("com.spotify.Client")
+                    self.assertEqual(installed, expected)
 
     def test_password_store_is_not_provisioned(self):
         bin_dir = self.home / "bin"

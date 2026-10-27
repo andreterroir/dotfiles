@@ -10,6 +10,7 @@ Prerequisites
 Package install scripts target macOS, Fedora Linux, and headless Ubuntu.
 Ubuntu servers get the CLI set only: no hugo, Node, YubiKey, or
 Wayland clipboard tools. Other distros are unsupported.
+Fedora desktops skip Spotify on ARM because its Flathub package is x86_64-only.
 
 Install
 -------

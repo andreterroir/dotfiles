@@ -70,9 +70,10 @@ sudo dnf install -y \
 	wl-clipboard \
 	yt-dlp
 
+# Spotify's Flathub package is x86_64-only.
 flatpak install --assumeyes \
-	com.spotify.Client \
-	md.obsidian.Obsidian \
+{{ if eq .chezmoi.arch "amd64" }}	com.spotify.Client \
+{{ end }}	md.obsidian.Obsidian \
 	org.signal.Signal \
 	org.telegram.desktop \
 	org.zotero.Zotero
