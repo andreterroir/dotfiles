@@ -18,10 +18,8 @@ installed globally; do not duplicate them here.
 
 ## Repository layout
 
-See the source tree for the current layout. Package install scripts target
-macOS, Fedora Linux, and headless Ubuntu. Ubuntu servers get the CLI set
-only: no hugo, Node, YubiKey, or Wayland clipboard tools.
-Other distros are unsupported.
+See the source tree for the current layout and [readme.md](readme.md) for
+supported platforms and installation.
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` runs before
@@ -109,22 +107,17 @@ machine still exists.
 
 - Do not push to or pull from the Passage git store unless asked; the
   post-update hook in `.chezmoi.toml.tmpl` already handles that.
-- Machine role comes from the `desktop` data variable, which bootstrap
-  derives without prompting: it is true on macOS and on Linux hosts with
-  `gnome-shell` on PATH. Every host that is not a desktop is a headless
-  machine reached over SSH via the `server` data variable, and
-  `linux.desktop` marks Linux desktops (see `.chezmoi.toml.tmpl`).
-  `vm` is independent of that role: Linux init detects virtual machines
-  with `systemd-detect-virt --vm`, preserving an existing configured value.
-  `passage` is strictly derived at init as `desktop && !vm`; use that flag
-  for all Passage provisioning and synchronization, not role checks.
-  Run `chezmoi init` before apply/update when adopting the policy or
-  changing `vm`; missing or contradictory policy data fails closed.
-  VMs never provision Passage. All machines sign commits with their local
-  SSH key by default; repository configuration may opt into YubiKey signing.
-  VM machine keys are GitHub authentication fallbacks only, not
-  password-server keys.
-  `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
+- Gate tooling on role data, not hostnames; `vm` is independent of role.
+  Use `passage` (`desktop && !vm`) for all Passage provisioning and
+  synchronization, not role checks. Preserve fail-closed policy validation
+  and never delete existing stores or machine-local identities.
+  See [Provisioning model](.agents/docs/provisioning.md) for detection,
+  reinitialization, authentication exceptions, and sudo policy; see
+  [Commit signing](.agents/docs/signing.md) for signing and agents.
+- VM machine keys are GitHub authentication fallbacks only, not
+  password-server keys. Preserve explicit repository signing overrides
+  without silent fallback.
+- `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
   `eq .chezmoi.os "linux"`; `text/template` evaluates both sides of
   `and`, so a combined condition still looks up the missing `id` key.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when

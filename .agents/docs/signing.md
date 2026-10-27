@@ -7,15 +7,13 @@ VM classification, terminal presence, and connected YubiKeys do not change
 that choice. A repository can explicitly opt into hardware-backed signing.
 
 Machine-key signatures identify the signing key, not a human presence check.
-Anyone with access to the key can sign; human and automated commits are no
-longer distinguished by signing key. YubiKeys remain required for managed
-remote-server access and Passage, subject to the existing x1 authentication
-and Slate work-only Passage exceptions. GitHub still supports YubiKey SSH
-authentication, including during bootstrap; HTTPS/OAuth remains available.
+Anyone with access to the key can sign, including automation. Authentication,
+Passage access, and key provisioning are separate policies described in the
+[Provisioning model](provisioning.md).
 
 ## Configuration
 
-`dot_gitconfig.tmpl` configures Git directly, without a signing selector:
+`dot_gitconfig.tmpl` configures Git directly:
 
 | Setting | Value | Purpose |
 | --- | --- | --- |
@@ -28,13 +26,7 @@ agent or a forwarded agent containing only unrelated keys does not prevent
 signing with an unencrypted local key. Using the private-key path makes that
 local signing capability explicit rather than relying on public-key lookup.
 
-```
-default:   git -> ssh-keygen -f <machine private key> -> agent or local key
-opt-in:    git -> ssh-keygen -f <YubiKey public key>  -> agent -> YubiKey touch
-```
-
-The old `git-signing-key` helper is removed on apply. `GIT_SIGNING_KEY` is no
-longer used. Existing `user.signingKey` overrides in a repository or
+Existing `user.signingKey` overrides in a repository or
 `~/.gitconfig.local` take precedence over the managed default; inspect them
 with `git config --show-origin --get user.signingKey`.
 
@@ -63,19 +55,14 @@ Restore the machine default with:
 git config --local --unset user.signingKey
 ```
 
-Existing YubiKey signing registrations are retained for opt-in signing and
-verification of older commits. No authentication registration changes are
-needed for this policy.
-
 ## Unlocking and agents
 
 Desktop machine keys can remain passphrase-protected. Unattended signing
 requires an agent that can unlock or already holds that key; a fresh session
 or an unrelated forwarded agent cannot unlock an encrypted local key by
-itself. Do not remove desktop key passphrases as part of adopting this policy.
-Server and VM keys already have no passphrase and can sign directly without
-an agent, including from cron. Provisioning rejects encrypted server/VM keys
-with manual migration instructions, without replacing the key.
+itself. Do not remove desktop key passphrases for unattended signing; unlock
+them in the platform agent. For server/VM key requirements, see
+[SSH identity bootstrap](provisioning.md#ssh-identity-bootstrap).
 
 Existing agents remain configured for SSH authentication, encrypted desktop
 keys, and optional YubiKey signing.
@@ -132,19 +119,11 @@ never needs the PIN that the agent would otherwise have to ask for.
 agent runs from boot rather than from a login. `dot_bash_profile.tmpl` exports
 the socket to login shells, keeping a forwarded agent if one is present.
 
-This agent remains available for SSH clients, but default commit signing no
-longer requires it. A forwarded agent can still support explicit YubiKey
+This agent remains available for SSH clients, but default commit signing
+does not require it. A forwarded agent can still support explicit YubiKey
 signing without holding the server's local machine key.
 
-## Registration and verification
-
-`run_after_10-ssh-identity.sh.tmpl` creates the machine key if it is missing,
-downloads the resident key with `ssh-keygen -K` (touch and PIN) on a desktop if
-it is missing, and registers both on GitHub for `andreterroir`: the machine key
-as a signing key, the resident key as an authentication and signing key, and
-x1's machine key additionally as an authentication key.
-On VMs the machine key is also a GitHub authentication key, and resident
-keys are registered only if explicitly installed beforehand.
+## Verification
 
 `run_after_allowed-signers.sh.tmpl` rewrites `~/.allowed_signers` from GitHub's
 `ssh_signing_keys` under the principal `andre@terroir.systems`, so every machine
