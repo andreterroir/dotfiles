@@ -122,7 +122,7 @@ if [ "$1" = clone ]; then
 DARWIN_RAMDISK_DEV="$(hdid -drivekey system-image=yes -nomount 'ram://32768' | cut -d ' ' -f 1)"
 EOF
 elif [ "$1" = -C ] && [ "$3" = checkout ]; then
-    : > "$2/otp.bash"
+    echo '([^:?]+)?(:([^:?]*))?' > "$2/otp.bash"
     : > "$2/pass-otp.bash.completion"
 fi
 ''')
@@ -137,7 +137,8 @@ grep -Fq "diskutil image attach --noMount 'ram://32768' | cut -f 1" "$source/src
         script = self.render(False, "run_onchange_after_20-passage-install.sh.tmpl",
                              desktop=True, os_name="darwin")
         result = subprocess.run(["bash", "-c", script],
-                                env=dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}"),
+                                env=dict(os.environ, HOME=str(self.home),
+                                         PATH=f"{bin_dir}:{os.environ['PATH']}"),
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 

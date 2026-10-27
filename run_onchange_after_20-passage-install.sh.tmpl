@@ -28,6 +28,10 @@ git -C "$otp_src" init --quiet
 git -C "$otp_src" fetch --quiet --depth 1 \
 	https://github.com/pass-extension/pass-otp "$otp_commit"
 git -C "$otp_src" checkout --quiet FETCH_HEAD
+# macOS regex matching loses the label capture in the nested optional group.
+sed 's/(\[\^:?\]+)?/([^:?]*)/' "$otp_src/otp.bash" > "$otp_src/otp.bash.new"
+mv "$otp_src/otp.bash.new" "$otp_src/otp.bash"
+grep -Fq '([^:?]*)(:([^:?]*))?' "$otp_src/otp.bash"
 install -d "$HOME/.local/lib/passage/extensions" \
 	"$HOME/.local/share/bash-completion/completions"
 install -m 0755 "$otp_src/otp.bash" "$HOME/.local/lib/passage/extensions/otp.bash"
