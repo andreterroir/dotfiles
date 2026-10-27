@@ -60,8 +60,11 @@ worktree regardless of the configured source.
 
 0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
-2. If not clean, inspect `chezmoi --source "$(git rev-parse --show-toplevel)" diff` and ask the
-   user how to proceed (apply, discard, or stash) before making changes.
+2. Ignore pending scripts that always run (`run_*` without `once_` or
+   `onchange_`), which appear on every status check. If any other changes
+   remain, inspect `chezmoi --source "$(git rev-parse --show-toplevel)" diff`
+   and ask the user how to proceed (apply, discard, or stash) before making
+   changes. Pending once/onchange scripts still require this decision.
 3. Preview any change before applying with
    `chezmoi --source "$(git rev-parse --show-toplevel)" diff` or
    `chezmoi --source "$(git rev-parse --show-toplevel)" apply --dry-run`.
