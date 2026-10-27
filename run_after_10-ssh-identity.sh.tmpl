@@ -31,7 +31,7 @@ PATH="/opt/homebrew/opt/openssh/bin:$PATH"
 export PATH
 {{ end -}}
 
-# Every machine signs unattended commits with its own ed25519 key.
+# Every machine signs commits with its own ed25519 key by default.
 MACHINE_KEY="$HOME/.ssh/id_ed25519"
 identity_changed=false
 if { [ -f "$MACHINE_KEY" ] && [ ! -f "$MACHINE_KEY.pub" ]; } ||

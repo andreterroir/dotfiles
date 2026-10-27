@@ -1,65 +1,84 @@
 # Commit signing
 
 `~/.gitconfig` sets `commit.gpgsign`, so every commit is signed with SSH keys
-(`gpg.format = ssh`). YubiKeys represent the human at the keyboard; machine
-keys represent automation:
+(`gpg.format = ssh`). All machines use their own `~/.ssh/id_ed25519` by
+default, for both interactive and automated commits. Desktop/server role,
+VM classification, terminal presence, and connected YubiKeys do not change
+that choice. A repository can explicitly opt into hardware-backed signing.
 
-| Session | Signing key |
-| --- | --- |
-| Interactive (stdin is a terminal) | an approved resident `ed25519-sk` key on the YubiKey |
-| Unattended (no terminal) | this machine's `~/.ssh/id_ed25519` |
-| `GIT_SIGNING_KEY=machine` | the machine key, for a trusted tool that allocates a PTY |
-
-VMs are the exception: interactive signing falls back to the machine key
-when no approved resident key is in the agent. Setup never downloads a
-resident key on a VM; an explicitly installed or forwarded key still works.
-VM machine keys have no passphrase and are also registered for GitHub
-authentication, but not for password-server access.
-Public-only identities in `~/.ssh/identities/yubikey-{1,2}` let SSH match
-forwarded resident keys with `IdentitiesOnly yes`. They have no `.pub`
-suffix and live in a subdirectory so gcr does not advertise absent keys.
+Machine-key signatures identify the signing key, not a human presence check.
+Anyone with access to the key can sign; human and automated commits are no
+longer distinguished by signing key. YubiKeys remain required for managed
+remote-server access and Passage, subject to the existing x1 authentication
+and Slate work-only Passage exceptions. GitHub still supports YubiKey SSH
+authentication, including during bootstrap; HTTPS/OAuth remains available.
 
 ## Configuration
 
-`dot_gitconfig.tmpl` wires git to one selector in `~/.bin`:
+`dot_gitconfig.tmpl` configures Git directly, without a signing selector:
 
 | Setting | Value | Purpose |
 | --- | --- | --- |
-| `gpg.ssh.defaultKeyCommand` | `~/.bin/git-signing-key` | prints the public key git signs with |
+| `user.signingKey` | absolute path to `~/.ssh/id_ed25519` | selects this machine's private key |
 | `gpg.ssh.allowedSignersFile` | `~/.allowed_signers` | verifies signatures |
 
-Git runs the command itself and validates its output as a literal public key,
-not a path. `git-signing-key` prints the machine key bare, because an
-`ssh-ed25519` line is a literal key to every git with SSH signing (2.34+), and
-the resident key as `key::<sk-ssh-ed25519>`, because git only accepts a bare
-key when its type starts with `ssh-` (git 2.35+).
-
-Git writes that literal key to a temporary file and runs
-`ssh-keygen -Y sign -n git -f <file>`. Since git 2.40 it also passes `-U`;
-without it `ssh-keygen` still resolves the key through the agent when the agent
-holds it. Either way the private key never leaves the agent, so every signing
-key must be loaded into an agent that `SSH_AUTH_SOCK` reaches.
-
-## Key selection: `git-signing-key`
-
-- `GIT_SIGNING_KEY=machine` prints the machine key and never consults an agent.
-- Otherwise it lists the agent keys with `ssh-add -L` and keeps the first match
-  among `approvedYubiKeys` in `.chezmoidata.toml`, rendered into the
-  `approved_yubikeys` Bash array (one entry per YubiKey, named by its FIDO2
-  application, e.g. `ssh:5nfc`).
-- With stdin on a terminal, a missing match is an error: an interactive commit
-  must be signed by a YubiKey, except on VMs, which use the machine key.
-- Without a terminal, it falls back to the machine key.
-
-A resident key carries user presence only, not user verification, so signing
-never asks for the FIDO PIN, just a touch.
+Git invokes `ssh-keygen -Y sign` with the private-key path. OpenSSH can use a
+matching key in the active agent or read the private key directly. An absent
+agent or a forwarded agent containing only unrelated keys does not prevent
+signing with an unencrypted local key. Using the private-key path makes that
+local signing capability explicit rather than relying on public-key lookup.
 
 ```
-interactive:  git -> git-signing-key -> ssh-add -L -> ssh-keygen -U -f <sk pubkey>       -> agent -> YubiKey touch
-unattended:   git -> git-signing-key              -> ssh-keygen     -f <machine pubkey>  -> agent -> machine key
+default:   git -> ssh-keygen -f <machine private key> -> agent or local key
+opt-in:    git -> ssh-keygen -f <YubiKey public key>  -> agent -> YubiKey touch
 ```
 
-## The agent per platform
+The old `git-signing-key` helper is removed on apply. `GIT_SIGNING_KEY` is no
+longer used. Existing `user.signingKey` overrides in a repository or
+`~/.gitconfig.local` take precedence over the managed default; inspect them
+with `git config --show-origin --get user.signingKey`.
+
+## Opt into YubiKey signing
+
+On a desktop with its resident key downloaded, run inside the repository:
+
+```sh
+git config --local user.signingKey "$HOME/.ssh/id_ed25519_sk.pub"
+```
+
+OpenSSH can use the matching resident key in the active agent or its local
+private-key reference; both require the YubiKey. For forwarded keys on a VM,
+use one of the managed public-only files `~/.ssh/identities/yubikey-{1,2}`
+instead. On another host, provide a public-key file for the intended
+forwarded identity. Public-only identities need a matching key in the agent.
+The signer must support FIDO and reach the YubiKey; current resident keys
+require touch.
+If the key is unavailable or signing is refused, the commit fails rather
+than falling back to the machine key. Merely listing the key with
+`ssh-add -L` does not prove the hardware is present.
+
+Restore the machine default with:
+
+```sh
+git config --local --unset user.signingKey
+```
+
+Existing YubiKey signing registrations are retained for opt-in signing and
+verification of older commits. No authentication registration changes are
+needed for this policy.
+
+## Unlocking and agents
+
+Desktop machine keys can remain passphrase-protected. Unattended signing
+requires an agent that can unlock or already holds that key; a fresh session
+or an unrelated forwarded agent cannot unlock an encrypted local key by
+itself. Do not remove desktop key passphrases as part of adopting this policy.
+Server and VM keys already have no passphrase and can sign directly without
+an agent, including from cron. Provisioning rejects encrypted server/VM keys
+with manual migration instructions, without replacing the key.
+
+Existing agents remain configured for SSH authentication, encrypted desktop
+keys, and optional YubiKey signing.
 
 ### macOS
 
@@ -71,12 +90,13 @@ binaries and `run_after_10-ssh-identity.sh.tmpl` prepends
 
 The system agent (`com.openssh.ssh-agent`, the default `SSH_AUTH_SOCK`) loads a
 resident key but refuses FIDO signatures with "agent refused operation", so
-signing uses Homebrew's agent instead. `Library/LaunchAgents/systems.terroir.homebrew-ssh-agent.plist`
-runs `~/.bin/homebrew-ssh-agent`, bootstrapped by
+YubiKey operations use Homebrew's agent.
+`Library/LaunchAgents/systems.terroir.homebrew-ssh-agent.plist` runs
+`~/.bin/homebrew-ssh-agent`, bootstrapped by
 `run_onchange_after_11-homebrew-ssh-agent.sh.tmpl`; it serves
 `~/.ssh/homebrew-agent.sock` and loads the resident and machine keys.
-The machine key is passphrase-protected, and only the system `ssh-add` can
-unlock it from the Keychain, so the wrapper loads it with
+The desktop machine key is normally passphrase-protected, and only the
+system `ssh-add` can unlock it from the Keychain, so the wrapper loads it with
 `/usr/bin/ssh-add --apple-use-keychain`; Homebrew's `ssh-add` has no Keychain
 support.
 `dot_bash_profile.tmpl` and `dot_bashrc` export `SSH_AUTH_SOCK` at that socket.
@@ -105,10 +125,6 @@ never needs the PIN that the agent would otherwise have to ask for.
 
 ### Headless servers
 
-Server and VM machine keys have no passphrase, allowing their agents to load
-them without human input. Provisioning rejects existing encrypted keys with
-instructions to remove the passphrase manually, without replacing the key.
-
 `run_after_12-ssh-agent.sh.tmpl` enables a systemd user service
 (`~/.config/systemd/user/ssh-agent.service`) that runs
 `ssh-agent -a $XDG_RUNTIME_DIR/ssh-agent.sock`, loads the machine key, and sets
@@ -116,10 +132,9 @@ instructions to remove the passphrase manually, without replacing the key.
 agent runs from boot rather than from a login. `dot_bash_profile.tmpl` exports
 the socket to login shells, keeping a forwarded agent if one is present.
 
-A process signs only if `SSH_AUTH_SOCK` points at an agent holding its key.
-Login shells get it from `dot_bash_profile.tmpl` and systemd user units from
-the user manager environment, but a bare cron job inherits neither and cannot
-sign. Give such a job `SSH_AUTH_SOCK` explicitly.
+This agent remains available for SSH clients, but default commit signing no
+longer requires it. A forwarded agent can still support explicit YubiKey
+signing without holding the server's local machine key.
 
 ## Registration and verification
 
@@ -145,8 +160,8 @@ git verify-commit HEAD
 
 | Message | Cause |
 | --- | --- |
-| `git-signing-key: no authorized resident YubiKey key in the agent` | interactive commit, no approved resident key in the agent |
-| `git-signing-key: no SSH signing key available` | no machine key and no resident key |
-| `No private key found for ...`, `Couldn't get agent socket?` | the key is not loaded in the agent `SSH_AUTH_SOCK` points at |
+| Missing or unreadable machine private key | finish SSH identity provisioning; a connected YubiKey does not replace the default key |
+| Passphrase prompt or failure in unattended signing | the encrypted machine key must be unlocked in the active agent |
+| `No private key found for ...`, `Couldn't get agent socket?` | the override has neither a usable local private-key reference nor a matching key in the active agent |
 | `agent refused operation` | the agent cannot perform the FIDO2 signature, e.g. the loaded key is not the resident key or the socket points at a dead agent |
 | `fatal: failed to write commit object` | git aborts the commit when the signer fails |

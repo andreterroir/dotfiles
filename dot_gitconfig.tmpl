@@ -1,6 +1,7 @@
 [user]
 	name = André Terroir
 	email = andre@terroir.systems
+	signingKey = "{{ .chezmoi.homeDir }}/.ssh/id_ed25519"
 [commit]
 	gpgsign = true
 	verbose = true
@@ -8,9 +9,6 @@
 	format = ssh
 [gpg "ssh"]
 	allowedSignersFile = ~/.allowed_signers
-	# git execs this command itself, so it needs an absolute path; a
-	# leading ~ is not expanded here.
-	defaultKeyCommand = {{ .chezmoi.homeDir }}/.bin/git-signing-key
 [core]
 	excludesfile = ~/.gitignore
 	# keep the commit message when a commit fails (e.g. a missing signing key)

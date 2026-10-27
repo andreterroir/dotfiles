@@ -52,8 +52,7 @@ if [ -f "$HOME/.config/opencode/opencode.local.json" ]; then
 	export OPENCODE_CONFIG="$HOME/.config/opencode/opencode.local.json"
 fi
 
-# Commit-signing agent, so unattended commits find a key through the
-# agent. Interactive commits use a YubiKey, or the machine key on VMs.
+# Agents support SSH authentication, encrypted keys, and opt-in YubiKey signing.
 {{ if .linux.desktop -}}
 # GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not.
 # gcr advertises every ~/.ssh public key and loads it on demand, so

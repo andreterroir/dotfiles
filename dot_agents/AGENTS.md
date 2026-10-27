@@ -35,11 +35,10 @@ it down. Extended context belongs in commit messages, not in comments.
 
 ## Git Signing
 
-Interactive commits require an authorized resident YubiKey SSH key from the
-agent, except on machines classified as `vm`, where the machine key is an
-allowed fallback. For a trusted tool that allocates a PTY but must sign as
-automation, prefix the command with `GIT_SIGNING_KEY=machine` to explicitly
-select the machine key.
+All commits use the machine-local SSH key by default, including interactive
+and automated commits. Respect repository-level signing overrides: a
+repository may explicitly require a YubiKey, in which case signing must fail
+if that key is unavailable rather than falling back to the machine key.
 
 ## After Making Changes
 

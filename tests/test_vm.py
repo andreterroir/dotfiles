@@ -26,7 +26,8 @@ class VMTest(unittest.TestCase):
         data = {"vm": vm, "desktop": desktop, "server": not desktop,
                 "linux": {"desktop": desktop and os_name == "linux"},
                 "passage": desktop and not vm,
-                "chezmoi": {"os": os_name, "osRelease": {"id": "fedora"} if os_name == "linux" else {}}}
+                "chezmoi": {"os": os_name, "homeDir": str(self.home),
+                            "osRelease": {"id": "fedora"} if os_name == "linux" else {}}}
         if arch is not None:
             data["chezmoi"]["arch"] = arch
         return subprocess.run(
@@ -258,41 +259,86 @@ sys.exit(subprocess.run(args).returncode)
                     self.assertNotEqual(result.returncode, 0)
                     self.assertEqual(policy.read_text(), "# Existing policy must survive failed validation\n")
 
-    def test_signing_with_and_without_optional_yubikey(self):
+    def test_machine_signing_and_repository_override(self):
         (self.home / ".ssh").mkdir()
-        machine_key = "ssh-ed25519 AAAATEST machine"
-        (self.home / ".ssh/id_ed25519.pub").write_text(machine_key + "\n")
-        approved = json.loads(self.chezmoi(True, "execute-template", "{{ .approvedYubiKeys | toJson }}"))
-        shim = self.home / "ssh-add"
-        shim.write_text('#!/bin/sh\nprintf "%s\\n" "$TEST_AGENT_KEYS"\n')
-        shim.chmod(0o755)
+        machine = self.home / ".ssh/id_ed25519"
+        override = self.home / ".ssh/override"
+        for key in (machine, override):
+            subprocess.run(["ssh-keygen", "-t", "ed25519", "-N", "", "-f", str(key)],
+                           check=True, capture_output=True)
+        fingerprints = {
+            key: subprocess.check_output(["ssh-keygen", "-lf", str(key)], text=True).split()[1]
+            for key in (machine, override)
+        }
+        allowed = self.home / ".allowed_signers"
+        allowed.write_text("".join(
+            "andre@terroir.systems " + key.with_suffix(".pub").read_text()
+            for key in (machine, override)
+        ))
+        env = dict(os.environ, HOME=str(self.home), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_CONFIG_GLOBAL=str(self.home / ".gitconfig"),
+                   SSH_AUTH_SOCK=str(self.home / "missing-agent"), SSH_ASKPASS_REQUIRE="never")
+        repository = self.home / "repository"
+        subprocess.run(["git", "init", str(repository)], env=env, check=True, capture_output=True)
+
+        def git(*args, **kwargs):
+            return subprocess.run(["git", "-C", str(repository), *args], env=env,
+                                  text=True, capture_output=True, **kwargs)
+
         master, terminal = pty.openpty()
         self.addCleanup(os.close, master)
         self.addCleanup(os.close, terminal)
-        for desktop, vm in ((True, False), (False, False), (True, True), (False, True)):
-            selector = self.home / "git-signing-key"
-            selector.write_text(self.render(vm, "dot_bin/executable_git-signing-key.tmpl", desktop=desktop))
-            selector.chmod(0o755)
-            for agent_key in ("", "ssh-ed25519 AAAAUNAPPROVED", *approved):
+        for os_name, desktop in (("linux", True), ("linux", False), ("darwin", True)):
+            for vm in (False, True):
+                (self.home / ".gitconfig").write_text(
+                    self.render(vm, "dot_gitconfig.tmpl", desktop=desktop, os_name=os_name))
                 for interactive in (False, True):
-                    with self.subTest(desktop=desktop, vm=vm, key=agent_key, interactive=interactive):
-                        env = dict(os.environ, HOME=str(self.home),
-                                   PATH=f"{self.home}:{os.environ['PATH']}",
-                                   TEST_AGENT_KEYS=agent_key)
-                        env.pop("GIT_SIGNING_KEY", None)
-                        result = subprocess.run(
-                            [str(selector)], env=env, text=True, capture_output=True,
-                            stdin=terminal if interactive else subprocess.DEVNULL,
-                        )
-                        if interactive and agent_key in approved:
-                            self.assertEqual(result.returncode, 0, result.stderr)
-                            self.assertEqual(result.stdout.strip(), "key::" + agent_key)
-                        elif interactive and not vm:
-                            self.assertNotEqual(result.returncode, 0)
-                            self.assertIn("no authorized resident YubiKey", result.stderr)
-                        else:
-                            self.assertEqual(result.returncode, 0, result.stderr)
-                            self.assertEqual(result.stdout.strip(), machine_key)
+                    with self.subTest(os=os_name, desktop=desktop, vm=vm, interactive=interactive):
+                        result = git("commit", "--allow-empty", "-m", "Machine signature",
+                                     stdin=terminal if interactive else subprocess.DEVNULL)
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        signature = git("verify-commit", "HEAD", check=True)
+                        self.assertIn(fingerprints[machine], signature.stderr)
+
+        agent = subprocess.check_output(["ssh-agent", "-s"], text=True)
+        agent_env = dict(env)
+        for assignment in agent.splitlines()[:2]:
+            key, value = assignment.split(";", 1)[0].split("=", 1)
+            agent_env[key] = value
+        self.addCleanup(subprocess.run, ["ssh-agent", "-k"], env=agent_env, capture_output=True)
+        subprocess.run(["ssh-add", str(override)], env=agent_env, check=True, capture_output=True)
+        override.unlink()
+        env["SSH_AUTH_SOCK"] = agent_env["SSH_AUTH_SOCK"]
+        git("commit", "--allow-empty", "-m", "Unrelated forwarded agent", check=True)
+        self.assertIn(fingerprints[machine], git("verify-commit", "HEAD", check=True).stderr)
+
+        git("config", "--local", "user.signingKey", str(override.with_suffix(".pub")), check=True)
+        git("commit", "--allow-empty", "-m", "Explicit signing override", check=True)
+        self.assertIn(fingerprints[override], git("verify-commit", "HEAD", check=True).stderr)
+        head = git("rev-parse", "HEAD", check=True).stdout
+        env["SSH_AUTH_SOCK"] = str(self.home / "missing-agent")
+        result = git("commit", "--allow-empty", "-m", "Unavailable override",
+                     stdin=subprocess.DEVNULL)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(git("rev-parse", "HEAD", check=True).stdout, head)
+
+        git("config", "--local", "--unset", "user.signingKey", check=True)
+        git("commit", "--allow-empty", "-m", "Back to machine signing", check=True)
+        self.assertIn(fingerprints[machine], git("verify-commit", "HEAD", check=True).stderr)
+
+        subprocess.run(["ssh-add", str(machine)], env=agent_env, check=True, capture_output=True)
+        subprocess.run(["ssh-keygen", "-p", "-P", "", "-N", "test-passphrase", "-f", str(machine)],
+                       check=True, capture_output=True)
+        env["SSH_AUTH_SOCK"] = agent_env["SSH_AUTH_SOCK"]
+        git("commit", "--allow-empty", "-m", "Unlocked encrypted desktop key", check=True)
+        self.assertIn(fingerprints[machine], git("verify-commit", "HEAD", check=True).stderr)
+
+    def test_signing_selector_is_retired(self):
+        selector = self.home / ".bin/git-signing-key"
+        selector.parent.mkdir()
+        selector.write_text("obsolete selector\n")
+        self.chezmoi(True, "apply", "--exclude", "scripts")
+        self.assertFalse(selector.exists())
 
 
 if __name__ == "__main__":

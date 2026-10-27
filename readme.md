@@ -24,6 +24,18 @@ it again from a terminal to finish:
 
     chezmoi apply
 
+Git commit signing
+------------------
+
+All machines sign interactive and automated commits with their local
+`~/.ssh/id_ed25519` by default. Signing does not select a YubiKey based on
+terminal presence or VM classification. Repositories can opt into YubiKey
+signing with `git config --local user.signingKey "$HOME/.ssh/id_ed25519_sk.pub"`;
+an unavailable override fails rather than falling back to the machine key.
+YubiKey SSH authentication and Passage policies are unchanged.
+See [Commit signing](.agents/docs/signing.md) for forwarded keys, desktop
+passphrase handling, and verification.
+
 Virtual machines
 ----------------
 
@@ -44,9 +56,7 @@ hook. Applying removes old managed password helpers and
 plugin references, but never deletes an existing store or local identities.
 This is a provisioning policy, not a sandbox against manually granted access.
 
-Interactive Git signing uses an approved YubiKey key if available in the
-agent, otherwise the VM's machine key. Unattended signing uses the machine
-key. VM machine keys are generated without a passphrase and registered for
+VM machine keys are generated without a passphrase and registered for
 GitHub signing and authentication; they are not authorized on the password
 server. GitHub registration still requires a terminal and account login.
 

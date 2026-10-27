@@ -120,9 +120,10 @@ machine still exists.
   for all Passage provisioning and synchronization, not role checks.
   Run `chezmoi init` before apply/update when adopting the policy or
   changing `vm`; missing or contradictory policy data fails closed.
-  VMs never provision Passage and may sign interactive commits with their
-  machine key when no approved resident key is loaded. Their machine key
-  is a GitHub authentication fallback only, not a password-server key.
+  VMs never provision Passage. All machines sign commits with their local
+  SSH key by default; repository configuration may opt into YubiKey signing.
+  VM machine keys are GitHub authentication fallbacks only, not
+  password-server keys.
   `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
   `eq .chezmoi.os "linux"`; `text/template` evaluates both sides of
   `and`, so a combined condition still looks up the missing `id` key.
