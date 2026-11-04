@@ -37,7 +37,8 @@ by another script.
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}`, gate on
                        `.chezmoi.os` ("linux"/"darwin") and the role data
-                       variables (`desktop`, `linux.desktop`, `server`, `vm`, `passage`)
+                       variables (`desktop`, `linux.desktop`, `server`, `vm`,
+                       `keepass`)
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run at most once
 - `symlink_*`        → emit a symlink whose target is the file's contents
@@ -90,14 +91,14 @@ manages (see Boundaries).
 
 | Hostname | OS | Role | Notes |
 | --- | --- | --- | --- |
-| slate | macOS | desktop | the only work machine; its machine-local age identity decrypts only the store's `work/*` subtree |
+| slate | macOS | desktop | the only work machine |
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
 | black | Fedora Linux | desktop | the desktop workstation |
 | Chloes-MBP | macOS | desktop | a laptop |
-| slate-vm-work | Fedora Linux | desktop, vm | VM with no provisioned password-store access; YubiKey optional |
+| slate-vm-work | Fedora Linux | desktop, vm | VM without password-manager apps; YubiKey optional |
 | greenhouse | Ubuntu Linux | server | headless Amp runner; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
-| git.terroir.systems | unrecorded | server | an externally managed host serving the Passage store; an SSH destination, not a chezmoi target |
+| git.terroir.systems | unrecorded | server | an externally managed host; an SSH destination, not a chezmoi target |
 
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
@@ -105,18 +106,12 @@ machine still exists.
 
 ## Boundaries
 
-- Do not push to or pull from the Passage git store unless asked; the
-  post-update hook in `.chezmoi.toml.tmpl` already handles that.
 - Gate tooling on role data, not hostnames; `vm` is independent of role.
-  Use `passage` (`desktop && !vm`) for all Passage provisioning and
-  synchronization, not role checks. Preserve fail-closed policy validation
-  and never delete existing stores or machine-local identities.
   See [Provisioning model](.agents/docs/provisioning.md) for detection,
-  reinitialization, authentication exceptions, and sudo policy; see
+  authentication exceptions, and sudo policy; see
   [Commit signing](.agents/docs/signing.md) for signing and agents.
-- VM machine keys are GitHub authentication fallbacks only, not
-  password-server keys. Preserve explicit repository signing overrides
-  without silent fallback.
+- VM machine keys are GitHub authentication fallbacks only. Preserve
+  explicit repository signing overrides without silent fallback.
 - `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
   `eq .chezmoi.os "linux"`; `text/template` evaluates both sides of
   `and`, so a combined condition still looks up the missing `id` key.

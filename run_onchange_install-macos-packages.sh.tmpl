@@ -16,10 +16,6 @@ tap 'cormacrelf/tap'
 
 # Homebrew 6 refuses to load third-party formulae until they are trusted.
 # Trust the formula, not the tap, so other formulae in the tap stay untrusted.
-brew 'age'
-{{ if .passage -}}
-brew 'age-plugin-yubikey'
-{{ end -}}
 brew 'ampcode/tap/ampcode', trusted: true
 brew 'ascii'
 brew 'bash'
@@ -48,7 +44,6 @@ brew 'mise'
 brew 'neovim'
 brew 'node'
 brew 'npm'
-brew 'oath-toolkit'
 brew 'anomalyco/tap/opencode', trusted: true
 brew 'openjdk'
 brew 'openssh'
@@ -70,6 +65,9 @@ cask 'amp-app'
 cask 'appcleaner'
 cask 'font-jetbrains-mono'
 cask 'ghostty'
+{{ if .keepass -}}
+cask 'keepassxc'
+{{ end -}}
 cask 'logi-options+'
 cask 'meld'
 cask 'netnewswire'
@@ -83,6 +81,9 @@ cask 'zotero'
 
 mas 'DaisyDisk', id: 411643860
 mas 'DuckDuckGo', id: 663592361
+{{ if .keepass -}}
+mas 'KeePassium', id: 1435127111
+{{ end -}}
 mas 'Telegram', id: 747648890
 mas 'WhatsApp', id: 310633997
 

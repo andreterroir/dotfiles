@@ -7,8 +7,8 @@ VM classification, terminal presence, and connected YubiKeys do not change
 that choice. A repository can explicitly opt into hardware-backed signing.
 
 Machine-key signatures identify the signing key, not a human presence check.
-Anyone with access to the key can sign, including automation. Authentication,
-Passage access, and key provisioning are separate policies described in the
+Anyone with access to the key can sign, including automation. Authentication
+and key provisioning are separate policies described in the
 [Provisioning model](provisioning.md).
 
 ## Configuration

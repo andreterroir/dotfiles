@@ -5,7 +5,7 @@
     {{- $vm = eq (output "sh" "-c" "systemd-detect-virt --vm --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
 {{- end -}}
 {{- $desktop := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") -}}
-{{- $passage := and $desktop (not $vm) -}}
+{{- $keepass := and $desktop (not $vm) -}}
 sourceDir = "{{ .chezmoi.sourceDir }}"
 
 [edit]
@@ -13,14 +13,9 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
 [merge]
     command = "nvim"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}", "{{ "{{ .Target }}" }}"]
-{{ if $passage -}}
-[hooks.update.post]
-    command = "bash"
-    args = [ "-c", "! command -v update-passwords >/dev/null 2>&1 || update-passwords" ]
-{{ end -}}
 [data]
     vm = {{ $vm }}
-    passage = {{ $passage }}
+    keepass = {{ $keepass }}
     desktop = {{ $desktop }}
     linux.desktop = {{ and $desktop (eq .chezmoi.os "linux") }}
     server = {{ not $desktop }}

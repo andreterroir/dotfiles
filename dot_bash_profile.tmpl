@@ -3,9 +3,6 @@
 # vi: ft=bash
 
 # Shared environment
-# age-plugin-yubikey 0.5.1 panics at startup when LANG is unset
-# (locale_config fails to parse Apple's AppleLocale region suffix).
-export LANG=en_US.UTF-8
 export CARGO_TARGET_DIR="$HOME/.cache/cargo/target"
 export RUSTUP_HOME="$HOME/.cache/rustup"
 export GOPATH="$HOME/.cache/go"

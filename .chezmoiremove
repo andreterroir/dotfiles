@@ -16,6 +16,13 @@ bin/update-passwords
 .bin/git-ssh-keygen
 # Git now selects the machine key directly
 .bin/git-signing-key
-{{ if not .passage -}}
+# Passage was retired in favour of KeePassXC. Remove its managed state and
+# installed artifacts. The old store and machine-local identities stay as
+# raw data; Passage is no longer installed to read them.
+.bin/update-passwords
 .passage/plugin-identities
-{{ end -}}
+.passage/identities
+.local/bin/passage
+.local/lib/passage
+.local/share/bash-completion/completions/passage
+.local/share/bash-completion/completions/pass-otp

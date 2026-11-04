@@ -4,7 +4,7 @@ Chezmoi manages the shared configuration; machine-local overrides remain
 untracked. See [AGENTS.md](../../AGENTS.md#machines) for the machine inventory
 and [Commit signing](signing.md) for signing configuration and agent setup.
 
-## Roles and Passage
+## Roles and password managers
 
 Init derives `desktop` without prompting: true on macOS and on Linux with
 `gnome-shell` on PATH. `server` is its inverse; `linux.desktop` identifies
@@ -15,18 +15,14 @@ Linux desktops. Role selects tools and the SSH agent, not a hostname.
 subsequent init runs. On other platforms it defaults to false and can be
 set in the chezmoi config. VMs retain desktop/server tooling.
 
-Init derives `passage` as `desktop && !vm`, with no independent override.
-It controls Passage installation, identities, store checkout,
-synchronization, and the age YubiKey plugin, not general SSH/FIDO support.
-Neither headless servers nor VMs provision Passage.
+Desktops install KeePassXC, and macOS also installs KeePassium from the Mac
+App Store. Init derives `keepass` as `desktop && !vm` to select both apps, so
+servers and VMs install no password manager. Neither the KeePass database nor
+its synchronization is provisioned here.
 
-Run `chezmoi init` before apply/update when adopting this policy or after
-changing `vm`. Init recomputes `passage` and regenerates the password-update
-hook, omitting it when Passage is disabled. Apply rejects missing or
-contradictory policy data. Disabling Passage removes managed plugin
-references and the update helper, never existing stores or machine-local
-identities. This is a provisioning policy, not revocation of manually
-granted access.
+Run `chezmoi init` before apply/update after changing `vm` so the derived data
+is recomputed. Init also rewrites `~/.config/chezmoi/chezmoi.toml`, so run it
+after upgrading the source to drop retired data keys and hooks.
 
 ## Authentication and sudo
 
@@ -34,14 +30,14 @@ VM policy takes precedence over the other columns.
 
 | Aspect | macOS desktop | Fedora desktop | Headless server | VM (desktop or headless) |
 | --- | --- | --- | --- | --- |
-| Passwords | Passage uses the travelling 5 NFC identity for `git@git.terroir.systems:passwords.git`. Slate's untracked local age identity decrypts only `work/*`. | Passage uses the travelling 5 NFC identity.\* | Passage is not provisioned. | Passage is not provisioned. |
+| Passwords | KeePassXC and KeePassium; the database is not managed here. | KeePassXC; the database is not managed here. | No password manager is provisioned. | No password manager is provisioned. |
 | Remote server access | Use a resident key and forward its agent. | Use a resident key and forward its agent.\* | Use a forwarded resident key for onward access; no machine-key access is provisioned by default. | Use an explicitly installed or forwarded resident key; no machine-key fallback is configured for managed remote servers. |
 | GitHub access | `gh` OAuth and HTTPS provide unattended access; a resident key provides SSH access. | `gh` OAuth and HTTPS provide unattended access; a resident key provides SSH access.\* | `gh` OAuth and HTTPS provide unattended access; a forwarded resident key provides SSH access. | `gh` OAuth and HTTPS are available; SSH accepts an approved resident key or the VM machine key. |
 | Sudo | Existing system policy; no passwordless grant. | Existing system policy; no passwordless grant. | Must require a password to prevent unattended system changes and security risks; no passwordless grant. | Passwordless sudo for the provisioning user, because these VMs are snapshotted and disposable. |
 
-\* On x1, Passage uses the attached 5C Nano instead of the travelling 5 NFC.
-Its machine key is also an authentication fallback for the managed SSH
-destinations, including Passage synchronization and GitHub SSH access.
+\* On x1, the attached 5C Nano provides the resident key instead of the
+travelling 5 NFC. Its machine key is also an authentication fallback for the
+managed SSH destinations and GitHub SSH access.
 
 Managed SSH configuration applies only to `github.com`,
 `git.terroir.systems`, and `chalon`.
@@ -86,7 +82,7 @@ resident key, or run `ssh-keygen -K` explicitly, save the pair as
 `ssh-add ~/.ssh/id_ed25519_sk`. The approved list in `.chezmoidata.toml`
 also supplies VM public-only files in `~/.ssh/identities/`, allowing
 forwarded keys through SSH's identity filter without local resident-key
-references. VM machine keys are not provisioned for password-server access.
+references.
 
 ## Amp runner
 

@@ -36,9 +36,11 @@ overrides, agent setup, verification, and troubleshooting.
 Provisioning
 ------------
 
-Desktop/server role selects tooling; VMs keep that tooling but do not
-provision Passage. See the [Provisioning model](.agents/docs/provisioning.md)
-for role detection, VM configuration, credentials, sudo, and background
-services. After changing `vm`, run `chezmoi init` before apply or update.
+Desktop/server role selects tooling; VMs keep that tooling but do not get
+password-manager apps. Desktops install KeePassXC, and macOS also installs
+KeePassium from the Mac App Store; the password database is not managed here.
+See the [Provisioning model](.agents/docs/provisioning.md) for role
+detection, VM configuration, credentials, sudo, and background services.
+After changing `vm`, run `chezmoi init` before apply or update.
 
 See [chezmoi](https://www.chezmoi.io/).
