@@ -59,6 +59,9 @@ sudo systemctl enable --now pcscd
 sudo dnf install -y \
 	ImageMagick \
 	gnome-extensions-app \
+	gnome-shell-extension-appindicator \
+	gnome-shell-extension-launch-new-instance \
+	gnome-shell-extension-windowsNavigator \
 	gnome-tweaks \
 {{ if .keepass }}	keepassxc \
 {{ end }}	make \

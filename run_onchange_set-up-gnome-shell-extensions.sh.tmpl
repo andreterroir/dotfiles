@@ -1,0 +1,70 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if and (eq .chezmoi.osRelease.id "fedora") .linux.desktop -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+# Fedora packages three of the four extensions. Night Theme Switcher is only
+# published on extensions.gnome.org, where each build targets one shell
+# version, so fetch the one for the running shell.
+ego_uuid=nightthemeswitcher@romainvigier.fr
+fedora_extensions=(
+	windowsNavigator@gnome-shell-extensions.gcampax.github.com
+	launch-new-instance@gnome-shell-extensions.gcampax.github.com
+	appindicatorsupport@rgcjonas.gmail.com
+)
+
+shell_version="$(gnome-shell --version | awk '{print $3}')"
+download_dir="$(mktemp -d)"
+trap 'rm -rf "$download_dir"' EXIT
+
+# Reinstall whenever this script changes, so a stale or partial install of a
+# build for an older shell does not survive.
+if ! info="$(curl -fsSL \
+	"https://extensions.gnome.org/extension-info/?uuid=$ego_uuid&shell_version=$shell_version")"; then
+	echo ">cannot query extensions.gnome.org for $ego_uuid" >&2
+	exit 1
+fi
+url="$(printf '%s' "$info" | jq -r '.download_url // empty')"
+if [ -z "$url" ]; then
+	echo ">no $ego_uuid build for GNOME Shell $shell_version" >&2
+	exit 1
+fi
+echo ">installing $ego_uuid"
+curl -fsSL -o "$download_dir/extension.zip" "https://extensions.gnome.org$url"
+gnome-extensions install --force "$download_dir/extension.zip"
+
+# The shell watches both keys, so this enables the extensions now or at the
+# next login. A uuid must also leave disabled-extensions, which wins over
+# enabled-extensions. gsettings prints string arrays as Python literals.
+python3 - "$ego_uuid" "${fedora_extensions[@]}" <<'PY'
+import ast
+import subprocess
+import sys
+
+schema = "org.gnome.shell"
+wanted = sys.argv[1:]
+
+
+def read(key):
+    value = subprocess.run(
+        ["gsettings", "get", schema, key],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    return ast.literal_eval(value.removeprefix("@as "))
+
+
+def write(key, values):
+    value = "[" + ", ".join(f"'{uuid}'" for uuid in values) + "]"
+    subprocess.run(["gsettings", "set", schema, key, value], check=True)
+
+
+enabled = read("enabled-extensions")
+write("enabled-extensions", enabled + [uuid for uuid in wanted if uuid not in enabled])
+disabled = read("disabled-extensions")
+write("disabled-extensions", [uuid for uuid in disabled if uuid not in wanted])
+PY
+{{   end -}}
+{{ end -}}

@@ -84,6 +84,16 @@ also supplies VM public-only files in `~/.ssh/identities/`, allowing
 forwarded keys through SSH's identity filter without local resident-key
 references.
 
+## GNOME Shell extensions
+
+`run_onchange_set-up-gnome-shell-extensions.sh.tmpl` runs on Fedora desktops
+and enables Window Navigator, Launch New Instance, Night Theme Switcher, and
+AppIndicator support. Fedora packages all but Night Theme Switcher, so `dnf`
+updates those. Night Theme Switcher comes from extensions.gnome.org, where each
+build targets one shell version: it is fetched for the running shell and
+reinstalled whenever the script changes. Enabling writes the `org.gnome.shell`
+key the Shell watches, so a fresh install takes effect at the next login.
+
 ## Amp runner
 
 `run_after_30-amp-runner.sh.tmpl` enables the systemd user unit
