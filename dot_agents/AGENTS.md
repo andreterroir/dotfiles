@@ -75,10 +75,11 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 - Wrap the body at 72 characters.
 - Use the body to explain what and why, not how.
 
-## Publishing Changes
-
-After pushing a branch, if it has an associated pull request, make sure that
-that its title and description reflect the most recent changes.
+## Pull Requests
 
 When asked to create a new pull request make sure it has the correct base
-branch, if differs from the main branch.
+branch, if differs from the main branch. Create PRs in a draft state and mark
+them as ready once all the checks pass.
+
+After pushing a branch, if it has an associated PR, make sure that that its
+title and description reflect the most recent changes.
