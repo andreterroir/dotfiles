@@ -11,16 +11,15 @@ After the reboot, download the new release and start the offline upgrade:
     sudo dnf system-upgrade download --releasever=45
     sudo dnf system-upgrade reboot
 
-Fedora retires packages between releases. On the new release, install
-`remove-retired-packages`, which is not installed by default, and pass the
-old release:
-
-    sudo dnf install -y remove-retired-packages
-    sudo remove-retired-packages 44
-
-Then re-apply the configuration:
+Then re-apply the configuration. It installs the package set, including
+`remove-retired-packages`:
 
     chezmoi apply
+
+Fedora retires packages between releases. Once the configuration is applied,
+drop the packages retired since the old release:
+
+    sudo remove-retired-packages 44
 
 Terra tracks `$releasever`, so it follows the upgrade without changes; the
 other third-party repositories on the machine are release-independent or do
