@@ -1,10 +1,11 @@
 # Commit signing
 
-`~/.gitconfig` sets `commit.gpgsign`, so every commit is signed with SSH keys
-(`gpg.format = ssh`). All machines use their own `~/.ssh/id_ed25519` by
-default, for both interactive and automated commits. Desktop/server role,
-VM classification, terminal presence, and connected YubiKeys do not change
-that choice. A repository can explicitly opt into hardware-backed signing.
+On managed machines, `~/.gitconfig` sets `commit.gpgsign`, so every commit is
+signed with SSH keys (`gpg.format = ssh`). All machines use their own
+`~/.ssh/id_ed25519` by default, for both interactive and automated commits.
+Desktop/server role, VM classification, terminal presence, and connected
+YubiKeys do not change that choice. A repository can explicitly opt into
+hardware-backed signing.
 
 Machine-key signatures identify the signing key, not a human presence check.
 Anyone with access to the key can sign, including automation. Authentication
@@ -19,6 +20,10 @@ and key provisioning are separate policies described in the
 | --- | --- | --- |
 | `user.signingKey` | absolute path to `~/.ssh/id_ed25519` | selects this machine's private key |
 | `gpg.ssh.allowedSignersFile` | `~/.allowed_signers` | verifies signatures |
+
+Transient environments omit these settings, leaving signing to an
+environment-provided configuration such as Amp's `/etc/gitconfig`; see
+[Transient profile](transient.md).
 
 Git invokes `ssh-keygen -Y sign` with the private-key path. OpenSSH can use a
 matching key in the active agent or read the private key directly. An absent

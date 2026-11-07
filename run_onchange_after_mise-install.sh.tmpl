@@ -1,6 +1,15 @@
+{{- $transient := false -}}
+{{- if hasKey . "transient" -}}
+    {{- $transient = .transient -}}
+{{- end -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-set -euo pipefail
+set -euo pipefail{{ if $transient }}
+if ! command -v mise >/dev/null 2>&1; then
+	echo '>mise: not installed; skipping' >&2
+	exit 0
+fi
+{{ end }}
 
 # {{ include "private_dot_config/mise/config.toml.tmpl" | sha256sum }}
 mise install --yes

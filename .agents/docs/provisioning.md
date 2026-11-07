@@ -14,6 +14,10 @@ hostname.
 `systemd-detect-virt --vm` unless already configured, preserving the value on
 subsequent init runs. VMs retain desktop/server tooling.
 
+A VM whose hostname is not in `managedHosts` is transient (see
+[Transient profile](transient.md)); a managed VM such as `slate-vm-work`
+keeps the machine-key policy below.
+
 Desktops install KeePassXC. Init derives `keepass` as `desktop && !vm` to
 select it, so servers and VMs install no password manager. KeePassXC user
 settings are managed at `~/.config/keepassxc/keepassxc.ini`. Apply replaces
@@ -59,10 +63,11 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 ## SSH identity bootstrap
 
 `run_after_10-ssh-identity.sh.tmpl` creates missing machine keys and registers
-public keys with GitHub for `andreterroir`. Machine keys are signing keys;
-x1 and VM machine keys are also authentication keys. On non-VM desktops it
-downloads a missing resident key with `ssh-keygen -K` (touch and PIN) and
-registers it for authentication and signing. On VMs it only registers
+public keys with GitHub for `andreterroir`. Transient environments skip this
+section entirely; see [Transient profile](transient.md). Machine keys are
+signing keys; x1 and VM machine keys are also authentication keys. On non-VM
+desktops it downloads a missing resident key with `ssh-keygen -K` (touch and
+PIN) and registers it for authentication and signing. On VMs it only registers
 resident keys explicitly installed beforehand; non-VM servers skip them.
 
 GitHub registration requires a terminal and account login. API outages are
@@ -120,6 +125,7 @@ obsidian's folders: share it from x1 or black, and accept that offer too.
 serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 `~/code`, so threads can be created on the machine from ampcode.com. Linger
 keeps the runner up without a login, as it does for the servers' ssh-agent.
+Transient environments skip this setup; see [Transient profile](transient.md).
 
 The script records a fingerprint of the unit file and the installed `amp`
 binary in `~/.local/state/amp-runner/fingerprint`. An apply that leaves both

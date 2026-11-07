@@ -1,3 +1,12 @@
+# Chezmoi targets as lowercase short hostnames. Unknown hostnames, including
+# unlisted VMs, are transient; keep in sync with the Machines table in
+# AGENTS.md.
+managedHosts = [
+    "x1",
+    "black",
+    "slate-vm-work",
+    "greenhouse",
+]
 approvedYubiKeys = [
     "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIBvW6Zw+GAYm4zXEt6Cumdv82ORF0Jhw2Qh9Nq48pdJpAAAACHNzaDo1bmZj",
     "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHeTStXm0VUd8cz/M2HJWf1WVb7oa+OyWtFnOyqIlLViAAAAC3NzaDo1Yy1uYW5v",

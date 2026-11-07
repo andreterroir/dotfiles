@@ -1,3 +1,7 @@
+{{- $transient := false -}}
+{{- if hasKey . "transient" -}}
+    {{- $transient = .transient -}}
+{{- end -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Finish this machine's SSH identity: put its key on disk and make sure
@@ -7,7 +11,10 @@
 # The sk key download needs a YubiKey touch and registration may need a
 # browser login; a non-tty VM/server apply creates only its machine key.
 # Re-runs are idempotent when the keys are already on GitHub.
-set -euo pipefail
+set -euo pipefail{{ if $transient }}
+echo '>transient profile: SSH identity setup is disabled' >&2
+exit 0
+{{ end }}
 
 {{ if not (or .vm .server) -}}
 if [ ! -t 0 ]; then

@@ -1,9 +1,16 @@
+{{- $transient := false -}}
+{{- if hasKey . "transient" -}}
+    {{- $transient = .transient -}}
+{{- end -}}
 {{ if .server -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Run the SSH agent that signs unattended commits from boot rather than
 # login, and load the machine key into it. Servers only.
-set -euo pipefail
+set -euo pipefail{{ if $transient }}
+echo '>transient profile: SSH agent setup is disabled' >&2
+exit 0
+{{ end }}
 
 # Linger keeps the user manager, and so the agent, alive without a login.
 # Enabling it for one's own user needs no root.

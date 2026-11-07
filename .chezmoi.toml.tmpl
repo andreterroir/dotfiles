@@ -7,8 +7,26 @@
 {{- else -}}
     {{- $vm = eq (output "sh" "-c" "systemd-detect-virt --vm --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
 {{- end -}}
+{{- $container := false -}}
+{{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
 {{- $desktop := ne (lookPath "gnome-shell") "" -}}
 {{- $keepass := and $desktop (not $vm) -}}
+{{- $known := false -}}
+{{- $dataFile := joinPath .chezmoi.sourceDir ".chezmoidata.toml" -}}
+{{- if stat $dataFile -}}
+    {{- $data := fromToml (output "cat" $dataFile) -}}
+    {{- if hasKey $data "managedHosts" -}}
+        {{- $host := lower (trimSuffix ".local" .chezmoi.hostname) -}}
+        {{- $known = has $host $data.managedHosts -}}
+    {{- end -}}
+{{- end -}}
+{{- $transient := false -}}
+{{- $signal := lower (env "CHEZMOI_TRANSIENT") -}}
+{{- if eq $signal "" -}}
+    {{- $transient = or (ne (env "AMP_ORB") "") $container (not $known) -}}
+{{- else if not (or (eq $signal "0") (eq $signal "false")) -}}
+    {{- $transient = true -}}
+{{- end -}}
 sourceDir = "{{ .chezmoi.sourceDir }}"
 
 [edit]
@@ -21,3 +39,4 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
     keepass = {{ $keepass }}
     desktop = {{ $desktop }}
     server = {{ not $desktop }}
+    transient = {{ $transient }}

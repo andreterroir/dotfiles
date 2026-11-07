@@ -1,9 +1,16 @@
+{{- $transient := false -}}
+{{- if hasKey . "transient" -}}
+    {{- $transient = .transient -}}
+{{- end -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Derive ~/.allowed_signers from the signing keys on GitHub, so every
 # machine verifies every other machine's signature. A machine that is
 # offline keeps the file it already has.
-set -euo pipefail
+set -euo pipefail{{ if $transient }}
+echo '>transient profile: signing allowlist setup is disabled' >&2
+exit 0
+{{ end }}
 
 out="$HOME/.allowed_signers"
 keys=$(curl -fsS --max-time 10 https://api.github.com/users/andreterroir/ssh_signing_keys \

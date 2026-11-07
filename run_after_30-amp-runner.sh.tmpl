@@ -1,3 +1,7 @@
+{{- $transient := false -}}
+{{- if hasKey . "transient" -}}
+    {{- $transient = .transient -}}
+{{- end -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Run the Amp runner that serves ~/code on every Linux machine, so
@@ -7,7 +11,9 @@
 # changed; otherwise it starts the runner if it is stopped and leaves running
 # threads alone.
 set -euo pipefail
-
+{{ if $transient }}echo '>transient profile: Amp runner setup is disabled' >&2
+exit 0
+{{ else }}
 amp="$HOME/.local/bin/amp"
 unit="$HOME/.config/systemd/user/amp-runner.service"
 state_file="$HOME/.local/state/amp-runner/fingerprint"
@@ -53,3 +59,4 @@ fi
 
 mkdir -p "$(dirname "$state_file")"
 printf '%s %s\n' "$unit_hash" "$binary_hash" >"$state_file"
+{{ end -}}

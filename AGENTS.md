@@ -44,7 +44,8 @@ installed by another script.
 - `dot_*`            → `~/.<name>` (e.g. `dot_gitconfig.tmpl` → `~/.gitconfig`)
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}` and the role data
-                       variables (`desktop`, `server`, `vm`, `keepass`)
+                       variables (`desktop`, `server`, `vm`, `keepass`,
+                       `transient`)
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run at most once
 - `symlink_*`        → emit a symlink whose target is the file's contents
@@ -73,6 +74,16 @@ instead. When the checkout is a linked worktree, use
 `chezmoi --source "$(git rev-parse --show-toplevel)"` to validate that
 worktree regardless of the configured source.
 
+An environment that is an Amp orb, a container, or a hostname outside
+`managedHosts` is transient; a VM is transient only when its hostname is not
+listed. A known VM keeps the full profile. Run `./install.sh --transient`. It
+may install packages and enable services inside the machine, but creates no
+identity and changes nothing outside it. Init detects the profile;
+`install.sh` initialises first, and a later bare `chezmoi apply` or
+`chezmoi update` uses the persisted value. The hostname list only separates
+known managed machines from transient ones; role data still selects tooling.
+See [Transient profile](.agents/docs/transient.md).
+
 0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
 2. Ignore pending scripts that always run (`run_*` without `once_` or
@@ -97,6 +108,10 @@ Treat a request to ship (or to integrate into `main`) as confirmation to apply:
 fast-forward `main`, push, then apply from the main checkout and report what
 changed. Apply from the main checkout, not from a linked worktree, so symlinks
 keep pointing at `~/code/dotfiles`.
+
+The full apply is for managed machines only. A transient environment never
+receives shipped changes that way: update its checkout and re-run
+`./install.sh --transient`.
 
 ## Machines
 

@@ -1,14 +1,24 @@
+{{- $transient := false -}}
+{{- if hasKey . "transient" -}}
+    {{- $transient = .transient -}}
+{{- end -}}
 [user]
 	name = André Terroir
 	email = andre@terroir.systems
+{{- if not $transient }}
 	signingKey = "{{ .chezmoi.homeDir }}/.ssh/id_ed25519"
+{{- end }}
 [commit]
+{{- if not $transient }}
 	gpgsign = true
+{{- end }}
 	verbose = true
+{{- if not $transient }}
 [gpg]
 	format = ssh
 [gpg "ssh"]
 	allowedSignersFile = ~/.allowed_signers
+{{- end }}
 [core]
 	excludesfile = ~/.gitignore
 	# keep the commit message when a commit fails (e.g. a missing signing key)

@@ -3,6 +3,22 @@
 # (no repo, no chezmoi), see readme.md.
 set -eu
 
+transient=false
+remaining=$#
+while [ "$remaining" -gt 0 ]; do
+	arg=$1
+	shift
+	case $arg in
+		--transient) transient=true ;;
+		*) set -- "$@" "$arg" ;;
+	esac
+	remaining=$((remaining - 1))
+done
+
+if [ "$transient" = true ]; then
+	export CHEZMOI_TRANSIENT=1
+fi
+
 if ! chezmoi="$(command -v chezmoi)"; then
 	bin_dir="${HOME}/.local/bin"
 	chezmoi="${bin_dir}/chezmoi"
@@ -22,6 +38,9 @@ fi
 # POSIX way to get script's dir: https://stackoverflow.com/a/29834779/12156188
 script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
 
-echo "Running 'chezmoi apply $*'" >&2
 "$chezmoi" init --source="${script_dir}"
+if [ "$("$chezmoi" --source="${script_dir}" execute-template '{{ .transient }}' 2>/dev/null)" = true ]; then
+	echo "Applying the transient profile: packages and services, no identity." >&2
+fi
+echo "Running 'chezmoi apply $*'" >&2
 "$chezmoi" apply --source="${script_dir}" "$@"

@@ -1,16 +1,20 @@
+{{- $transient := false -}}
+{{- if hasKey . "transient" -}}
+    {{- $transient = .transient -}}
+{{- end -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail
 
 bash_path=/bin/bash
 if ! grep --quiet --line-regexp --fixed-strings "$bash_path" /etc/shells; then
-	echo "$bash_path" | sudo tee -a /etc/shells
+	echo "$bash_path" | sudo tee -a /etc/shells{{ if $transient }} || true{{ end }}
 fi
 if [ "$SHELL" != "$bash_path" ]; then
 	# chsh needs a PAM-capable tty. A non-interactive apply has none.
 	if [ ! -t 0 ]; then
 		echo "cannot change login shell to $bash_path: no tty for chsh" >&2
-		exit 1
+		{{ if $transient }}exit 0{{ else }}exit 1{{ end }}
 	fi
 	chsh -s "$bash_path"
 fi
