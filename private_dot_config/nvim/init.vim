@@ -35,7 +35,7 @@ Plug 'tpope/vim-surround'
 " insert and step over matching characters
 Plug 'windwp/nvim-autopairs'
 " keymap discovery
-Plug 'folke/which-key.nvim'
+Plug 'liuchengxu/vim-which-key'
 " persistent branching undo history
 Plug 'mbbill/undotree'
 " preserve last session per directory
@@ -207,6 +207,8 @@ set nohlsearch
 " autocomplete to the longest commons string and than cycle through the
 " alternatives
 set wildmode=longest:full,full
+" how long a prefix waits before which-key opens
+set timeoutlen=500
 
 " keep backup if file is overwritten
 set backup
@@ -271,6 +273,34 @@ if empty(s:missing)
   call s:Map('n', '<leader>fk', '<cmd>Maps<CR>', '[F]ind [K]ey mapping')
   call s:Map('n', '<leader>fr', '<cmd>History<CR>', '[f]ind [r]ecent files')
   call s:Map('n', '<leader>fh', '<cmd>Helptags<CR>', '[F]ind [H]elp')
+endif
+
+" ---------------
+" -- which-key --
+" ---------------
+
+" vim-which-key cannot read mapping descriptions, so the labels live here
+let g:which_key_map = {
+      \ 't': {'name': '+toggle', 'h': 'search highlighting', 's': 'spellchecking',
+      \       'l': 'list chars', 'w': 'wrapping', 'c': 'centering', 'u': 'undo tree'},
+      \ 'f': {'name': '+find', 'F': 'files', 'f': 'files', 'g': 'grep',
+      \       's': 'word under cursor', 'k': 'key mappings', 'r': 'recent files',
+      \       'h': 'help'},
+      \ '-': 'split horizontally',
+      \ '\': 'split vertically',
+      \ ';': 'command-line',
+      \ 'w': 'write buffer',
+      \ 'q': 'quit with confirmation',
+      \ 'y': 'yank to clipboard',
+      \ 'Y': 'yank tail to clipboard',
+      \ 'p': 'paste from clipboard',
+      \ 'P': 'paste before cursor',
+      \ }
+
+if empty(s:missing)
+  nnoremap <silent> <leader> :<C-U>WhichKey '<Space>'<CR>
+  xnoremap <silent> <leader> :<C-U>WhichKeyVisual '<Space>'<CR>
+  call which_key#register('<Space>', 'g:which_key_map')
 endif
 
 " ------------------
