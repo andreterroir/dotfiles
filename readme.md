@@ -8,8 +8,8 @@ Prerequisites
 - git
 
 Package install scripts target macOS, Fedora Linux, and headless Ubuntu.
-Ubuntu servers get the CLI set only: no hugo, Node, YubiKey, or
-Wayland clipboard tools. Other distros are unsupported.
+Ubuntu servers get the CLI set only: no hugo, YubiKey, or Wayland clipboard
+tools. Other distros are unsupported.
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra; Ubuntu
 takes mise from mise's own apt repository.
 Fedora desktops skip Spotify on ARM because its Flathub package is x86_64-only.

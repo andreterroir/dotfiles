@@ -33,8 +33,6 @@ sudo dnf install -y \
 	jq \
 	mise \
 	neovim \
-	nodejs \
-	npm \
 	opencode-cli \
 	pcsc-tools \
 	ripgrep \
@@ -83,7 +81,6 @@ flatpak install --assumeyes \
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Headless Ubuntu only. hugo is intentionally omitted.
-# nodejs is not installed: nothing in this repo requires it.
 set -euo pipefail
 
 # mise's own apt repo, which installs zig, exercism and topgrade.
