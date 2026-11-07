@@ -32,12 +32,6 @@ vim.opt.rtp:prepend(lazypath)
 -- map leader before any plugins define their mappings
 vim.g.mapleader = ' '
 
-
-local function is_journal_file(path)
-   return path:find('journal')
-end
-
-
 require('lazy').setup({
    -- colorscheme
    { 'projekt0n/github-nvim-theme' },
@@ -117,7 +111,6 @@ require('lazy').setup({
                },
                -- stylua: ignore
                center = {
-                  { action = 'JournalToday', desc = ' Today\'s journal', icon = '󰢧 ', key = 't' },
                   { action = 'FzfLua files', desc = ' Find file', icon = ' ', key = 'f' },
                   { action = 'ene | startinsert', desc = ' New file', icon = ' ', key = 'n' },
                   { action = 'FzfLua oldfiles', desc = ' Recent files', icon = ' ', key = 'r' },
@@ -346,48 +339,6 @@ vim.keymap.set('n', '<leader>fs', fzf.grep_cWORD, { desc = '[F]ind [S]tring' })
 vim.keymap.set('n', '<leader>fk', fzf.keymaps, { desc = '[F]ind [K]ey mapping' })
 vim.keymap.set('n', '<leader>fr', fzf.oldfiles, { desc = '[f]ind [r]ecent files' })
 vim.keymap.set('n', '<leader>fh', fzf.helptags, { desc = '[F]ind [H]elp' })
-
-local function journal_next(step)
-   local buf_path = vim.api.nvim_buf_get_name(0)
-   if not buf_path or buf_path == '' then
-      vim.notify('buffer has no path', vim.log.levels.INFO)
-      return
-   end
-   if not is_journal_file(buf_path) then
-      vim.notify('not a journal buffer', vim.log.levels.INFO)
-      return
-   end
-   local buf_file = vim.fn.fnamemodify(buf_path, ':t:r')
-   local date_pattern = '(%d%d%d%d)%-(%d%d)%-(%d%d)'
-   local year, month, day = buf_file:match(date_pattern)
-   if not year or not month or not day then
-      vim.notify('unexpected journal file format: ' .. buf_path, vim.log.levels.INFO)
-      return
-   end
-   local curr_date = os.time({ year = year, month = month, day = day })
-   for i = 1, 30 do -- only look for files within a month
-      local next_date = os.date('%Y-%m-%d', curr_date + i * step * 24 * 3600)
-      local next_file = buf_path:gsub(date_pattern, next_date)
-      if vim.uv.fs_stat(next_file) then
-         vim.cmd('edit ' .. next_file)
-         return
-      end
-   end
-   vim.notify('no more close journal files', vim.log.levels.INFO)
-end
-vim.keymap.set('n', '<leader>j;', function() journal_next(1) end, { desc = 'Open next journal file' })
-vim.keymap.set('n', '<leader>j,', function() journal_next(-1) end, { desc = 'Open previous journal file' })
-
-local function journal_for_offset(offset_days)
-   local notes_dir = vim.fn.expand('~/notes')
-   local date = os.date('%Y-%m-%d', os.time() + offset_days * 86400)
-   local file = vim.fs.joinpath(notes_dir, 'journal', date .. '.md')
-   vim.cmd('cd ' .. notes_dir)
-   vim.cmd('edit ' .. file)
-end
-vim.api.nvim_create_user_command('JournalToday', function() journal_for_offset(0) end, { desc = "Open today's journal" })
-vim.api.nvim_create_user_command('JournalTomorrow', function() journal_for_offset(1) end, { desc = "Open tomorrow's journal" })
-vim.api.nvim_create_user_command('JournalYesterday', function() journal_for_offset(-1) end, { desc = "Open yesterday's journal" })
 
 vim.keymap.set('', '<leader>w', '<cmd>:write<cr>', { desc = '[W]rite current buffer' })
 vim.keymap.set('', '<leader>q', '<cmd>:confirm quitall<cr>', { desc = '[Q]uit with confirmation' })
