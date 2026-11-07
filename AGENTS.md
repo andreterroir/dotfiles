@@ -7,8 +7,8 @@ installed globally; do not duplicate them here.
 
 ## Where agent instructions live
 
-- `dot_agents/AGENTS.md` — user-global instructions (worktree workflow,
-  code review, commit conventions, etc.), deployed by chezmoi to
+- `dot_agents/AGENTS.md` — user-global instructions (code review, commit
+  conventions, etc.), deployed by chezmoi to
   `~/.agents/AGENTS.md` and symlinked from `dot_claude/`,
   `dot_codex/`, `dot_copilot/`, `private_dot_config/opencode/`, and
   `private_dot_config/private_amp/`. Edit there, not here.
@@ -53,8 +53,8 @@ by another script.
 
 The default installation uses `~/code/dotfiles` as chezmoi's `sourceDir`.
 Initializing with `--source` pointing to a worktree persists that path
-instead. When working in a Git worktree (per global agent instructions),
-use `chezmoi --source "$(git rev-parse --show-toplevel)"` to validate the
+instead. When the checkout is a linked worktree, use
+`chezmoi --source "$(git rev-parse --show-toplevel)"` to validate that
 worktree regardless of the configured source.
 
 0. Rebase onto main if the worktree branch is behind.

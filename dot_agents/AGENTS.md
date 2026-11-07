@@ -14,19 +14,9 @@ working directory, until asked to commit.
 
 ## Before Making Changes
 
-Keep `main` branch always checked out in the main worktree (repository root).
-
-Create a Git worktree first, unless asked to make changes to a branch with an
-existing worktree, or the working directory is within a linked worktree. Never create a
-nested worktree inside another worktree.
-
 Make sure the base branch is up to date by fetching it from the remote. If a
 fast-forward is not possible, stop and ask the user — never create a merge
 commit on `main`.
-
-Create worktrees with `git worktree add .wt/<branch-name>` using a short
-simple name referencing the change being made, e.g.
-`message-length-validation`.
 
 ## Making Changes
 
