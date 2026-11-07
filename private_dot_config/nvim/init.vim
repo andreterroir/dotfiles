@@ -18,10 +18,8 @@ let mapleader = ' '
 
 call plug#begin('~/.vim/plugged')
 
-" colorscheme
-Plug 'projekt0n/github-nvim-theme'
-" match system light/dark mode
-Plug 'andreterroir/daybreak.nvim'
+" colorscheme; one file, light and dark picked by 'background'
+Plug 'cormacrelf/vim-colors-github'
 " center the focused buffer
 Plug 'shortcuts/no-neck-pain.nvim'
 " restrict allowed modeline options
@@ -130,7 +128,9 @@ let s:missing = filter(copy(g:plugs), '!isdirectory(v:val.dir)')
 
 if empty(s:missing)
   try
-    lua require('daybreak').setup({ light = 'github_light', dark = 'github_dark_dimmed' })
+    " daybreak will drive this once its Vim port is available
+    set background=dark
+    colorscheme github
     lua require('no-neck-pain').setup({ width = 80 })
     lua require('nvim-autopairs').setup({})
     lua require('nvim-autopairs').add_rules({ require('nvim-autopairs.rule')('`', '`') })
