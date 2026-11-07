@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+# {{ include "lazy-lock.json" | sha256sum }}
+
+lockfile="$HOME/.config/nvim/lazy-lock.json"
+
+if ! command -v nvim >/dev/null 2>&1; then
+	echo '>nvim-plugins: nvim is not installed; skipping' >&2
+	exit 0
+fi
+
+if [ ! -d "$HOME/.local/share/nvim/lazy/lazy.nvim" ]; then
+	echo '>nvim-plugins: lazy.nvim is not installed; skipping' >&2
+	exit 0
+fi
+
+if [ ! -f "$lockfile" ]; then
+	echo '>nvim-plugins: lockfile is missing; skipping' >&2
+	exit 0
+fi
+
+# Lazy rewrites its lockfile after restoring. Keep the repository's copy,
+# which is the source of truth for the plugin versions.
+saved="$(mktemp "${TMPDIR:-/tmp}/nvim-lockfile.XXXXXX")"
+cat "$lockfile" > "$saved"
+cleanup() {
+	if [ -f "$saved" ]; then
+		if ! cmp -s "$saved" "$lockfile"; then
+			cat "$saved" > "$lockfile"
+		fi
+		rm -f "$saved"
+	fi
+}
+trap cleanup EXIT
+
+nvim --headless '+Lazy! restore' +qa
+
+# A failed checkout does not fail nvim, so verify against the saved lockfile.
+failed=0
+if ! entries=$(jq -r 'to_entries[] | "\(.key) \(.value.commit)"' "$saved"); then
+	echo '>nvim-plugins: could not read the saved lockfile; not verified' >&2
+	failed=1
+fi
+while read -r name commit; do
+	[ -n "$name" ] || continue
+	dir="$HOME/.local/share/nvim/lazy/$name"
+	[ -d "$dir" ] || continue
+	if [ "$(git -C "$dir" rev-parse HEAD)" != "$commit" ]; then
+		echo ">nvim-plugins: $name is not at lockfile commit $commit" >&2
+		failed=1
+	fi
+done <<< "$entries"
+
+cleanup
+exit "$failed"
