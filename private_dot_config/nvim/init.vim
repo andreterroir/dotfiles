@@ -21,7 +21,7 @@ call plug#begin('~/.vim/plugged')
 " colorscheme; one file, light and dark picked by 'background'
 Plug 'cormacrelf/vim-colors-github'
 " center the focused buffer
-Plug 'shortcuts/no-neck-pain.nvim'
+Plug 'junegunn/goyo.vim'
 " restrict allowed modeline options
 Plug 'ypcrts/securemodelines'
 " readline style editing keybindings
@@ -62,6 +62,7 @@ function! s:Map(mode, lhs, rhs, ...) abort
   call nvim_set_keymap(a:mode, a:lhs, a:rhs, a:0 ? #{noremap: v:true, desc: a:1} : #{noremap: v:true})
 endfunction
 
+let g:goyo_width = 80
 let g:floaterm_keymap_toggle = '<A-;>'
 " gitgutter maps are global; the config defines the ones it wants
 let g:gitgutter_map_keys = 0
@@ -75,7 +76,6 @@ if empty(s:missing)
     " daybreak will drive this once its Vim port is available
     set background=dark
     colorscheme github
-    lua require('no-neck-pain').setup({ width = 80 })
     let g:startify_custom_header = []
     let g:startify_lists = [
           \ {'type': 'commands', 'header': ['   Commands']},
@@ -189,7 +189,7 @@ call s:Map('', '<leader>th', '<cmd>set hlsearch!<CR>', '[t]oggle search [h]ighli
 call s:Map('', '<leader>ts', '<cmd>set spell!<CR>', '[t]oggle [s]pellchecking')
 call s:Map('', '<leader>tl', '<cmd>set list!<CR>', '[t]oggle [l]ist chars')
 call s:Map('', '<leader>tw', '<cmd>let &wrap = !&wrap<Bar>let &linebreak = &wrap<CR>', '[t]oggle [w]rapping')
-call s:Map('', '<leader>tc', '<cmd>NoNeckPain<CR>', '[t]oggle [c]entering')
+call s:Map('', '<leader>tc', '<cmd>Goyo<CR>', '[t]oggle [c]entering')
 call s:Map('', '<leader>tu', '<cmd>UndotreeToggle<CR>', '[t]oggle [u]ndo tree')
 
 " save the pinky
