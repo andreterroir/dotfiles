@@ -11,7 +11,12 @@ installed globally; do not duplicate them here.
   conventions, etc.), deployed by chezmoi to
   `~/.agents/AGENTS.md` and symlinked from `dot_claude/`,
   `dot_codex/`, `dot_copilot/`, `private_dot_config/opencode/`, and
-  `private_dot_config/private_amp/`. Edit there, not here.
+  `private_dot_config/` (as `~/.config/AGENTS.md` for Amp). Edit there,
+  not here.
+- `~/.config/amp/AGENTS.md` is not managed by chezmoi. Amp reads it
+  alongside `~/.config/AGENTS.md`, so instructions that platforms such
+  as an orb write there survive applies instead of being replaced. A
+  one-time script retires the symlink earlier applies left there.
 - `AGENTS.md` (this file) — repo-level instructions only, for anything
   specific to *editing this repository* (chezmoi workflow, file
   conventions, boundaries).
