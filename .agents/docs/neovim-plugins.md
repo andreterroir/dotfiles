@@ -1,11 +1,19 @@
 # Neovim plugins
 
-`private_dot_config/nvim/init.lua` declares the plugins; `plug-snapshot.vim` at
+`private_dot_config/nvim/init.vim` declares the plugins; `plug-snapshot.vim` at
 the repository root pins them. The snapshot is vim-plug's `:PlugSnapshot`
 output, symlinked to `~/.config/nvim/plug-snapshot.vim` by
 `symlink_plug-snapshot.vim.tmpl`. It records one commit per plugin plus
 `PlugUpdate!`, so sourcing it installs missing plugins and checks installed
 ones out at the pin.
+
+The configuration is VimL. Every plugin still sets itself up from a `lua` line
+touching its own module, because these plugins expose no VimL API; the
+dashboard's multi-line table with a `footer` closure gets a heredoc in
+`s:ConfigureDashboard()`. gitsigns hands each attached buffer to
+`GitsignsMaps()`, so its keymaps stay in VimL. Per-machine overrides load
+from `~/.config/nvim/init.local.vim`, with a leftover `init.local.lua` used
+as a fallback.
 
 `run_onchange_after_nvim-plugins.sh.tmpl` sources the snapshot and then
 verifies every plugin against it, because a failed checkout does not fail
@@ -31,7 +39,7 @@ Seed the throwaway `HOME` with the config and the current pins:
 
     export H=/tmp/nvim-upgrade
     rm -rf "$H" && mkdir -p "$H/.config/nvim"
-    cp private_dot_config/nvim/init.lua plug-snapshot.vim "$H/.config/nvim/"
+    cp private_dot_config/nvim/init.vim plug-snapshot.vim "$H/.config/nvim/"
 
 Install the pins, then move every plugin to its branch head:
 
@@ -52,17 +60,18 @@ changed upstream:
 
 A clean start proves the plugins load and the configuration applies. Run it
 with the config in place and check the reports, not just the exit status: the
-color scheme, the options from `init.lua`, the commands each plugin adds, and
-the module tables the keymaps reference.
+color scheme, the options from `init.vim`, the commands each plugin adds, and
+the commands the keymaps call.
 
     HOME=$H nvim --headless -c 'luafile /tmp/check.lua' -c 'qa!'
 
-`check.lua` is a throwaway probe script; make it assert `colors_name`,
-`tabstop`, `backupdir`, the `<leader>ff` map, `:Load`, `:Last`, `:Oil`,
-`:NoNeckPain`, `:UndotreeToggle`, `:Gitsigns` and `:FzfLua`, plus
-`no-neck-pain`'s `width = 80` and the presence of `gitsigns.nav_hunk`,
-`stage_hunk`, `blame_line`, and the fzf-lua pickers used by the keymaps. Also
-dump `:messages` and require it to be free of `nvim: ... failed to configure`.
+`check.lua` is a throwaway probe script (Neovim keeps Lua available for
+probing plugin modules); make it assert `colors_name`, `tabstop`, `backupdir`,
+`:Load`, `:Last`, `:Oil`, `:NoNeckPain`, `:UndotreeToggle`, `:Gitsigns` and
+`:FzfLua`, plus `no-neck-pain`'s `width = 80`, the presence of every
+`:Gitsigns` action the buffer maps call (`nav_hunk`, `stage_hunk`,
+`blame_line`, ...), and the fzf-lua pickers used by the keymaps. Also dump
+`:messages` and require it to be free of `nvim: plugin setup failed`.
 
 Headless checks do not exercise windows. Run a real session in tmux with
 `nvim -n` (no swap file, since abandoned test sessions otherwise block the
@@ -78,14 +87,14 @@ checkout: a subject marked `!` is a breaking change, and `@deprecated` in the
 plugin source names the calls to replace. The configuration touches these
 APIs, so breakage shows up here rather than in startup:
 
-| Plugin | Used by `init.lua` |
+| Plugin | Used by `init.vim` |
 | --- | --- |
-| gitsigns | `on_attach` maps, `nav_hunk`, `stage_hunk`, `reset_hunk`, `stage_buffer`, `reset_buffer`, `preview_hunk`, `preview_hunk_inline`, `blame_line`, `toggle_current_line_blame`, `diffthis`, `select_hunk` |
-| fzf-lua | `setup`, `files`, `live_grep`, `grep_cWORD`, `keymaps`, `oldfiles`, `helptags`, `resume` |
+| gitsigns | `on_attach` → `GitsignsMaps()`, `:Gitsigns` `nav_hunk`, `stage_hunk`, `reset_hunk`, `stage_buffer`, `reset_buffer`, `preview_hunk`, `preview_hunk_inline`, `blame_line full=true`, `toggle_current_line_blame`, `diffthis`, `select_hunk` |
+| fzf-lua | `setup`, and `:FzfLua` `files`, `live_grep`, `grep_cWORD`, `keymaps`, `oldfiles`, `helptags`, `resume` |
 | dashboard | `setup` with the `doom` theme, the `center` entries, and the `footer` function |
 | no-neck-pain | `setup { width = 80 }` |
 | nvim-autopairs | `setup`, `add_rules` with a backtick `Rule` |
-| persistence | `setup`, `load`, `load { last = true }` |
+| persistence | `setup`, `:Load`, `:Last` |
 | daybreak | `setup` with the GitHub color schemes |
 | oil, toggleterm | `setup` (toggleterm's `open_mapping` is `<a-;>`) |
 
@@ -98,7 +107,7 @@ and the commits that moved should differ. The run script's checksum line comes
 from the file, so it needs no edit.
 
 Validate the deploy path before committing. Render the script and run it
-against a second clean `HOME` that holds only `init.lua` and the new snapshot;
+against a second clean `HOME` that holds only `init.vim` and the new snapshot;
 it must exit 0, which means every plugin was checked out at the pin. Starting
 Neovim there afterwards must produce the same clean startup report as above.
 Then apply on a machine: `chezmoi apply` reinstalls the plugins at the new
