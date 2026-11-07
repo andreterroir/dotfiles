@@ -19,6 +19,11 @@ icloud
 {{ end -}}
 {{ if ne .chezmoi.os "darwin" -}}
 Library
+{{ else if not .keepass -}}
+Library/Application Support/KeePassXC
+{{ end -}}
+{{ if or (ne .chezmoi.os "linux") (not .keepass) -}}
+.config/keepassxc
 {{ end -}}
 {{ if eq .chezmoi.os "linux" -}}
 {{   if not .server -}}

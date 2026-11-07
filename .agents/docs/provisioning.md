@@ -17,8 +17,12 @@ set in the chezmoi config. VMs retain desktop/server tooling.
 
 Desktops install KeePassXC, and macOS also installs KeePassium from the Mac
 App Store. Init derives `keepass` as `desktop && !vm` to select both apps, so
-servers and VMs install no password manager. Neither the KeePass database nor
-its synchronization is provisioned here.
+servers and VMs install no password manager. KeePassXC user settings are
+managed at `~/.config/keepassxc/keepassxc.ini` on Linux and
+`~/Library/Application Support/KeePassXC/keepassxc.ini` on macOS. Apply
+replaces the whole file, so KeeShare settings are deliberately omitted and
+any local KeeShare key is discarded. Neither the database nor its
+synchronization is provisioned here.
 
 Run `chezmoi init` before apply/update after changing `vm` so the derived data
 is recomputed. Init also rewrites `~/.config/chezmoi/chezmoi.toml`, so run it

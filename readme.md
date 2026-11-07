@@ -43,7 +43,8 @@ Provisioning
 
 Desktop/server role selects tooling; VMs keep that tooling but do not get
 password-manager apps. Desktops install KeePassXC, and macOS also installs
-KeePassium from the Mac App Store; the password database is not managed here.
+KeePassium from the Mac App Store. KeePassXC user settings are managed;
+the database is not, and KeeShare settings are deliberately excluded.
 See the [Provisioning model](.agents/docs/provisioning.md) for role
 detection, VM configuration, credentials, sudo, and background services.
 After changing `vm`, run `chezmoi init` before apply or update.
