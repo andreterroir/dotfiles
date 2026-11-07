@@ -46,7 +46,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 " startup screen
-Plug 'nvimdev/dashboard-nvim'
+Plug 'mhinz/vim-startify'
 " persistent fast access terminal
 Plug 'akinsho/toggleterm.nvim'
 " Git interface
@@ -97,31 +97,6 @@ function! GitsignsMaps(bufnr) abort
   endfor
 endfunction
 
-" dashboard config is a multi-line Lua table with a footer closure
-function! s:ConfigureDashboard() abort
-  lua << EOF
-require('dashboard').setup({
-  theme = 'doom',
-  config = {
-    week_header = { enable = true },
-    center = {
-      { action = 'Files', desc = ' Find file', icon = ' ', key = 'f' },
-      { action = 'ene | startinsert', desc = ' New file', icon = ' ', key = 'n' },
-      { action = 'History', desc = ' Recent files', icon = ' ', key = 'r' },
-      { action = 'Rg', desc = ' Find text', icon = ' ', key = 'g' },
-      { action = 'edit ~/.config/nvim/init.vim', desc = ' Config', icon = ' ', key = 'c' },
-      { action = 'Load', desc = ' Load Session', icon = ' ', key = 's' },
-      { action = 'Last', desc = ' Last Session', icon = '󰼛 ', key = 'l' },
-      { action = 'qa', desc = ' Quit', icon = ' ', key = 'q' },
-    },
-    footer = function()
-      return { '', 'neovim loaded ' .. vim.tbl_count(vim.g.plugs) .. ' plugins' }
-    end,
-  },
-})
-EOF
-endfunction
-
 " vim-plug leaves uninstalled plugins off the runtimepath, so configuring them
 " before :PlugInstall has run would abort this file on a new machine
 let s:missing = filter(copy(g:plugs), '!isdirectory(v:val.dir)')
@@ -135,10 +110,23 @@ if empty(s:missing)
     lua require('persistence').setup({})
     command! Load lua require('persistence').load()
     command! Last lua require('persistence').load({ last = true })
-    call s:ConfigureDashboard()
     lua require('toggleterm').setup({ open_mapping = [[<a-;>]] })
     lua require('gitsigns').setup({ on_attach = function(bufnr) vim.fn.GitsignsMaps(bufnr) end })
     lua require('oil').setup()
+    let g:startify_custom_header = []
+    let g:startify_lists = [
+          \ {'type': 'commands', 'header': ['   Commands']},
+          \ {'type': 'files', 'header': ['   Recent']},
+          \ ]
+    let g:startify_commands = [
+          \ {'f': ['Find file', 'Files']},
+          \ {'r': ['Recent files', 'History']},
+          \ {'g': ['Find text', 'Rg']},
+          \ {'c': ['Config', 'edit ~/.config/nvim/init.vim']},
+          \ {'o': ['Load session', 'Load']},
+          \ {'l': ['Last session', 'Last']},
+          \ ]
+    let g:startify_custom_footer = ['', 'vim loaded ' . len(g:plugs) . ' plugins']
   catch
     echohl ErrorMsg
     echomsg 'nvim: plugin setup failed: ' . v:exception
