@@ -48,7 +48,7 @@ Plug 'junegunn/fzf.vim'
 " startup screen
 Plug 'mhinz/vim-startify'
 " persistent fast access terminal
-Plug 'akinsho/toggleterm.nvim'
+Plug 'voldikss/vim-floaterm'
 " Git interface
 Plug 'tpope/vim-fugitive'
 " inline Git interface
@@ -97,6 +97,8 @@ function! GitsignsMaps(bufnr) abort
   endfor
 endfunction
 
+let g:floaterm_keymap_toggle = '<A-;>'
+
 " vim-plug leaves uninstalled plugins off the runtimepath, so configuring them
 " before :PlugInstall has run would abort this file on a new machine
 let s:missing = filter(copy(g:plugs), '!isdirectory(v:val.dir)')
@@ -110,7 +112,6 @@ if empty(s:missing)
     lua require('persistence').setup({})
     command! Load lua require('persistence').load()
     command! Last lua require('persistence').load({ last = true })
-    lua require('toggleterm').setup({ open_mapping = [[<a-;>]] })
     lua require('gitsigns').setup({ on_attach = function(bufnr) vim.fn.GitsignsMaps(bufnr) end })
     lua require('oil').setup()
     let g:startify_custom_header = []
