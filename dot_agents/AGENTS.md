@@ -23,6 +23,14 @@ commit on `main`.
 Keep comments brief. A good comment should speed up reading the code, not slow
 it down. Extended context belongs in commit messages, not in comments.
 
+## Privilege Escalation
+
+`sudo` cannot prompt in an agent shell, so it fails once the credential cache
+is cold; desktops follow their normal password policy and have no passwordless
+grant. When a command needs root, say what it will do, wait for the user to
+confirm, then run it with `pkexec`, which raises a polkit dialog in their
+session. Bundle multi-step work into one script so they approve a single dialog.
+
 ## Git Signing
 
 All commits use the machine-local SSH key by default, including interactive
