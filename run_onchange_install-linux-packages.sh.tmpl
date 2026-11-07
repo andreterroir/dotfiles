@@ -4,18 +4,17 @@
 # vi: set ft=bash
 set -e
 
-# Terra's main repo, the documented Ghostty install path. Do not enable
-# terra-release-extras, -mesa or -multimedia.
+# Terra's main repo, the documented Ghostty install path; it also carries
+# mise and topgrade. Do not enable terra-release-extras, -mesa or -multimedia.
 if ! rpm -q terra-release >/dev/null; then
 	sudo dnf install -y --nogpgcheck \
 		--repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
 		terra-release terra-gpg-keys
 fi
 
-# mise's own RPM repo, which installs zig and exercism. Not Terra.
-# https://mise.jdx.dev/installing-mise.html
-if [ ! -f /etc/yum.repos.d/mise.repo ]; then
-	curl -fsSL https://mise.jdx.dev/rpm/mise.repo | sudo tee /etc/yum.repos.d/mise.repo > /dev/null
+# Earlier versions added mise's own RPM repo; Terra now provides mise.
+if [ -f /etc/yum.repos.d/mise.repo ]; then
+	sudo rm -f /etc/yum.repos.d/mise.repo
 fi
 
 sudo dnf install -y \
