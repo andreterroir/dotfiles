@@ -43,8 +43,8 @@ Plug 'folke/persistence.nvim'
 " navigation
 Plug 'christoomey/vim-tmux-navigator'
 " search
-Plug 'ibhagwan/fzf-lua'
-Plug 'nvim-tree/nvim-web-devicons'
+Plug 'junegunn/fzf'
+Plug 'junegunn/fzf.vim'
 " startup screen
 Plug 'nvimdev/dashboard-nvim'
 " persistent fast access terminal
@@ -105,10 +105,10 @@ require('dashboard').setup({
   config = {
     week_header = { enable = true },
     center = {
-      { action = 'FzfLua files', desc = ' Find file', icon = ' ', key = 'f' },
+      { action = 'Files', desc = ' Find file', icon = ' ', key = 'f' },
       { action = 'ene | startinsert', desc = ' New file', icon = ' ', key = 'n' },
-      { action = 'FzfLua oldfiles', desc = ' Recent files', icon = ' ', key = 'r' },
-      { action = 'FzfLua live_grep', desc = ' Find text', icon = ' ', key = 'g' },
+      { action = 'History', desc = ' Recent files', icon = ' ', key = 'r' },
+      { action = 'Rg', desc = ' Find text', icon = ' ', key = 'g' },
       { action = 'edit ~/.config/nvim/init.vim', desc = ' Config', icon = ' ', key = 'c' },
       { action = 'Load', desc = ' Load Session', icon = ' ', key = 's' },
       { action = 'Last', desc = ' Last Session', icon = '󰼛 ', key = 'l' },
@@ -137,7 +137,6 @@ if empty(s:missing)
     lua require('persistence').setup({})
     command! Load lua require('persistence').load()
     command! Last lua require('persistence').load({ last = true })
-    lua require('fzf-lua').setup({})
     call s:ConfigureDashboard()
     lua require('toggleterm').setup({ open_mapping = [[<a-;>]] })
     lua require('gitsigns').setup({ on_attach = function(bufnr) vim.fn.GitsignsMaps(bufnr) end })
@@ -263,16 +262,15 @@ call s:Map('', '<leader>w', '<cmd>write<CR>', '[W]rite current buffer')
 call s:Map('', '<leader>q', '<cmd>confirm quitall<CR>', '[Q]uit with confirmation')
 call s:Map('', '<C-w>go', '<cmd>tabonly<CR>')
 
-" search, once fzf-lua is installed
+" search, once fzf.vim is installed
 if empty(s:missing)
-  call s:Map('n', '<leader>F', '<cmd>FzfLua<CR>', '[F]ind stuff')
-  call s:Map('n', '<leader>f<space>', '<cmd>FzfLua resume<CR>', 'Resume [F]ind')
-  call s:Map('n', '<leader>ff', '<cmd>FzfLua files<CR>', '[F]ind [F]iles')
-  call s:Map('n', '<leader>fg', '<cmd>FzfLua live_grep<CR>', '[F]ind with [G]rep')
-  call s:Map('n', '<leader>fs', '<cmd>FzfLua grep_cWORD<CR>', '[F]ind [S]tring')
-  call s:Map('n', '<leader>fk', '<cmd>FzfLua keymaps<CR>', '[F]ind [K]ey mapping')
-  call s:Map('n', '<leader>fr', '<cmd>FzfLua oldfiles<CR>', '[f]ind [r]ecent files')
-  call s:Map('n', '<leader>fh', '<cmd>FzfLua helptags<CR>', '[F]ind [H]elp')
+  call s:Map('n', '<leader>F', '<cmd>Files<CR>', '[F]ind stuff')
+  call s:Map('n', '<leader>ff', '<cmd>Files<CR>', '[F]ind [F]iles')
+  call s:Map('n', '<leader>fg', '<cmd>Rg<CR>', '[F]ind with [G]rep')
+  call s:Map('n', '<leader>fs', ':<C-U>Rg <C-r><C-a><CR>', '[F]ind [S]tring')
+  call s:Map('n', '<leader>fk', '<cmd>Maps<CR>', '[F]ind [K]ey mapping')
+  call s:Map('n', '<leader>fr', '<cmd>History<CR>', '[f]ind [r]ecent files')
+  call s:Map('n', '<leader>fh', '<cmd>Helptags<CR>', '[F]ind [H]elp')
 endif
 
 " ------------------
