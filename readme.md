@@ -51,6 +51,7 @@ After changing `vm`, run `chezmoi init` before apply or update.
 
 Neovim plugins are pinned by `plug-snapshot.vim`. Applying a changed snapshot
 reinstalls them at those commits, so installed plugins match the pin on every
-machine.
+machine. See [Neovim plugins](.agents/docs/neovim-plugins.md) for the upgrade
+and verification procedure.
 
 See [chezmoi](https://www.chezmoi.io/).
