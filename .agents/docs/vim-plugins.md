@@ -97,6 +97,10 @@ APIs, so breakage shows up here rather than in startup:
 | fzf.vim | `:Files`, `:Rg`, `:Maps`, `:History`, `:Helptags` |
 | vim-fugitive | `:Git add`, `:Git restore`, `:Git blame`, `:Gdiffsplit` |
 
+fzf.vim requires fzf 0.63 or newer. Homebrew and Fedora ship newer releases,
+and Ubuntu 26.04 ships 0.67. On Ubuntu 24.04, whose package is 0.44, the first
+picker offers to download a binary into the plugin directory instead.
+
 ## Regenerating the pin
 
     HOME=$H vim -Nu "$H/.vimrc" -es -c 'PlugSnapshot! /tmp/plug-snapshot.vim' -c 'qa!'
@@ -105,7 +109,8 @@ Copy the result over the repository's `plug-snapshot.vim`; only the timestamp
 and the commits that moved should differ. The run script's checksum line comes
 from the file, so it needs no edit. Keep daybreak's entry on a commit that
 contains `autoload/daybreak.vim` and `plugin/daybreak.vim`; older commits are
-Lua-only and do nothing in Vim.
+Lua-only and do nothing in Vim. A daybreak follow-up that fixes how Windows
+consoles are detected changes only that snapshot line.
 
 Validate the deploy path before committing. Render the script and run it
 against a second clean `HOME` that holds only `.vimrc` and the new snapshot;

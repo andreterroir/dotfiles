@@ -18,6 +18,8 @@ call plug#begin('~/.vim/plugged')
 
 " colorscheme; one file, light and dark picked by 'background'
 Plug 'cormacrelf/vim-colors-github'
+" match the system light/dark appearance
+Plug 'andreterroir/daybreak.nvim'
 " center the focused buffer
 Plug 'junegunn/goyo.vim'
 " restrict allowed modeline options
@@ -54,6 +56,10 @@ Plug 'justinmk/vim-dirvish'
 
 call plug#end()
 
+" daybreak switches the github palette with the system appearance
+let g:daybreak_light = 'github'
+let g:daybreak_dark = 'github'
+
 " an empty mode maps like :map: normal, visual, select, operator-pending
 function! s:Map(mode, lhs, rhs) abort
   execute (empty(a:mode) ? '' : a:mode) . 'noremap ' . a:lhs . ' ' . a:rhs
@@ -70,9 +76,6 @@ let s:missing = filter(copy(g:plugs), '!isdirectory(v:val.dir)')
 
 if empty(s:missing)
   try
-    " daybreak will drive this once its Vim port is available
-    set background=dark
-    colorscheme github
     let g:startify_custom_header = []
     let g:startify_lists = [
           \ {'type': 'commands', 'header': ['   Commands']},
