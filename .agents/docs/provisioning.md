@@ -98,6 +98,29 @@ build targets one shell version: it is fetched for the running shell and
 reinstalled whenever the script changes. Enabling writes the `org.gnome.shell`
 key the Shell watches, so a fresh install takes effect at the next login.
 
+## Syncthing
+
+`run_onchange_install-linux-packages.sh.tmpl` installs Syncthing on Fedora
+desktops, and `private_dot_config/autostart/symlink_syncthing-start.desktop`
+registers the packaged launcher with XDG autostart. macOS desktops install
+the Syncthing app from the `syncthing-app` cask in
+`run_onchange_install-macos-packages.sh.tmpl`; it bundles its own daemon and
+runs from the menu bar, and its Start at login preference is set in the app,
+not here. Devices and folders stay unmanaged: each host keeps its own device
+key and a config Syncthing rewrites at runtime, under
+`~/.local/state/syncthing` on Linux and
+`~/Library/Application Support/Syncthing` on macOS.
+
+The `obsidian` device is the standard introducer: mark it as one on every
+desktop, and it shares Sync, Documents, and notes. An introducer adds a
+device only to folders it already shares with the receiver and never
+creates folders, so accept obsidian's folder offers in the new machine's
+GUI; creating a folder by hand assigns a new folder ID that never syncs.
+Desktops that mark obsidian as an introducer pick up the new device in
+those folders without pairing with the new machine. `archive` is outside
+obsidian's folders: share it from x1, black, or Chloes-MBP, and accept that
+offer too.
+
 ## Amp runner
 
 `run_after_30-amp-runner.sh.tmpl` enables the systemd user unit
