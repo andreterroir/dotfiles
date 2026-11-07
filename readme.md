@@ -28,6 +28,9 @@ it again from a terminal to finish:
 
     chezmoi apply
 
+Upgrading a Fedora desktop in place is covered in
+[Fedora upgrades](.agents/docs/upgrades.md).
+
 Git commit signing
 ------------------
 

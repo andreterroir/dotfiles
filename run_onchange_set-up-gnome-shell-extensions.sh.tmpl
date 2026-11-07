@@ -6,7 +6,10 @@ set -euo pipefail
 
 # Fedora packages three of the four extensions. Night Theme Switcher is only
 # published on extensions.gnome.org, where each build targets one shell
-# version, so fetch the one for the running shell.
+# version, so fetch the one for the running shell. The release below is part
+# of the rendered script, so an upgrade re-runs it and replaces the build for
+# the previous shell.
+# Fedora {{ .chezmoi.osRelease.versionID }}
 ego_uuid=nightthemeswitcher@romainvigier.fr
 fedora_extensions=(
 	windowsNavigator@gnome-shell-extensions.gcampax.github.com
