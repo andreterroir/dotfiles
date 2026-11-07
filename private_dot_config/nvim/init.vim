@@ -38,8 +38,6 @@ Plug 'cohama/lexima.vim'
 Plug 'liuchengxu/vim-which-key'
 " persistent branching undo history
 Plug 'mbbill/undotree'
-" preserve last session per directory
-Plug 'folke/persistence.nvim'
 " navigation
 Plug 'christoomey/vim-tmux-navigator'
 " search
@@ -78,9 +76,6 @@ if empty(s:missing)
     set background=dark
     colorscheme github
     lua require('no-neck-pain').setup({ width = 80 })
-    lua require('persistence').setup({})
-    command! Load lua require('persistence').load()
-    command! Last lua require('persistence').load({ last = true })
     let g:startify_custom_header = []
     let g:startify_lists = [
           \ {'type': 'commands', 'header': ['   Commands']},
@@ -282,6 +277,66 @@ if empty(s:missing)
   xnoremap <silent> <leader> :<C-U>WhichKeyVisual '<Space>'<CR>
   call which_key#register('<Space>', 'g:which_key_map')
 endif
+
+" -------------
+" -- sessions --
+" -------------
+
+" one session per directory and branch, saved on exit and loaded on demand
+let s:session_dir = expand('~/.local/state/vim/sessions')
+if !isdirectory(s:session_dir)
+  call mkdir(s:session_dir, 'p')
+endif
+" keep the saved options, notably 'background', out of the session
+set sessionoptions-=options
+
+function! s:SessionPath(branch) abort
+  let name = substitute(getcwd(), '[\\/:]\+', '%', 'g')
+  if a:branch && !empty(getftype('.git'))
+    let branch = get(systemlist('git branch --show-current'), 0, '')
+    if !empty(branch) && branch !=# 'main' && branch !=# 'master'
+      let name .= '%' . substitute(branch, '[\\/:]\+', '%', 'g')
+    endif
+  endif
+  return s:session_dir . '/' . name . '.vim'
+endfunction
+
+function! s:SessionSave() abort
+  let named = filter(getbufinfo(), {_, buf -> getbufvar(buf.bufnr, '&buftype') ==# '' && !empty(buf.name)
+        \ && index(['gitcommit', 'gitrebase', 'jj'], getbufvar(buf.bufnr, '&filetype')) < 0})
+  if empty(named)
+    return
+  endif
+  execute 'mksession!' fnameescape(s:SessionPath(1))
+endfunction
+
+function! s:SessionLast() abort
+  let files = glob(s:session_dir . '/*.vim', 1, 1)
+  if empty(files)
+    return ''
+  endif
+  return sort(files, {x, y -> getftime(x) - getftime(y)})[-1]
+endfunction
+
+function! s:SessionLoad(last) abort
+  let path = a:last ? s:SessionLast() : s:SessionPath(1)
+  if !filereadable(path) && !a:last
+    let path = s:SessionPath(0)
+  endif
+  if empty(path) || !filereadable(path)
+    echomsg 'no session'
+    return
+  endif
+  execute 'silent! source' fnameescape(path)
+endfunction
+
+command! Load call s:SessionLoad(0)
+command! Last call s:SessionLoad(1)
+
+augroup sessions
+  autocmd!
+  autocmd VimLeavePre * call s:SessionSave()
+augroup END
 
 " ------------------
 " -- autocommands --
