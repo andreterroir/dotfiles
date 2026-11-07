@@ -4,9 +4,16 @@
 # Run the Amp runner that serves ~/code on every Linux machine, so
 # threads can be created on it from ampcode.com. Linger starts the user
 # manager, and so the runner, at boot rather than at login.
+# An apply restarts the runner only when its unit or the installed binary
+# changed; otherwise it starts the runner if it is stopped and leaves running
+# threads alone.
 set -euo pipefail
 
-if [ ! -x "$HOME/.local/bin/amp" ]; then
+amp="$HOME/.local/bin/amp"
+unit="$HOME/.config/systemd/user/amp-runner.service"
+state_file="$HOME/.local/state/amp-runner/fingerprint"
+
+if [ ! -x "$amp" ]; then
 	echo '>amp-runner: amp is not installed; skipping' >&2
 	exit 0
 fi
@@ -17,5 +24,34 @@ if ! systemctl --user daemon-reload 2>/dev/null; then
 	echo '>amp-runner: no systemd user manager; run chezmoi apply from a session' >&2
 	exit 0
 fi
-systemctl --user enable --now amp-runner.service
+
+unit_hash="$(sha256sum "$unit" | cut -d' ' -f1)"
+binary_hash="$(sha256sum "$amp" | cut -d' ' -f1)"
+state="$(cat "$state_file" 2>/dev/null || true)"
+
+# The runner's own auto-update replaces the binary and restarts into it when
+# idle, so an apply after that must not restart it again.
+running_binary_hash() {
+	local pid
+	pid="$(systemctl --user show --property=MainPID --value \
+		amp-runner.service 2>/dev/null)"
+	[ -n "$pid" ] && [ "$pid" != 0 ] || return 0
+	sha256sum "/proc/$pid/exe" 2>/dev/null | cut -d' ' -f1 || true
+}
+
+systemctl --user enable amp-runner.service
+
+if [ "$state" = "$unit_hash $binary_hash" ] ||
+	! systemctl --user is-active --quiet amp-runner.service; then
+	systemctl --user start amp-runner.service
+elif [ "${state%% *}" = "$unit_hash" ] &&
+	[ "$(running_binary_hash)" = "$binary_hash" ]; then
+	echo '>amp-runner: runner already runs the installed binary' >&2
+else
+	echo '>amp-runner: unit or binary changed; restarting' >&2
+	systemctl --user restart amp-runner.service
+fi
+
+mkdir -p "$(dirname "$state_file")"
+printf '%s %s\n' "$unit_hash" "$binary_hash" >"$state_file"
 {{ end -}}

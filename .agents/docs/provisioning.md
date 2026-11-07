@@ -129,3 +129,29 @@ offer too.
 serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 `~/code`, so threads can be created on the machine from ampcode.com. Linger
 keeps the runner up without a login, as it does for the servers' ssh-agent.
+
+The script records a fingerprint of the unit file and the installed `amp`
+binary in `~/.local/state/amp-runner/fingerprint`. An apply that leaves both
+unchanged only starts the runner if it is stopped, so it does not interrupt
+running threads. When the unit changes, or the binary changes while the runner
+still runs the old one, the runner restarts once. If the binary changed but
+the runner already runs it (for example after its own update), apply only
+records the new fingerprint. A restart ends any thread running at the time,
+so apply while the runner is idle. The runner updates itself by default
+(`amp.runner.autoUpdate.enabled` is true): it installs new releases and
+restarts into them once no thread is running, at most once every 12 hours.
+The fingerprint therefore covers unit edits and binaries installed outside
+that path, such as a reinstall or a manual upgrade; with auto-update
+disabled, apply also supplies the restarts for new releases.
+
+`private_dot_config/private_amp/settings.json` enables
+`amp.runner.env.enabled`, so runner threads get the Secrets & Env Vars
+configured on ampcode.com, as orb threads do. The runner fetches them when a
+thread starts and injects them into the thread's shell commands, MCP servers,
+and plugins, so changing a value on ampcode.com needs no runner restart.
+Every thread on the runner can read those variables, including threads
+created remotely. A runner shared with `--share` injects only the workspace
+and project values; personal values are not injected at all, including into
+your own threads on it. Share a runner only with people trusted to run code
+on the machine, and keep credentials that only some threads should see out of
+the shared set.
