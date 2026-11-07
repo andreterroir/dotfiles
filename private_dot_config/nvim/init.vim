@@ -52,7 +52,7 @@ Plug 'voldikss/vim-floaterm'
 " Git interface
 Plug 'tpope/vim-fugitive'
 " inline Git interface
-Plug 'lewis6991/gitsigns.nvim'
+Plug 'airblade/vim-gitgutter'
 " file manager
 Plug 'stevearc/oil.nvim'
 
@@ -64,40 +64,9 @@ function! s:Map(mode, lhs, rhs, ...) abort
   call nvim_set_keymap(a:mode, a:lhs, a:rhs, a:0 ? #{noremap: v:true, desc: a:1} : #{noremap: v:true})
 endfunction
 
-function! s:BufMap(bufnr, mode, lhs, rhs, ...) abort
-  call nvim_buf_set_keymap(a:bufnr, a:mode, a:lhs, a:rhs, a:0 ? #{noremap: v:true, desc: a:1} : #{noremap: v:true})
-endfunction
-
-" gitsigns maps keys per buffer and only offers a Lua hook, so it hands every
-" buffer it attaches to here
-function! GitsignsMaps(bufnr) abort
-  " in diff mode ]c/[c keep the built-in jumps between diff hunks
-  call s:BufMap(a:bufnr, 'n', ']c', '<cmd>execute &diff ? "normal! ]c" : "Gitsigns nav_hunk next"<CR>')
-  call s:BufMap(a:bufnr, 'n', '[c', '<cmd>execute &diff ? "normal! [c" : "Gitsigns nav_hunk prev"<CR>')
-
-  " actions
-  for mode in ['n', 'v']
-    call s:BufMap(a:bufnr, mode, '<leader>hs', '<cmd>Gitsigns stage_hunk<CR>')
-    call s:BufMap(a:bufnr, mode, '<leader>hr', '<cmd>Gitsigns reset_hunk<CR>')
-  endfor
-  call s:BufMap(a:bufnr, 'n', '<leader>hS', '<cmd>Gitsigns stage_buffer<CR>')
-  " stage_hunk on a staged hunk unstages it (undo_stage_hunk is deprecated)
-  call s:BufMap(a:bufnr, 'n', '<leader>hu', '<cmd>Gitsigns stage_hunk<CR>')
-  call s:BufMap(a:bufnr, 'n', '<leader>hR', '<cmd>Gitsigns reset_buffer<CR>')
-  call s:BufMap(a:bufnr, 'n', '<leader>hp', '<cmd>Gitsigns preview_hunk<CR>')
-  call s:BufMap(a:bufnr, 'n', '<leader>hb', '<cmd>Gitsigns blame_line full=true<CR>')
-  call s:BufMap(a:bufnr, 'n', '<leader>tb', '<cmd>Gitsigns toggle_current_line_blame<CR>', '[t]oggle [b]lame')
-  call s:BufMap(a:bufnr, 'n', '<leader>hd', '<cmd>Gitsigns diffthis<CR>')
-  call s:BufMap(a:bufnr, 'n', '<leader>hD', '<cmd>Gitsigns diffthis ~<CR>')
-  call s:BufMap(a:bufnr, 'n', '<leader>hi', '<cmd>Gitsigns preview_hunk_inline<CR>')
-
-  " text object
-  for mode in ['o', 'x']
-    call s:BufMap(a:bufnr, mode, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
-  endfor
-endfunction
-
 let g:floaterm_keymap_toggle = '<A-;>'
+" gitgutter maps are global; the config defines the ones it wants
+let g:gitgutter_map_keys = 0
 
 " vim-plug leaves uninstalled plugins off the runtimepath, so configuring them
 " before :PlugInstall has run would abort this file on a new machine
@@ -112,7 +81,6 @@ if empty(s:missing)
     lua require('persistence').setup({})
     command! Load lua require('persistence').load()
     command! Last lua require('persistence').load({ last = true })
-    lua require('gitsigns').setup({ on_attach = function(bufnr) vim.fn.GitsignsMaps(bufnr) end })
     lua require('oil').setup()
     let g:startify_custom_header = []
     let g:startify_lists = [
@@ -189,6 +157,9 @@ set signcolumn=yes
 " open folds by default
 set foldlevelstart=99
 
+" check for hunks often enough for gitgutter signs
+set updatetime=100
+
 " do not highlight search results by default
 set nohlsearch
 " autocomplete to the longest commons string and than cycle through the
@@ -247,6 +218,25 @@ call s:Map('n', '<leader>P', '"+P', '[P]aste from clipboard before cursor')
 call s:Map('n', ']q', '<cmd>cnext<CR>', 'Next quickfix item')
 call s:Map('n', '[q', '<cmd>cprev<CR>', 'Previous quickfix item')
 
+" git hunks; ]c/[c keep the built-in diff jumps inside a diff view
+call s:Map('n', ']c', '<cmd>execute &diff ? "normal! ]c" : "GitGutterNextHunk"<CR>')
+call s:Map('n', '[c', '<cmd>execute &diff ? "normal! [c" : "GitGutterPrevHunk"<CR>')
+call s:Map('n', '<leader>hs', '<cmd>GitGutterStageHunk<CR>')
+call s:Map('n', '<leader>hr', '<cmd>GitGutterUndoHunk<CR>')
+" a leading : in a visual map passes the selected lines as a range
+call s:Map('v', '<leader>hs', ':GitGutterStageHunk<CR>')
+call s:Map('v', '<leader>hr', ':GitGutterUndoHunk<CR>')
+call s:Map('n', '<leader>hS', '<cmd>Git add %<CR>')
+" staging happens per hunk in gitgutter; unstage applies to the buffer
+call s:Map('n', '<leader>hu', '<cmd>Git restore --staged %<CR>')
+call s:Map('n', '<leader>hR', '<cmd>Git restore %<CR>')
+call s:Map('n', '<leader>hp', '<cmd>GitGutterPreviewHunk<CR>')
+call s:Map('n', '<leader>hb', '<cmd>Git blame<CR>')
+call s:Map('n', '<leader>hd', '<cmd>Gdiffsplit<CR>')
+call s:Map('n', '<leader>hD', '<cmd>Gdiffsplit HEAD<CR>')
+omap ih <Plug>(GitGutterTextObjectInnerPending)
+xmap ih <Plug>(GitGutterTextObjectInnerVisual)
+
 call s:Map('', '<leader>w', '<cmd>write<CR>', '[W]rite current buffer')
 call s:Map('', '<leader>q', '<cmd>confirm quitall<CR>', '[Q]uit with confirmation')
 call s:Map('', '<C-w>go', '<cmd>tabonly<CR>')
@@ -273,6 +263,10 @@ let g:which_key_map = {
       \ 'f': {'name': '+find', 'F': 'files', 'f': 'files', 'g': 'grep',
       \       's': 'word under cursor', 'k': 'key mappings', 'r': 'recent files',
       \       'h': 'help'},
+      \ 'h': {'name': '+hunk', 's': 'stage hunk', 'r': 'reset hunk',
+      \       'S': 'stage buffer', 'R': 'reset buffer', 'u': 'unstage buffer',
+      \       'p': 'preview hunk', 'b': 'blame', 'd': 'diff index',
+      \       'D': 'diff HEAD'},
       \ '-': 'split horizontally',
       \ '\': 'split vertically',
       \ ';': 'command-line',
