@@ -4,13 +4,11 @@
 
 " bootstrap vim-plug, pinned so every machine gets the same manager
 let s:plug_commit = '4c4e56b5f7384369927a075804b6a17de7644edd'
-let s:plugpath = stdpath('data') . '/site/autoload/plug.vim'
+let s:plugpath = expand('~/.vim/autoload/plug.vim')
 if !filereadable(s:plugpath)
-  call system(['curl', '-sfLo', s:plugpath, '--create-dirs',
-        \ 'https://raw.githubusercontent.com/junegunn/vim-plug/' . s:plug_commit . '/plug.vim'])
-  " neovim caches runtimepath lookups at startup, so a file written during
-  " this run is not found by autoload until it is sourced
-  execute 'source ' . fnameescape(s:plugpath)
+  call system('curl -sfLo ' . shellescape(s:plugpath) . ' --create-dirs '
+        \ . shellescape('https://raw.githubusercontent.com/junegunn/vim-plug/'
+        \ . s:plug_commit . '/plug.vim'))
 endif
 
 " map leader before any plugins define their mappings
@@ -56,10 +54,9 @@ Plug 'justinmk/vim-dirvish'
 
 call plug#end()
 
-" vim.keymap.set made maps non-remappable; nvim_set_keymap defaults to
-" remappable, so noremap is passed explicitly, plus the old descriptions
-function! s:Map(mode, lhs, rhs, ...) abort
-  call nvim_set_keymap(a:mode, a:lhs, a:rhs, a:0 ? #{noremap: v:true, desc: a:1} : #{noremap: v:true})
+" an empty mode maps like :map: normal, visual, select, operator-pending
+function! s:Map(mode, lhs, rhs) abort
+  execute (empty(a:mode) ? '' : a:mode) . 'noremap ' . a:lhs . ' ' . a:rhs
 endfunction
 
 let g:goyo_width = 80
@@ -85,14 +82,14 @@ if empty(s:missing)
           \ {'f': ['Find file', 'Files']},
           \ {'r': ['Recent files', 'History']},
           \ {'g': ['Find text', 'Rg']},
-          \ {'c': ['Config', 'edit ~/.config/nvim/init.vim']},
+          \ {'c': ['Config', 'edit ~/.vimrc']},
           \ {'o': ['Load session', 'Load']},
           \ {'l': ['Last session', 'Last']},
           \ ]
     let g:startify_custom_footer = ['', 'vim loaded ' . len(g:plugs) . ' plugins']
   catch
     echohl ErrorMsg
-    echomsg 'nvim: plugin setup failed: ' . v:exception
+    echomsg 'vim: plugin setup failed: ' . v:exception
     echohl None
   endtry
 else
@@ -105,13 +102,29 @@ endif
 " -- options --
 " -------------
 
-" blinking block cursor for insert, replace, command and terminal modes
-set guicursor=i-r-c-ci-cr-t:block-blinkwait300-blinkoff150-blinkon150
+" blinking block cursor for insert, replace and command modes
+set guicursor=i-r-c-ci-cr:block-blinkwait300-blinkoff150-blinkon150
 
 syntax off
+filetype on
 filetype plugin off
+filetype indent on
 " enable true color support
 set termguicolors
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+
+" defaults Neovim provided and Vim does not
+set backspace=indent,eol,start
+set hidden
+set autoindent
+set mouse=nvi
+set whichwrap=b,s
+set nrformats=bin,hex
+set formatoptions=tcqj
+set nostartofline
+set shortmess=ltToOCF
+set wildoptions=pum,tagfile
 
 " render tabs as 4 spaces
 set tabstop=4
@@ -167,14 +180,17 @@ set backup
 " make a copy to create a backup, overwrite the original file in place
 " this preserves the file creation timestamp (birthtime)
 set backupcopy=yes
-" create backupdir if it doesn't exist
-let s:backup_dir = expand('~/.cache/nvim/backup')
-if !isdirectory(s:backup_dir)
-  call mkdir(s:backup_dir, 'p')
-endif
-" save all backups in one place rather than in .
-let &backupdir = s:backup_dir
-" persist undo history
+" keep backups, swap files, undo history and sessions out of the working tree
+let s:cache_dir = expand('~/.cache/vim')
+let s:state_dir = expand('~/.local/state/vim')
+for s:dir in [s:cache_dir . '/backup', s:state_dir . '/swap', s:state_dir . '/undo']
+  if !isdirectory(s:dir)
+    call mkdir(s:dir, 'p')
+  endif
+endfor
+let &backupdir = s:cache_dir . '/backup'
+let &directory = s:state_dir . '/swap//'
+let &undodir = s:state_dir . '/undo//'
 set undofile
 
 " ------------
@@ -185,32 +201,35 @@ set undofile
 " normal, visual, select and operator-pending mode
 
 " toggles
-call s:Map('', '<leader>th', '<cmd>set hlsearch!<CR>', '[t]oggle search [h]ighlighting')
-call s:Map('', '<leader>ts', '<cmd>set spell!<CR>', '[t]oggle [s]pellchecking')
-call s:Map('', '<leader>tl', '<cmd>set list!<CR>', '[t]oggle [l]ist chars')
-call s:Map('', '<leader>tw', '<cmd>let &wrap = !&wrap<Bar>let &linebreak = &wrap<CR>', '[t]oggle [w]rapping')
-call s:Map('', '<leader>tc', '<cmd>Goyo<CR>', '[t]oggle [c]entering')
-call s:Map('', '<leader>tu', '<cmd>UndotreeToggle<CR>', '[t]oggle [u]ndo tree')
+call s:Map('', '<leader>th', '<cmd>set hlsearch!<CR>')
+call s:Map('', '<leader>ts', '<cmd>set spell!<CR>')
+call s:Map('', '<leader>tl', '<cmd>set list!<CR>')
+call s:Map('', '<leader>tw', '<cmd>let &wrap = !&wrap<Bar>let &linebreak = &wrap<CR>')
+call s:Map('', '<leader>tc', '<cmd>Goyo<CR>')
+call s:Map('', '<leader>tu', '<cmd>UndotreeToggle<CR>')
 
 " save the pinky
-call s:Map('', '<leader>;', ':', 'Normal mode without shift')
+call s:Map('', '<leader>;', ':')
 
 " window splits
-call s:Map('', '<leader>-', '<cmd>split<CR>', 'Split window horizontally')
+call s:Map('', '<leader>-', '<cmd>split<CR>')
 " todo: consider a more ergonomic map
-call s:Map('', '<leader><Bslash>', '<cmd>vsplit<CR>', 'Split window vertically')
+call s:Map('', '<leader><Bslash>', '<cmd>vsplit<CR>')
 
-" system clipboard interactions
-call s:Map('n', '<leader>y', '"+y', '[Y]ank into clipboard')
-call s:Map('v', '<leader>y', '"+y', '[Y]ank into clipboard')
-call s:Map('n', '<leader>Y', '"+y$', '[Y]ank tail of line into clipboard')
-call s:Map('n', '<leader>p', '"+p', '[P]aste from clipboard')
-call s:Map('v', '<leader>p', '"+p', '[P]aste from clipboard')
-call s:Map('n', '<leader>P', '"+P', '[P]aste from clipboard before cursor')
+" system clipboard interactions; without +clipboard the terminal's own
+" copy and paste is the only path, so leave the keys free
+if has('clipboard')
+  call s:Map('n', '<leader>y', '"+y')
+  call s:Map('v', '<leader>y', '"+y')
+  call s:Map('n', '<leader>Y', '"+y$')
+  call s:Map('n', '<leader>p', '"+p')
+  call s:Map('v', '<leader>p', '"+p')
+  call s:Map('n', '<leader>P', '"+P')
+endif
 
 " quickfix list navigation
-call s:Map('n', ']q', '<cmd>cnext<CR>', 'Next quickfix item')
-call s:Map('n', '[q', '<cmd>cprev<CR>', 'Previous quickfix item')
+call s:Map('n', ']q', '<cmd>cnext<CR>')
+call s:Map('n', '[q', '<cmd>cprev<CR>')
 
 " git hunks; ]c/[c keep the built-in diff jumps inside a diff view
 call s:Map('n', ']c', '<cmd>execute &diff ? "normal! ]c" : "GitGutterNextHunk"<CR>')
@@ -231,19 +250,19 @@ call s:Map('n', '<leader>hD', '<cmd>Gdiffsplit HEAD<CR>')
 omap ih <Plug>(GitGutterTextObjectInnerPending)
 xmap ih <Plug>(GitGutterTextObjectInnerVisual)
 
-call s:Map('', '<leader>w', '<cmd>write<CR>', '[W]rite current buffer')
-call s:Map('', '<leader>q', '<cmd>confirm quitall<CR>', '[Q]uit with confirmation')
+call s:Map('', '<leader>w', '<cmd>write<CR>')
+call s:Map('', '<leader>q', '<cmd>confirm quitall<CR>')
 call s:Map('', '<C-w>go', '<cmd>tabonly<CR>')
 
 " search, once fzf.vim is installed
 if empty(s:missing)
-  call s:Map('n', '<leader>F', '<cmd>Files<CR>', '[F]ind stuff')
-  call s:Map('n', '<leader>ff', '<cmd>Files<CR>', '[F]ind [F]iles')
-  call s:Map('n', '<leader>fg', '<cmd>Rg<CR>', '[F]ind with [G]rep')
-  call s:Map('n', '<leader>fs', ':<C-U>Rg <C-r><C-a><CR>', '[F]ind [S]tring')
-  call s:Map('n', '<leader>fk', '<cmd>Maps<CR>', '[F]ind [K]ey mapping')
-  call s:Map('n', '<leader>fr', '<cmd>History<CR>', '[f]ind [r]ecent files')
-  call s:Map('n', '<leader>fh', '<cmd>Helptags<CR>', '[F]ind [H]elp')
+  call s:Map('n', '<leader>F', '<cmd>Files<CR>')
+  call s:Map('n', '<leader>ff', '<cmd>Files<CR>')
+  call s:Map('n', '<leader>fg', '<cmd>Rg<CR>')
+  call s:Map('n', '<leader>fs', ':<C-U>Rg <C-r><C-a><CR>')
+  call s:Map('n', '<leader>fk', '<cmd>Maps<CR>')
+  call s:Map('n', '<leader>fr', '<cmd>History<CR>')
+  call s:Map('n', '<leader>fh', '<cmd>Helptags<CR>')
 endif
 
 " ---------------
@@ -254,7 +273,8 @@ endif
 let g:which_key_map = {
       \ 't': {'name': '+toggle', 'h': 'search highlighting', 's': 'spellchecking',
       \       'l': 'list chars', 'w': 'wrapping', 'c': 'centering', 'u': 'undo tree'},
-      \ 'f': {'name': '+find', 'F': 'files', 'f': 'files', 'g': 'grep',
+      \ 'F': 'files',
+      \ 'f': {'name': '+find', 'f': 'files', 'g': 'grep',
       \       's': 'word under cursor', 'k': 'key mappings', 'r': 'recent files',
       \       'h': 'help'},
       \ 'h': {'name': '+hunk', 's': 'stage hunk', 'r': 'reset hunk',
@@ -266,11 +286,13 @@ let g:which_key_map = {
       \ ';': 'command-line',
       \ 'w': 'write buffer',
       \ 'q': 'quit with confirmation',
-      \ 'y': 'yank to clipboard',
-      \ 'Y': 'yank tail to clipboard',
-      \ 'p': 'paste from clipboard',
-      \ 'P': 'paste before cursor',
       \ }
+if has('clipboard')
+  let g:which_key_map['y'] = 'yank to clipboard'
+  let g:which_key_map['Y'] = 'yank tail to clipboard'
+  let g:which_key_map['p'] = 'paste from clipboard'
+  let g:which_key_map['P'] = 'paste before cursor'
+endif
 
 if empty(s:missing)
   nnoremap <silent> <leader> :<C-U>WhichKey '<Space>'<CR>
@@ -382,12 +404,8 @@ augroup END
 " -- local config --
 " ----------------
 
-" per-machine overrides live outside the repository; the Lua fallback keeps
-" existing local files working until they are migrated
-let s:local = expand('~/.config/nvim/init.local.vim')
-let s:local_lua = expand('~/.config/nvim/init.local.lua')
+" per-machine overrides live outside the repository
+let s:local = expand('~/.vim/init.local.vim')
 if filereadable(s:local)
   execute 'source ' . fnameescape(s:local)
-elseif filereadable(s:local_lua)
-  execute 'luafile ' . fnameescape(s:local_lua)
 endif

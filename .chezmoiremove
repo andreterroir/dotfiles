@@ -30,5 +30,5 @@ bin/update-passwords
 .config/nvim/lazy-lock.json
 # the lazy.nvim clones are unused now that vim-plug installs into ~/.vim/plugged
 .local/share/nvim/lazy
-# the configuration is VimL now; a leftover init.lua would shadow init.vim
+# a leftover Lua entry point from the old Neovim config
 .config/nvim/init.lua

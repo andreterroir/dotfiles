@@ -11,7 +11,7 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
 [edit]
     apply = true
 [merge]
-    command = "nvim"
+    command = "vim"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}", "{{ "{{ .Target }}" }}"]
 [data]
     vm = {{ $vm }}

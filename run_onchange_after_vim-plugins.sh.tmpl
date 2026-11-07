@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+# {{ include "plug-snapshot.vim" | sha256sum }}
+
+snapshot="$HOME/.vim/plug-snapshot.vim"
+
+if ! command -v vim >/dev/null 2>&1; then
+	echo '>vim-plugins: vim is not installed; skipping' >&2
+	exit 0
+fi
+
+if [ ! -f "$snapshot" ]; then
+	echo '>vim-plugins: snapshot is missing; skipping' >&2
+	exit 0
+fi
+
+# The snapshot pins every plugin by commit and ends in PlugUpdate!, so sourcing
+# it installs missing plugins and checks installed ones out at the pin. PlugClean
+# drops plugins the configuration no longer declares.
+vim -Nu "$HOME/.vimrc" -es -S "$snapshot" -c 'PlugClean!' -c 'qa!'
+
+# A failed checkout does not fail vim, so verify against the snapshot.
+failed=0
+entries=$(sed -n "s/^silent! let g:plugs\['\([^']*\)'\]\.commit = '\([0-9a-f]*\)'$/\1 \2/p" "$snapshot")
+if [ -z "$entries" ]; then
+	echo '>vim-plugins: could not read the snapshot; not verified' >&2
+	failed=1
+fi
+while read -r name commit; do
+	[ -n "$name" ] || continue
+	dir="$HOME/.vim/plugged/$name"
+	if [ ! -d "$dir" ]; then
+		echo ">vim-plugins: $name is not installed" >&2
+		failed=1
+		continue
+	fi
+	if [ "$(git -C "$dir" rev-parse HEAD)" != "$commit" ]; then
+		echo ">vim-plugins: $name is not at snapshot commit $commit" >&2
+		failed=1
+	fi
+done <<< "$entries"
+
+exit "$failed"

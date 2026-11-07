@@ -20,7 +20,7 @@ installed globally; do not duplicate them here.
 
 See the source tree for the current layout and [readme.md](readme.md) for
 supported platforms and installation. See
-[Neovim plugins](.agents/docs/neovim-plugins.md) before changing
+[Vim plugins](.agents/docs/vim-plugins.md) before changing
 `plug-snapshot.vim` or the plugin list.
 
 `run_*` scripts fire in alphabetical order of their target names, so
