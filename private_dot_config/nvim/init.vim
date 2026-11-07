@@ -54,7 +54,7 @@ Plug 'tpope/vim-fugitive'
 " inline Git interface
 Plug 'airblade/vim-gitgutter'
 " file manager
-Plug 'stevearc/oil.nvim'
+Plug 'justinmk/vim-dirvish'
 
 call plug#end()
 
@@ -81,7 +81,6 @@ if empty(s:missing)
     lua require('persistence').setup({})
     command! Load lua require('persistence').load()
     command! Last lua require('persistence').load({ last = true })
-    lua require('oil').setup()
     let g:startify_custom_header = []
     let g:startify_lists = [
           \ {'type': 'commands', 'header': ['   Commands']},
