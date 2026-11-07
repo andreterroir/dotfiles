@@ -33,7 +33,7 @@ Plug 'andymass/vim-matchup'
 " add, change and delete surrounding characters
 Plug 'tpope/vim-surround'
 " insert and step over matching characters
-Plug 'windwp/nvim-autopairs'
+Plug 'cohama/lexima.vim'
 " keymap discovery
 Plug 'liuchengxu/vim-which-key'
 " persistent branching undo history
@@ -132,8 +132,6 @@ if empty(s:missing)
     set background=dark
     colorscheme github
     lua require('no-neck-pain').setup({ width = 80 })
-    lua require('nvim-autopairs').setup({})
-    lua require('nvim-autopairs').add_rules({ require('nvim-autopairs.rule')('`', '`') })
     lua require('persistence').setup({})
     command! Load lua require('persistence').load()
     command! Last lua require('persistence').load({ last = true })
