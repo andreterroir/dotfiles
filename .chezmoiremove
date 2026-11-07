@@ -26,3 +26,7 @@ bin/update-passwords
 .local/lib/passage
 .local/share/bash-completion/completions/passage
 .local/share/bash-completion/completions/pass-otp
+# vim-plug replaced lazy.nvim: its lockfile was a symlink into the source tree
+.config/nvim/lazy-lock.json
+# the lazy.nvim clones are unused now that vim-plug installs into ~/.vim/plugged
+.local/share/nvim/lazy

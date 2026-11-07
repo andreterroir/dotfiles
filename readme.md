@@ -49,7 +49,8 @@ See the [Provisioning model](.agents/docs/provisioning.md) for role
 detection, VM configuration, credentials, sudo, and background services.
 After changing `vm`, run `chezmoi init` before apply or update.
 
-Neovim plugins are pinned by `lazy-lock.json`. Applying a changed lockfile
-runs `:Lazy restore`, so installed plugins match the pin on every machine.
+Neovim plugins are pinned by `plug-snapshot.vim`. Applying a changed snapshot
+reinstalls them at those commits, so installed plugins match the pin on every
+machine.
 
 See [chezmoi](https://www.chezmoi.io/).

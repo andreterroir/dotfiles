@@ -2,52 +2,34 @@
 -- plugins --
 -------------
 
--- bootstrap lazy.nvim
-local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
-if not vim.uv.fs_stat(lazypath) then
+-- bootstrap vim-plug, pinned so every machine gets the same manager
+local plug_commit = '4c4e56b5f7384369927a075804b6a17de7644edd'
+local plugpath = vim.fn.stdpath('data') .. '/site/autoload/plug.vim'
+if vim.fn.filereadable(plugpath) == 0 then
    vim.fn.system({
-      'git',
-      'clone',
-      '--filter=blob:none',
-      'https://github.com/folke/lazy.nvim.git',
-      '--branch=stable',
-      lazypath,
+      'curl',
+      '-sfLo',
+      plugpath,
+      '--create-dirs',
+      'https://raw.githubusercontent.com/junegunn/vim-plug/' .. plug_commit .. '/plug.vim',
    })
-   -- pin the manager to the lockfile revision so machines agree on it
-   local lockfile = vim.fn.stdpath('config') .. '/lazy-lock.json'
-   local ok, lock = pcall(function()
-      return vim.json.decode(table.concat(vim.fn.readfile(lockfile), '\n'))
-   end)
-   local pin = ok and type(lock) == 'table' and lock['lazy.nvim']
-   if pin and pin.commit then
-      vim.fn.system({ 'git', '-C', lazypath, 'checkout', '--quiet', pin.commit })
-      if vim.v.shell_error ~= 0 then
-         vim.notify('lazy.nvim ' .. pin.commit .. ' from the lockfile is unavailable', vim.log.levels.WARN)
-      end
-   end
+   -- neovim caches runtimepath lookups at startup, so a file written during
+   -- this run is not found by autoload until it is sourced
+   vim.cmd('source ' .. vim.fn.fnameescape(plugpath))
 end
--- add lazy.nvim to runtimepath first
-vim.opt.rtp:prepend(lazypath)
 
 -- map leader before any plugins define their mappings
 vim.g.mapleader = ' '
 
-require('lazy').setup({
+vim.cmd(('call plug#begin(%s)'):format(vim.fn.string(vim.fn.expand('~/.vim/plugged'))))
+
+for _, repo in ipairs({
    -- colorscheme
-   { 'projekt0n/github-nvim-theme' },
+   'projekt0n/github-nvim-theme',
    -- match system light/dark mode
-   {
-      'andreterroir/daybreak.nvim',
-      opts = {
-         light = 'github_light',
-         dark = 'github_dark_dimmed',
-      }
-   },
+   'andreterroir/daybreak.nvim',
    -- center the focused buffer
-   {
-      'shortcuts/no-neck-pain.nvim',
-      opts = { width = 80 },
-   },
+   'shortcuts/no-neck-pain.nvim',
    -- restrict allowed modeline options
    'ypcrts/securemodelines',
    -- readline style editing keybindings
@@ -59,105 +41,137 @@ require('lazy').setup({
    -- add, change and delete surrounding characters
    'tpope/vim-surround',
    -- insert and step over matching characters
-   {
-      'windwp/nvim-autopairs',
-      event = 'InsertEnter',
-      config = function()
-         local Rule = require('nvim-autopairs.rule')
-         local npairs = require('nvim-autopairs')
-         npairs.setup()
-         npairs.add_rules({
-            Rule('`', '`'),
-         })
-      end,
-   },
+   'windwp/nvim-autopairs',
    -- keymap discovery
-   { 'folke/which-key.nvim' },
+   'folke/which-key.nvim',
    -- persistent branching undo history
    'mbbill/undotree',
    -- preserve last session per directory
-   {
-      'folke/persistence.nvim',
-      -- only start session saving when an actual file was opened
-      event = 'BufReadPre',
-      config = function()
-         require('persistence').setup({})
-         vim.api.nvim_create_user_command('Load', function()
-            require('persistence').load()
-         end, { nargs = 0 })
-         vim.api.nvim_create_user_command('Last', function()
-            require('persistence').load({ last = true })
-         end, { nargs = 0 })
-      end
-   },
+   'folke/persistence.nvim',
    -- navigation
    'christoomey/vim-tmux-navigator',
    -- search
-   {
-      'ibhagwan/fzf-lua',
-      dependencies = { 'nvim-tree/nvim-web-devicons' },
-      opts = {}
-   },
+   'ibhagwan/fzf-lua',
+   'nvim-tree/nvim-web-devicons',
    -- startup screen
-   {
-      'nvimdev/dashboard-nvim',
-      event = 'VimEnter',
-      opts = function()
-         local opts = {
-            theme = 'doom',
-            config = {
-               week_header = {
-                  enable = true
-               },
-               -- stylua: ignore
-               center = {
-                  { action = 'FzfLua files', desc = ' Find file', icon = ' ', key = 'f' },
-                  { action = 'ene | startinsert', desc = ' New file', icon = ' ', key = 'n' },
-                  { action = 'FzfLua oldfiles', desc = ' Recent files', icon = ' ', key = 'r' },
-                  { action = 'FzfLua live_grep', desc = ' Find text', icon = ' ', key = 'g' },
-                  { action = 'edit ~/.config/nvim/init.lua', desc = ' Config', icon = ' ', key = 'c' },
-                  { action = 'lua require("persistence").load()', desc = ' Load Session', icon = ' ', key = 's' },
-                  {
-                     action = 'lua require("persistence").load({last = true})',
-                     desc = ' Last Session',
-                     icon = '󰼛 ',
-                     key = 'l'
-                  },
-                  { action = 'qa', desc = ' Quit', icon = ' ', key = 'q' },
-               },
-            }
-         }
-
-         -- close Lazy and re-open when the dashboard is ready
-         if vim.o.filetype == 'lazy' then
-            vim.cmd.close()
-            vim.api.nvim_create_autocmd('User', {
-               pattern = 'DashboardLoaded',
-               callback = function()
-                  require('lazy').show()
-               end,
-            })
-         end
-
-         return opts
-      end,
-      dependencies = { { 'nvim-tree/nvim-web-devicons' } }
-   },
+   'nvimdev/dashboard-nvim',
    -- persistent fast access terminal
-   {
-      'akinsho/toggleterm.nvim',
-      config = function()
-         require('toggleterm').setup({
-            open_mapping = [[<a-;>]],
-         })
-      end
-   },
+   'akinsho/toggleterm.nvim',
    -- Git interface
    'tpope/vim-fugitive',
    -- inline Git interface
-   {
-      'lewis6991/gitsigns.nvim',
-      opts = {
+   'lewis6991/gitsigns.nvim',
+   -- file manager
+   'stevearc/oil.nvim',
+}) do
+   vim.cmd(("Plug '%s'"):format(repo))
+end
+
+vim.cmd('call plug#end()')
+
+-- lazy ran each plugin's configuration in a pcall, so a plugin that fails to
+-- load only loses its own settings
+local function configure(name, fn)
+   local ok, err = pcall(fn)
+   if not ok then
+      vim.notify(('nvim: %s failed to configure: %s'):format(name, err), vim.log.levels.ERROR)
+   end
+end
+
+-- vim-plug leaves uninstalled plugins off the runtimepath, so configuring them
+-- before :PlugInstall has run would abort this file on a new machine
+local missing = vim.tbl_filter(function(plug)
+   return vim.fn.isdirectory(plug.dir) == 0
+end, vim.tbl_values(vim.g.plugs))
+
+if #missing > 0 then
+   vim.notify(
+      ('vim-plug: %d plugin(s) missing, run :PlugInstall and restart'):format(#missing),
+      vim.log.levels.WARN
+   )
+else
+   configure('daybreak', function()
+      require('daybreak').setup({
+         light = 'github_light',
+         dark = 'github_dark_dimmed',
+      })
+   end)
+
+   configure('no-neck-pain', function()
+      require('no-neck-pain').setup({ width = 80 })
+   end)
+
+   configure('nvim-autopairs', function()
+      local Rule = require('nvim-autopairs.rule')
+      local npairs = require('nvim-autopairs')
+      npairs.setup()
+      npairs.add_rules({
+         Rule('`', '`'),
+      })
+   end)
+
+   configure('persistence', function()
+      require('persistence').setup({})
+      vim.api.nvim_create_user_command('Load', function()
+         require('persistence').load()
+      end, { nargs = 0 })
+      vim.api.nvim_create_user_command('Last', function()
+         require('persistence').load({ last = true })
+      end, { nargs = 0 })
+   end)
+
+   configure('fzf-lua', function()
+      local fzf = require('fzf-lua')
+      fzf.setup({})
+      vim.keymap.set('n', '<leader>F', vim.cmd.FzfLua, { desc = '[F]ind stuff' })
+      vim.keymap.set('n', '<leader>f<space>', fzf.resume, { desc = 'Resume [F]ind' })
+      vim.keymap.set('n', '<leader>ff', fzf.files, { desc = '[F]ind [F]iles' })
+      vim.keymap.set('n', '<leader>fg', fzf.live_grep, { desc = '[F]ind with [G]rep' })
+      vim.keymap.set('n', '<leader>fs', fzf.grep_cWORD, { desc = '[F]ind [S]tring' })
+      vim.keymap.set('n', '<leader>fk', fzf.keymaps, { desc = '[F]ind [K]ey mapping' })
+      vim.keymap.set('n', '<leader>fr', fzf.oldfiles, { desc = '[f]ind [r]ecent files' })
+      vim.keymap.set('n', '<leader>fh', fzf.helptags, { desc = '[F]ind [H]elp' })
+   end)
+
+   configure('dashboard', function()
+      require('dashboard').setup({
+         theme = 'doom',
+         config = {
+            week_header = {
+               enable = true
+            },
+            -- stylua: ignore
+            center = {
+               { action = 'FzfLua files', desc = ' Find file', icon = ' ', key = 'f' },
+               { action = 'ene | startinsert', desc = ' New file', icon = ' ', key = 'n' },
+               { action = 'FzfLua oldfiles', desc = ' Recent files', icon = ' ', key = 'r' },
+               { action = 'FzfLua live_grep', desc = ' Find text', icon = ' ', key = 'g' },
+               { action = 'edit ~/.config/nvim/init.lua', desc = ' Config', icon = ' ', key = 'c' },
+               { action = 'lua require("persistence").load()', desc = ' Load Session', icon = ' ', key = 's' },
+               {
+                  action = 'lua require("persistence").load({last = true})',
+                  desc = ' Last Session',
+                  icon = '󰼛 ',
+                  key = 'l'
+               },
+               { action = 'qa', desc = ' Quit', icon = ' ', key = 'q' },
+            },
+            -- dashboard-nvim counts plugins only for lazy, packer and vim.pack
+            footer = function()
+               return { '', ('neovim loaded %d plugins'):format(#vim.tbl_keys(vim.g.plugs)) }
+            end,
+         }
+      })
+   end)
+
+   configure('toggleterm', function()
+      require('toggleterm').setup({
+         open_mapping = [[<a-;>]],
+      })
+   end)
+
+   configure('gitsigns', function()
+      require('gitsigns').setup({
          on_attach = function(bufnr)
             local gs = package.loaded.gitsigns
 
@@ -201,20 +215,13 @@ require('lazy').setup({
             -- text object
             map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
          end
-      }
-   },
-   {
-      'stevearc/oil.nvim',
-      config = true,
-      dependencies = { 'nvim-tree/nvim-web-devicons' },
-   }
-}, {
-   dev = {
-      path = '~/code',
-      patterns = { 'andreterroir' },
-      fallback = true,
-   },
-})
+      })
+   end)
+
+   configure('oil', function()
+      require('oil').setup()
+   end)
+end
 
 -------------
 -- options --
@@ -286,7 +293,7 @@ vim.opt.backupcopy = 'yes'
 -- create backupdir if doesn't exist
 local backup_dir = vim.env.HOME .. '/.cache/nvim/backup'
 if vim.fn.isdirectory(backup_dir) ~= 1 then
-   vim.fn.mkdir(backup_dir)
+   vim.fn.mkdir(backup_dir, 'p')
 end
 -- save all backups in one place rather than in .
 vim.opt.backupdir = backup_dir
@@ -329,16 +336,6 @@ vim.keymap.set('n', '<leader>P', [["+P]], { desc = '[P]aste from clipboard befor
 -- quickfix list navigation
 vim.keymap.set('n', ']q', ':cnext<CR>', { desc = 'Next quickfix item' })
 vim.keymap.set('n', '[q', ':cprev<CR>', { desc = 'Previous quickfix item' })
-
-local fzf = require('fzf-lua')
-vim.keymap.set('n', '<leader>F', vim.cmd.FzfLua, { desc = '[F]ind stuff' })
-vim.keymap.set('n', '<leader>f<space>', fzf.resume, { desc = 'Resume [F]ind' })
-vim.keymap.set('n', '<leader>ff', fzf.files, { desc = '[F]ind [F]iles' })
-vim.keymap.set('n', '<leader>fg', fzf.live_grep, { desc = '[F]ind with [G]rep' })
-vim.keymap.set('n', '<leader>fs', fzf.grep_cWORD, { desc = '[F]ind [S]tring' })
-vim.keymap.set('n', '<leader>fk', fzf.keymaps, { desc = '[F]ind [K]ey mapping' })
-vim.keymap.set('n', '<leader>fr', fzf.oldfiles, { desc = '[f]ind [r]ecent files' })
-vim.keymap.set('n', '<leader>fh', fzf.helptags, { desc = '[F]ind [H]elp' })
 
 vim.keymap.set('', '<leader>w', '<cmd>:write<cr>', { desc = '[W]rite current buffer' })
 vim.keymap.set('', '<leader>q', '<cmd>:confirm quitall<cr>', { desc = '[Q]uit with confirmation' })
