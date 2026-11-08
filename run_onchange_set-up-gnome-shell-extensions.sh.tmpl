@@ -25,17 +25,20 @@ trap 'rm -rf "$download_dir"' EXIT
 # build for an older shell does not survive.
 if ! info="$(curl -fsSL \
 	"https://extensions.gnome.org/extension-info/?uuid=$ego_uuid&shell_version=$shell_version")"; then
-	echo ">cannot query extensions.gnome.org for $ego_uuid" >&2
-	exit 1
+	echo ">cannot query extensions.gnome.org for $ego_uuid; skipping" >&2
+	exit 0
 fi
 url="$(printf '%s' "$info" | jq -r '.download_url // empty')"
 if [ -z "$url" ]; then
-	echo ">no $ego_uuid build for GNOME Shell $shell_version" >&2
-	exit 1
+	echo ">no $ego_uuid build for GNOME Shell $shell_version; skipping" >&2
+	exit 0
 fi
 echo ">installing $ego_uuid"
-curl -fsSL -o "$download_dir/extension.zip" "https://extensions.gnome.org$url"
-gnome-extensions install --force "$download_dir/extension.zip"
+if ! curl -fsSL -o "$download_dir/extension.zip" "https://extensions.gnome.org$url" ||
+	! gnome-extensions install --force "$download_dir/extension.zip"; then
+	echo ">cannot install $ego_uuid; skipping" >&2
+	exit 0
+fi
 
 # The shell watches both keys, so this enables the extensions now or at the
 # next login. A uuid must also leave disabled-extensions, which wins over
