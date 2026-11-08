@@ -253,19 +253,19 @@ Aliases are command shortcuts rather than keys:
 
 ## git
 
-`dot_gitconfig.tmpl` sets two aliases and the mergetool; `git cleanup` is a
+`dot_gitconfig.tmpl` sets one alias and the mergetool; `git cleanup` is a
 separate script on `PATH`:
 
 | Command | Action |
 | --- | --- |
 | `git df` | `git diff --color-words` |
-| `git continue` | commit with the message a failed commit left in `.git/COMMIT_EDITMSG`, reopening the editor |
 | `git cleanup` | delete local branches merged into the current one; `git cleanup -n` prints instead of deleting (`dot_bin/executable_git-cleanup`) |
 | `git mergetool` | open the conflict in Vim with `Gvdiffsplit!` |
 
 The mergetool is Vim with fugitive's three-way diff, so its keys are fugitive's.
 `core.editor` is `~/.bin/git-editor`, a wrapper that restores the message after
-a failed commit — for example a missing signing key — and then starts Vim.
+a failed commit — for example a missing signing key — and then starts Vim, so a
+plain `git commit` retries with the message intact.
 
 ## Ghostty
 
