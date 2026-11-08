@@ -54,7 +54,7 @@ call plug#end()
 
 " an empty mode maps like :map: normal, visual, select, operator-pending
 function! s:Map(mode, lhs, rhs) abort
-  execute (empty(a:mode) ? '' : a:mode) . 'noremap ' . a:lhs . ' ' . a:rhs
+  execute a:mode . 'noremap ' . a:lhs . ' ' . a:rhs
 endfunction
 
 let g:goyo_width = 80
@@ -180,10 +180,17 @@ for s:dir in [s:cache_dir . '/backup', s:state_dir . '/swap', s:state_dir . '/un
     call mkdir(s:dir, 'p')
   endif
 endfor
-let &backupdir = s:cache_dir . '/backup'
+let &backupdir = s:cache_dir . '/backup//'
 let &directory = s:state_dir . '/swap//'
 let &undodir = s:state_dir . '/undo//'
 set undofile
+" keep plaintext copies of secrets out of the state directories: no
+" undo file, swap file, or backup for /tmp and ~/.ssh
+augroup secrets
+  autocmd!
+  autocmd BufRead,BufNewFile /tmp/*,$HOME/.ssh/* setlocal noundofile noswapfile
+augroup END
+let &backupskip = &backupskip . ',' . expand('~/.ssh') . '/*,/tmp/*'
 
 " ------------
 " -- keymap --
@@ -356,10 +363,17 @@ augroup END
 " -- autocommands --
 " ------------------
 
-" strip trailing whitespace on write
+" strip trailing whitespace on write, but not from file types where it
+" is meaningful: diff context lines and Markdown hard line breaks
+function! s:StripTrailingWhitespace() abort
+  if &filetype =~# '^\%(diff\|markdown\)$'
+    return
+  endif
+  %s/\s\+$//e
+endfunction
 augroup init
   autocmd!
-  autocmd BufWritePre * %s/\s\+$//e
+  autocmd BufWritePre * call s:StripTrailingWhitespace()
 augroup END
 
 " ---------------
