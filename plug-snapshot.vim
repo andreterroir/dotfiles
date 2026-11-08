@@ -3,7 +3,7 @@
 " :source this file in vim to restore the snapshot
 " or execute: vim -S snapshot.vim
 
-silent! let g:plugs['daybreak.nvim'].commit = '112fc935a16d71245ba907e85c3d2b636ec9a597'
+silent! let g:plugs['daybreak.nvim'].commit = 'e1f05dbb361d4843968d59350f17ef1ac80c1445'
 silent! let g:plugs['fzf'].commit = 'c7bf2b8eea25952dd257a466c0afa72faae206fb'
 silent! let g:plugs['fzf.vim'].commit = '023de3c0e158ff9c2b0992175af10be97c2f2158'
 silent! let g:plugs['goyo.vim'].commit = '9c72fdf2d202914318581f9f0dd09fd102f8504d'
