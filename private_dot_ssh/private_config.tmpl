@@ -1,6 +1,8 @@
 Include ~/.ssh/local_config
 Host *
+{{- if not .vm }}
 	AddKeysToAgent yes
+{{- end }}
 	HashKnownHosts no
 	IdentityFile none
 
