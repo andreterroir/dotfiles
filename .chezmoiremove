@@ -41,3 +41,6 @@ bin/update-passwords
 .config/nvim/init.vim
 .config/nvim/plug-snapshot.vim
 .config/nvim/spell
+# ssh now sends xterm-256color, so the server-side xterm-ghostty entry this
+# repository installed is retired; drop what that script left behind.
+.terminfo/x/xterm-ghostty

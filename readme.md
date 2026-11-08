@@ -18,8 +18,7 @@ opencode, topgrade and git-lfs. Its developer environment is out of scope, and
 gh, jq and Amp are the only tools the apply installs. Package install scripts
 target Fedora Linux and headless Ubuntu, so nothing else installs a Mac's
 applications. Ubuntu servers get the CLI set only: no hugo, YubiKey, Wayland
-clipboard tools, or Ghostty, whose terminfo they install without its
-configuration. Other distros are unsupported.
+clipboard tools, or Ghostty. Other distros are unsupported.
 
 Install
 -------
