@@ -32,5 +32,12 @@ bin/update-passwords
 .config/nvim/lazy-lock.json
 # the lazy.nvim clones are unused now that vim-plug installs into ~/.vim/plugged
 .local/share/nvim/lazy
-# a leftover Lua entry point from the old Neovim config
+# The editor configuration moved to ~/.vimrc and ~/.vim, and ginit.vim was
+# dropped; chezmoi leaves those targets in place, and a hand-installed Neovim
+# or GUI still loads them. The directory stays: init.local.vim may be a user
+# file.
+.config/nvim/ginit.vim
 .config/nvim/init.lua
+.config/nvim/init.vim
+.config/nvim/plug-snapshot.vim
+.config/nvim/spell
