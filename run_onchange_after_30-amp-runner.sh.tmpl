@@ -13,7 +13,7 @@ exit 0
 # active runner and starts a stopped one.
 #
 # {{ include "private_dot_config/systemd/user/amp-runner.service" | sha256sum }}
-# {{ include "private_dot_config/private_amp/settings.json" | sha256sum }}
+# {{ include "private_dot_config/private_amp/modify_settings.json" | sha256sum }}
 
 amp="$HOME/.local/bin/amp"
 

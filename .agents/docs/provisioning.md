@@ -37,9 +37,10 @@ Linux desktops install KeePassXC. Templates derive the KeePass policy as
 user settings are
 managed at `~/.config/keepassxc/keepassxc.ini` on Linux and at
 `~/Library/Application Support/KeePassXC/keepassxc.ini` on macOS, where the
-application itself is not provisioned. Apply replaces the whole file, so
-KeeShare settings are deliberately omitted and any local KeeShare key is
-discarded. Neither the database nor its synchronization is provisioned here.
+application itself is not provisioned. Apply merges the managed keys over
+the file, so the keys KeePassXC writes at runtime survive. KeeShare
+settings are deliberately omitted and not merged. Neither the database nor
+its synchronization is provisioned here.
 
 ## Package sources
 
@@ -201,7 +202,7 @@ restarts into them once no thread is running, at most once every 12 hours.
 With auto-update disabled, apply supplies a restart only when the unit or
 settings change.
 
-`private_dot_config/private_amp/settings.json` enables
+`private_dot_config/private_amp/modify_settings.json` enables
 `amp.runner.env.enabled`, so runner threads get the Secrets & Env Vars
 configured on ampcode.com, as orb threads do. The runner fetches them when a
 thread starts and injects them into the thread's shell commands, MCP servers,

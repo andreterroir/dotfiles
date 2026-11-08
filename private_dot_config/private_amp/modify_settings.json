@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# The CLI owns this file and rewrites it, so set the managed keys over
+# its content instead of replacing the file. Merging needs jq, which
+# the apply installs; a missing file needs nothing.
+set -euo pipefail
+managed='{"$schema":"https://ampcode.com/cli-settings.schema.json","amp.remoteThreadCreation.enabled":true,"amp.runner.env.enabled":true}'
+current=$(cat)
+if [ -z "$current" ]; then
+	printf '%s\n' "$managed"
+elif command -v jq >/dev/null 2>&1; then
+	printf '%s' "$current" | jq --argjson managed "$managed" '. + $managed'
+else
+	echo '>amp settings: jq missing; leaving the file unchanged' >&2
+	printf '%s\n' "$current"
+fi
