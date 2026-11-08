@@ -28,18 +28,10 @@ sudo dnf install -y \
 	remove-retired-packages \
 	ripgrep \
 	tree \
-	tree-sitter-cli \
 	tmux \
 	topgrade \
 	vim-enhanced \
 	wget2-wget
-
-# Fedora no longer ships godoc. Install it with the Go toolchain, as on
-# Ubuntu, using the configured per-user Go cache.
-if [ ! -x "$HOME/.cache/go/bin/godoc" ]; then
-	GOPATH="$HOME/.cache/go" GOBIN="$HOME/.cache/go/bin" \
-		go install golang.org/x/tools/cmd/godoc@latest
-fi
 
 {{ if .linux.desktop -}}
 sudo dnf install -y \
@@ -113,18 +105,9 @@ sudo apt-get install -y \
 	shellcheck \
 	tmux \
 	tree \
-	tree-sitter-cli \
 	vim \
 	wget \
 	xz-utils
-
-# Ubuntu has no godoc package; install it with the Go toolchain. GOPATH
-# is explicit because run_* scripts do not source .bash_profile, and it
-# keeps the module cache next to the one interactive shells use.
-if [ ! -x "$HOME/.cache/go/bin/godoc" ]; then
-	GOPATH="$HOME/.cache/go" GOBIN="$HOME/.cache/go/bin" \
-		go install golang.org/x/tools/cmd/godoc@latest
-fi
 
 # Fedora's fd-find package provides `fd`; Ubuntu's provides `fdfind`.
 if [ ! -e "$HOME/.local/bin/fd" ]; then
