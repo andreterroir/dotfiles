@@ -3,8 +3,8 @@
 #
 # Worktrees are never removed: they may belong to a live agent session (Amp,
 # Claude Code, Codex, OpenCode, or another tool), and a clean one gives no
-# signal that its owner is done. Branches checked out in any worktree are
-# skipped.
+# signal that its owner is done. git branch -d refuses branches checked out
+# in any worktree, so none of them are deletable here.
 #
 # Usage: git cleanup [-n|--dry-run] [-h|--help]
 
@@ -24,8 +24,6 @@ Options:
   -h, --help      show this help and exit
 
 Protected branches (never deleted): main, master, develop
-
-Branches currently checked out in any worktree are skipped.
 EOF
 }
 
@@ -40,7 +38,6 @@ for arg in "$@"; do
     esac
 done
 
-# Fails outside any git repo; exits 0 (printing true/false) inside one.
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "git-cleanup: not inside a git working tree" >&2
     exit 1
@@ -51,30 +48,6 @@ if [ -z "$current_branch" ]; then
     echo "git-cleanup: HEAD is detached; refusing to clean up branches" >&2
     exit 1
 fi
-
-main_path=$(git worktree list --porcelain |
-    awk '/^worktree / && !seen { print substr($0, 10); seen = 1 }')
-
-# Relative path from the main worktree, for display only. Both arguments are
-# absolute paths from `git worktree list`, so comparing components is enough.
-relpath_from_main() {
-    from="$main_path" to="$1" awk 'BEGIN {
-        from = ENVIRON["from"]; to = ENVIRON["to"]
-        sub(/\/+$/, "", from)
-        sub(/\/+$/, "", to)
-        if (from == "") from = "/"
-        if (to == "") to = "/"
-        nf = split(from, f, "/")
-        nt = split(to, t, "/")
-        for (i = 1; i <= nf && i <= nt && f[i] == t[i]; i++)
-            ;
-        out = ""
-        for (j = i; j <= nf; j++) if (f[j] != "") out = out "../"
-        for (j = i; j <= nt; j++) if (t[j] != "") out = out t[j] "/"
-        sub(/\/$/, "", out)
-        print (out == "" ? "." : out)
-    }'
-}
 
 run() {
     if [ "$dry_run" -eq 1 ]; then
@@ -88,48 +61,24 @@ if [ "$dry_run" -eq 1 ]; then
     prefix="[dry-run] "
 fi
 
-# Drop worktree entries git can no longer locate so their branches are not
-# treated as checked out. Live worktrees are never touched.
 run git worktree prune
 
-# Branches currently checked out in a worktree cannot be deleted with
-# `git branch -d`; collect them up front so the branch loop can skip them.
-# Prunable entries are ignored so dry-run matches the prune above. This is a
-# plain "branch<TAB>path" list because macOS ships Bash 3.2, which has no
-# associative arrays.
-worktree_branches=$(git worktree list --porcelain | awk '
-    /^worktree /   { path = substr($0, 10); branch = ""; prunable = 0; next }
-    /^branch refs\/heads\// { branch = substr($0, 19); next }
-    /^prunable/    { prunable = 1; next }
-    /^$/           { if (path != "" && branch != "" && !prunable) { print branch "\t" path; path = ""; branch = ""; prunable = 0 } }
-    END            { if (path != "" && branch != "" && !prunable) print branch "\t" path }
-')
-
-printf '%sBranch cleanup:\n' "$prefix"
-branch_removed=0
+removed=0
 while IFS= read -r branch; do
     [ -n "$branch" ] || continue
     [ "$branch" = "$current_branch" ] && continue
     case "$branch" in
         main|master|develop) continue ;;
     esac
-    worktree_path=$(printf '%s\n' "$worktree_branches" |
-        branch="$branch" awk -F'\t' '$1 == ENVIRON["branch"] { path = $2 } END { print path }')
-    if [ -n "$worktree_path" ]; then
-        printf '  %s skipped (checked out in worktree %s)\n' \
-            "$branch" "$(relpath_from_main "$worktree_path")"
-        continue
-    fi
     if [ -n "$(git branch --list "$branch" --merged "$current_branch" 2>/dev/null)" ]; then
         if [ "$dry_run" -eq 1 ] || err=$(git branch -d "$branch" 2>&1); then
-            printf '  %s\n' "$branch"
-            branch_removed=$((branch_removed + 1))
+            printf '%s%s\n' "$prefix" "$branch"
+            removed=$((removed + 1))
         else
-            err=${err#error: }
-            printf 'failed to delete branch %s: %s\n' "$branch" "$err" >&2
+            printf 'failed to delete branch %s: %s\n' "$branch" "${err#error: }" >&2
         fi
     else
         printf '  %s skipped (not merged)\n' "$branch"
     fi
 done < <(git for-each-ref --format='%(refname:short)' refs/heads/)
-printf '  %d removed\n' "$branch_removed"
+printf '%s%d removed\n' "$prefix" "$removed"
