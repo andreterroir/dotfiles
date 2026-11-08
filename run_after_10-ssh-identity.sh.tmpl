@@ -167,9 +167,10 @@ if [ "$active" != "$GH_ACCOUNT" ]; then
 	exit 1
 fi
 
-# Login requests both scopes, so a token created by this script has
-# public_key iff it has the signing scope; only older tokens need
-# topping up.
+# Login requests both scopes, so a token this script created has
+# public_key iff it has the signing scope; tokens whose scopes this
+# script dropped after a past registration, and only those, need
+# topping up again.
 if ! grep -qF admin:ssh_signing_key \
 	<<<"$(gh auth status --hostname github.com --active 2>&1)"; then
 	echo '>extending GitHub token scopes'
@@ -193,3 +194,13 @@ for public_key in "${signing_keys_to_add[@]}"; do
 		gh ssh-key add "$public_key" --title "$(whoami)@$(hostname -s)-$(basename "$public_key" .pub)" --type signing
 	fi
 done
+
+# The admin scopes exist to register the keys; a token that keeps them
+# lets any process running as this user add SSH keys to the account.
+# Dropping scopes needs a browser confirmation, like login does. Not
+# fatal: the keys are already on GitHub, and the top-up check above
+# re-extends the scopes on a run that needs registration again.
+if ! gh auth refresh --hostname github.com \
+		--remove-scopes admin:public_key --remove-scopes admin:ssh_signing_key; then
+	echo 'warning: could not drop the GitHub admin scopes; run gh auth refresh --hostname github.com --remove-scopes admin:public_key,admin:ssh_signing_key by hand' >&2
+fi
