@@ -124,6 +124,7 @@ chezmoi targets.
 | slate | macOS | desktop | configuration only, as for every Mac |
 | Chloes-MBP | macOS | desktop | configuration only, like slate |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed VM |
+| slate-vm-personal | Fedora Linux | server, vm | the personal server VM |
 | greenhouse | Ubuntu Linux | server | headless; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
 | git.terroir.systems | unrecorded | server | externally managed; an SSH destination, not a chezmoi target |
@@ -131,7 +132,8 @@ chezmoi targets.
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
 machine still exists. Hostnames are compared lowercase, so the table's
-`Chloes-MBP` is `chloes-mbp` in `managedHosts`.
+`Chloes-MBP` is `chloes-mbp` in `managedHosts`. `server` is not
+greenhouse-specific: personal servers remain first-class targets in that role.
 
 ## Boundaries
 

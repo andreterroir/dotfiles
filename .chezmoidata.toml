@@ -7,6 +7,7 @@ managedHosts = [
     "slate",
     "chloes-mbp",
     "slate-vm-work",
+    "slate-vm-personal",
     "greenhouse",
 ]
 approvedYubiKeys = [
