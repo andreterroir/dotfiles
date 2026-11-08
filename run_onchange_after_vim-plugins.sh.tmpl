@@ -18,8 +18,9 @@ fi
 
 # The snapshot pins every plugin by commit and ends in PlugUpdate!, so sourcing
 # it installs missing plugins and checks installed ones out at the pin. PlugClean
-# drops plugins the configuration no longer declares.
-vim -Nu "$HOME/.vimrc" -es -S "$snapshot" -c 'PlugClean!' -c 'qa!'
+# drops plugins the configuration no longer declares; it also logs benign
+# Ex-mode UI errors, which Vim 9.1 counts as failure, so the call is silenced.
+vim -Nu "$HOME/.vimrc" -es -S "$snapshot" -c 'silent! PlugClean!' -c 'qa!'
 
 # A failed checkout does not fail vim, so verify against the snapshot.
 failed=0
