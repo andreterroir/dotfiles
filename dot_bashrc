@@ -7,7 +7,7 @@
 alias ls='ls --classify --color=auto'
 alias cz='chezmoi'
 alias g='git'
-alias grep='grep --color=always'
+alias grep='grep --color=auto'
 alias python='python3'
 alias v='vim'
 alias vi='vim'
