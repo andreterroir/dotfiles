@@ -140,6 +140,10 @@ Fedora desktops upgrade in place between releases; see
 
 ## Boundaries
 
+- This is a public GitHub repository - make sure no changes include private
+  information that's cannot be freely disclosed. Raise a concern before
+  publishing any changes if they are suspected to contain anything sensitive
+  information.
 - Deploy a tool's configuration only where a package script installs the
   tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same OS,
   distro and role data. A gated target is left unmanaged where an earlier
