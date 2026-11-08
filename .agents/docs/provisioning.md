@@ -6,24 +6,26 @@ and [Commit signing](signing.md) for signing configuration and agent setup.
 
 ## Roles and password managers
 
-Init derives `desktop` without prompting: true when `gnome-shell` is on
-PATH. `server` is its inverse. Role selects tools and the SSH agent, not a
-hostname.
+Init derives `desktop` without prompting: true on macOS and on Linux with
+`gnome-shell` on PATH. `server` is its inverse; `linux.desktop` identifies
+Linux desktops. Role selects tools and the SSH agent, not a hostname.
 
-`vm` is independent of role. Init detects it with
+`vm` is independent of role. Linux init detects it with
 `systemd-detect-virt --vm` unless already configured, preserving the value on
-subsequent init runs. VMs retain desktop/server tooling.
+subsequent init runs. On other platforms it defaults to false and can be set
+in the chezmoi config. VMs retain desktop/server tooling.
 
 A VM whose hostname is not in `managedHosts` is transient (see
 [Transient profile](transient.md)); a managed VM such as `slate-vm-work`
 keeps the machine-key policy below.
 
-Desktops install KeePassXC. Init derives `keepass` as `desktop && !vm` to
-select it, so servers and VMs install no password manager. KeePassXC user
-settings are managed at `~/.config/keepassxc/keepassxc.ini`. Apply replaces
-the whole file, so KeeShare settings are deliberately omitted and any local
-KeeShare key is discarded. Neither the database nor its synchronization is
-provisioned here.
+Linux desktops install KeePassXC. Init derives `keepass` as `desktop && !vm` so
+servers and VMs install no password manager. KeePassXC user settings are
+managed at `~/.config/keepassxc/keepassxc.ini` on Linux and at
+`~/Library/Application Support/KeePassXC/keepassxc.ini` on macOS, where the
+application itself is not provisioned. Apply replaces the whole file, so
+KeeShare settings are deliberately omitted and any local KeeShare key is
+discarded. Neither the database nor its synchronization is provisioned here.
 
 Run `chezmoi init` before apply/update after changing `vm` so the derived data
 is recomputed. Init also rewrites `~/.config/chezmoi/chezmoi.toml`, so run it
@@ -43,6 +45,12 @@ VM policy takes precedence over the other columns.
 \* On x1, the attached 5C Nano provides the resident key instead of the
 travelling 5 NFC. Its machine key is also an authentication fallback for the
 managed SSH destinations and GitHub SSH access.
+
+macOS gets none of the provisioning above: this repository installs no
+applications, package manager, SSH agent, or YubiKey resident key there
+(Apple's OpenSSH has no FIDO provider). It manages the shared configuration,
+the KeePassXC settings, and the iCloud notes symlink, and it creates and
+registers the machine key on GitHub for signing only.
 
 Managed SSH configuration applies only to `github.com`,
 `git.terroir.systems`, and `chalon`.
@@ -66,9 +74,10 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 public keys with GitHub for `andreterroir`. Transient environments skip this
 section entirely; see [Transient profile](transient.md). Machine keys are
 signing keys; x1 and VM machine keys are also authentication keys. On non-VM
-desktops it downloads a missing resident key with `ssh-keygen -K` (touch and
-PIN) and registers it for authentication and signing. On VMs it only registers
-resident keys explicitly installed beforehand; non-VM servers skip them.
+Linux desktops it downloads a missing resident key with `ssh-keygen -K` (touch
+and PIN) and registers it for authentication and signing. On VMs it only
+registers resident keys explicitly installed beforehand; non-VM servers and
+macOS skip them, because Apple's OpenSSH has no FIDO provider.
 
 GitHub registration requires a terminal and account login. API outages are
 tolerated when local keys already exist, but fail apply after creating a

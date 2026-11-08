@@ -38,7 +38,7 @@ if [ -f "$HOME/.config/opencode/opencode.local.json" ]; then
 fi
 
 # Agents support SSH authentication, encrypted keys, and opt-in YubiKey signing.
-{{ if .desktop -}}
+{{ if .linux.desktop -}}
 # GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not.
 # gcr advertises every ~/.ssh public key and loads it on demand, so
 # preloading here would only make ssh-add prompt for the machine key's
@@ -47,7 +47,7 @@ if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]; then
 	export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
 fi
 {{ end -}}
-{{ if .server -}}
+{{ if and .server (eq .chezmoi.os "linux") -}}
 # The ssh-agent user service owns this socket and loads the machine key
 # at boot; a forwarded agent, when present, takes precedence.
 if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/ssh-agent.sock" ]; then

@@ -7,9 +7,13 @@ Prerequisites
 - curl
 - git
 
-This repository manages Linux only; macOS is no longer supported, and an
-existing macOS setup keeps whatever this repository applied before.
-Package install scripts target Fedora Linux and headless Ubuntu.
+This repository manages macOS configuration plus Fedora and headless Ubuntu
+provisioning. The macOS developer environment is out of scope: it installs no
+Homebrew bundle or bootstrap, launchd SSH agent, Homebrew shell environment,
+or PATH shims. The shared bash, git, ssh, tmux, Ghostty, vim, mise, opencode
+and Amp configuration still applies to macOS.
+Package install scripts target Fedora Linux and headless Ubuntu, so nothing
+installs a Mac's applications.
 Ubuntu servers get the CLI set only: no hugo, YubiKey, or Wayland clipboard
 tools. Other distros are unsupported.
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra; Ubuntu
@@ -27,12 +31,13 @@ This is for managed machines. An orb, a container, or a hostname not listed in
 `managedHosts` (`.chezmoidata.toml`) is transient: use the
 [transient profile](#transient-environments), which `install.sh` and init
 detect automatically. A VM is transient only when its hostname is not listed.
-Add a new physical machine to `managedHosts` before its full install.
+Add a new physical machine, a Mac included, to `managedHosts` before its full
+install.
 
-On physical desktops, the first apply cannot finish on its own: downloading
-the YubiKey's resident SSH key, logging in to GitHub, and registering a key
-all need a human at the keyboard, and chezmoi prints what it skipped. Run
-it again from a terminal to finish:
+On physical Linux desktops, the first apply cannot finish on its own:
+downloading the YubiKey's resident SSH key, logging in to GitHub, and
+registering a key all need a human at the keyboard, and chezmoi prints what it
+skipped. Run it again from a terminal to finish:
 
     chezmoi apply
 
@@ -81,9 +86,10 @@ Provisioning
 
 Desktop/server role selects tooling; VMs keep that tooling but do not get
 password-manager apps. A VM whose hostname is not in `managedHosts` is
-transient; a managed VM keeps its machine key and provisioning. Desktops
-install KeePassXC. KeePassXC user settings are managed; the database is not,
-and KeeShare settings are deliberately excluded.
+transient; a managed VM keeps its machine key and provisioning. Linux
+desktops install KeePassXC. KeePassXC user settings are managed, including
+on macOS where the application is already present; the database is not, and
+KeeShare settings are deliberately excluded.
 See the [Provisioning model](.agents/docs/provisioning.md) for role
 detection, VM configuration, credentials, sudo, and background services.
 After changing `vm`, run `chezmoi init` before apply or update.

@@ -32,3 +32,8 @@ bin/update-passwords
 .local/share/nvim/lazy
 # a leftover Lua entry point from the old Neovim config
 .config/nvim/init.lua
+# the macOS developer environment is no longer provisioned: retire the launchd
+# agent wrapper and the dark-notify theme fragments that nothing sources now
+.bin/homebrew-ssh-agent
+.config/tmux/amp-dark.conf
+.config/tmux/amp-light.conf

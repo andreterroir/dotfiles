@@ -2,7 +2,7 @@
 {{- if hasKey . "transient" -}}
     {{- $transient = .transient -}}
 {{- end -}}
-{{ if .server -}}
+{{ if and .server (eq .chezmoi.os "linux") -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Run the SSH agent that signs unattended commits from boot rather than

@@ -43,9 +43,10 @@ installed by another script.
 
 - `dot_*`            → `~/.<name>` (e.g. `dot_gitconfig.tmpl` → `~/.gitconfig`)
 - `private_*`        → target with restricted (`0700`) permissions
-- `*.tmpl`           → chezmoi templates; use `{{ }}` and the role data
-                       variables (`desktop`, `server`, `vm`, `keepass`,
-                       `transient`)
+- `*.tmpl`           → chezmoi templates; use `{{ }}`, gate on
+                       `.chezmoi.os` ("linux"/"darwin") and the role data
+                       variables (`desktop`, `linux.desktop`, `server`, `vm`,
+                       `keepass`, `transient`)
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run at most once
 - `symlink_*`        → emit a symlink whose target is the file's contents
@@ -132,8 +133,9 @@ Boundaries).
 
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
-machine still exists. `slate` and `Chloes-MBP` were macOS chezmoi targets and
-are no longer managed: the repository supports Linux only.
+machine still exists. `slate` and `Chloes-MBP` were macOS chezmoi targets
+from when this repository provisioned the macOS developer environment; none
+is listed here because a macOS role comes from the OS, not from a hostname.
 
 ## Boundaries
 
@@ -143,10 +145,15 @@ are no longer managed: the repository supports Linux only.
   [Commit signing](.agents/docs/signing.md) for signing and agents.
 - VM machine keys are GitHub authentication fallbacks only. Preserve
   explicit repository signing overrides without silent fallback.
-- Linux only: `.chezmoi.toml.tmpl` and `.chezmoiignore.tmpl` fail on any
-  other platform, so templates and `run_*` scripts may assume Linux. Do not
-  reintroduce `eq .chezmoi.os "linux"` guards; put new platform support
-  behind that fail instead.
+- macOS is managed for configuration only. Its developer environment is out
+  of scope: do not reintroduce the Homebrew bundle or bootstrap, the launchd
+  SSH agent, the Homebrew shell environment, or PATH shims. Non-developer
+  macOS configuration (KeePassXC settings, the iCloud notes symlink, terminal
+  and appearance settings) belongs in the tree.
+- Linux provisioning is gated: `.chezmoi.osRelease` is empty off Linux. Nest
+  a distro check inside `eq .chezmoi.os "linux"`; `text/template` evaluates
+  both sides of `and`, so a combined condition still looks up the missing
+  `id` key.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
   running scripts) rather than `chezmoi source-path`: a nested
   `chezmoi` invocation deadlocks on the parent `chezmoi apply`'s

@@ -72,6 +72,18 @@ them in the platform agent. For server/VM key requirements, see
 Existing agents remain configured for SSH authentication, encrypted desktop
 keys, and optional YubiKey signing.
 
+### macOS
+
+macOS is managed for configuration only, so this repository configures no
+agent and provisions no resident key there. Apple's OpenSSH has no FIDO
+provider: `ssh-keygen -t ed25519-sk` fails with "No FIDO SecurityKeyProvider
+specified" and `ssh-keygen -K` with "Cannot download keys without provider",
+and the Homebrew `openssh` formula that provided them is no longer installed.
+`run_after_10-ssh-identity.sh.tmpl` therefore creates the machine key if it is
+missing and registers it on GitHub for signing, which is what `dot_gitconfig.tmpl`
+signs with. A resident key and its agent, if wanted, stay the machine's own
+concern.
+
 ### Fedora GNOME desktop
 
 GNOME 46 moved SSH support out of `gnome-keyring-daemon` into gcr's
