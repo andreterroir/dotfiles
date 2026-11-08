@@ -26,7 +26,9 @@ installed globally; do not duplicate them here.
 See the source tree for the current layout and [readme.md](readme.md) for
 supported platforms and installation. See
 [Vim plugins](.agents/docs/vim-plugins.md) before changing
-`plug-snapshot.vim` or the plugin list.
+`plug-snapshot.vim` or the plugin list, and
+[Vim migration](.agents/docs/vim-migration.md) for what the move from
+Neovim changed and which capabilities it dropped.
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` runs before

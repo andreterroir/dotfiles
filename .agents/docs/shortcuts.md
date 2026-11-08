@@ -386,7 +386,9 @@ swap, every `C-` shortcut above moves to the physical Caps Lock position.
 ## Deliberately dropped
 
 These keys existed before the migration from Neovim to Vim and were removed on
-purpose. Do not add them back without deciding to reintroduce the behavior.
+purpose. Do not add them back without deciding to reintroduce the behavior. The
+migration and its wider losses are recorded in
+[Vim migration](vim-migration.md).
 
 | Key | What it was | Why it is gone |
 | --- | --- | --- |
