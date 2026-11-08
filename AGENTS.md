@@ -26,9 +26,7 @@ installed globally; do not duplicate them here.
 See the source tree for the current layout and [readme.md](readme.md) for
 supported platforms and installation. See
 [Vim plugins](.agents/docs/vim-plugins.md) before changing
-`plug-snapshot.vim` or the plugin list, and
-[Vim migration](.agents/docs/vim-migration.md) for what the move from
-Neovim changed and which capabilities it dropped.
+`plug-snapshot.vim` or the plugin list.
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` runs before
@@ -59,7 +57,7 @@ installed by another script.
 
 ## Shortcuts
 
-Every key the configuration binds is catalogued in
+Every key the configuration binds or overrides is catalogued in
 [Shortcuts](.agents/docs/shortcuts.md). Any change that adds, removes or
 rebinds a key updates that document in the same change: the maps and plugin
 globals in `dot_vimrc`, the bindings in `dot_tmux.conf.tmpl`, the readline and
@@ -75,15 +73,9 @@ instead. When the checkout is a linked worktree, use
 `chezmoi --source "$(git rev-parse --show-toplevel)"` to validate that
 worktree regardless of the configured source.
 
-An environment that is an Amp orb, a container, or a hostname outside
-`managedHosts` is transient; a VM is transient only when its hostname is not
-listed. A known VM keeps the full profile. Run `./install.sh --transient`. It
-may install packages and enable services inside the machine, but creates no
-identity and changes nothing outside it. Init detects the profile;
-`install.sh` initialises first, and a later bare `chezmoi apply` or
-`chezmoi update` uses the persisted value. The hostname list only separates
-known managed machines from transient ones; role data still selects tooling.
-See [Transient profile](.agents/docs/transient.md).
+A transient environment — an orb, a container, or a hostname outside
+`managedHosts` — runs `./install.sh --transient`; see
+[Transient profile](.agents/docs/transient.md) for detection.
 
 0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.

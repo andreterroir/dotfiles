@@ -1,9 +1,7 @@
 # Shortcuts
 
-Every key this repository binds, by tool. Each tool section lists the keys the
-configuration sets in a table, with a tool's related keys kept together;
-plugin-owned keys are marked as such so a reader knows whether this repository
-or the plugin decides them.
+Every key this repository binds or overrides, by tool. Plugin-owned keys are
+pointed at rather than tabulated; each section names the help that holds them.
 
 Conventions used below:
 
@@ -14,19 +12,18 @@ Conventions used below:
   `c` command line, `t` terminal.
 
 The same key can belong to more than one tool. `C-h`, `C-j`, `C-k` and `C-l`
-move between Vim windows and between tmux panes, because vim-tmux-navigator
-binds both sides: inside a pane running Vim they reach Vim, and anywhere else
-they move panes. `C-r` is fzf history in the shell, redo in Vim normal mode,
-and paste in Vim's command line. Focus decides which tool sees a key, so read
-the section for the tool you are in.
+move between Vim windows and between tmux panes, and `C-\` goes to the previous
+one, because vim-tmux-navigator binds both sides: inside a pane running Vim
+they reach Vim, and anywhere else they move panes. `C-r` is fzf history in the
+shell, redo in Vim normal mode, and paste in Vim's command line. Focus decides
+which tool sees a key, so read the section for the tool you are in.
 
 ## Vim
 
 `dot_vimrc` (`~/.vimrc`) holds every global map, built with one `s:Map` helper
 so that an empty mode string maps like `:map` (normal, visual, select and
 operator-pending). It also maps `<leader>` itself to the which-key popup and
-sets the global that defines the floaterm toggle. Plugin sections below cover
-the keys a plugin chooses itself.
+sets the global that defines the floaterm toggle.
 
 ### Maps set in `dot_vimrc`
 
@@ -58,7 +55,7 @@ the keys a plugin chooses itself.
 | `<leader>hD` | n | diff against HEAD (`:Gdiffsplit HEAD`) |
 | `ih` | o, v | hunk text object |
 | `<leader>q` | n, v, o | quit all windows and Vim, with confirmation |
-| `<leader>tc` | n, v, o | toggle centering (goyo, 80 columns) |
+| `<leader>tc` | n, v, o | toggle centering (goyo, 80 columns, in a new tab) |
 | `<leader>th` | n, v, o | toggle search highlighting |
 | `<leader>tl` | n, v, o | toggle list chars |
 | `<leader>ts` | n, v, o | toggle spellchecking |
@@ -66,9 +63,9 @@ the keys a plugin chooses itself.
 | `<leader>tw` | n, v, o | toggle wrapping; linebreak follows it |
 | `<leader>w` | n, v, o | write the buffer |
 
-`<leader>F` and `<leader>ff` both open `:Files`; the capital is kept from the
-earlier picker menu. Staging is per hunk, so `<leader>hu` unstages the whole
-buffer rather than a hunk: gitgutter has no unstage-hunk action.
+`<leader>F` and `<leader>ff` both open `:Files`. Staging is per hunk, so
+`<leader>hu` unstages the whole buffer rather than a hunk: gitgutter has no
+unstage-hunk action.
 
 ### Clipboard maps are conditional
 
@@ -93,8 +90,9 @@ read an absent `<leader>y` as a bug, and do not add a helper to fill it.
 ### Session commands
 
 Sessions have commands rather than keys: `:Load` restores the session for the
-current directory and branch, `:Last` the most recently written one. startify
-reaches them from the startup screen with `o` and `l`.
+current directory and branch, `:Last` the most recently written one. A session
+is written on exit, when a named buffer is open, and holds no editor options,
+so loading one never changes them.
 
 ### which-key
 
@@ -119,103 +117,30 @@ A new leader map without an entry here appears unlabelled in the popup.
 
 ### Plugin keys
 
-Keys the plugins define themselves. They change with a plugin upgrade, not with
-`dot_vimrc`, except where the configuration overrides them.
-
-| Key | Plugin | Mode | Action |
-| --- | --- | --- | --- |
-| `<A-;>` | vim-floaterm (via `g:floaterm_keymap_toggle`) | n, t | toggle the floating terminal |
-| `-` | vim-dirvish | n | open the parent directory; `[count]-` goes up that many levels |
-| `C-h` | vim-tmux-navigator | n, t | window left, or tmux pane left |
-| `C-j` | vim-tmux-navigator | n, t | window down, or tmux pane down |
-| `C-k` | vim-tmux-navigator | n, t | window up, or tmux pane up |
-| `C-l` | vim-tmux-navigator | n, t | window right, or tmux pane right |
-| `C-\` | vim-tmux-navigator | n | previous window or pane |
-| `%` | vim-matchup | n, v, o | jump to the matching word; cycles at a closer |
-| `g%` | vim-matchup | n, v, o | jump to the previous matching word |
-| `[%` | vim-matchup | n, v, o | go to the outer opening word |
-| `]%` | vim-matchup | n, v, o | go to the outer closing word |
-| `z%` | vim-matchup | n, v, o | go inside the nearest block |
-| `i%`, `a%` | vim-matchup | v, o | inside or around any block |
-| `<C-G>%` | vim-matchup | i | jump to the matching delimiter, staying in insert mode |
-| `<2-LeftMouse>` | vim-matchup | n | select the matching block |
-| `ys` | vim-surround | n | add surroundings (`ysiw)` and friends) |
-| `yss` | vim-surround | n | surround the whole line |
-| `yS`, `ySs`, `ySS` | vim-surround | n | add surroundings on their own lines |
-| `cs` | vim-surround | n | change surroundings |
-| `cS` | vim-surround | n | change surroundings on their own lines |
-| `ds` | vim-surround | n | delete surroundings |
-| `S` | vim-surround | v | surround the selection |
-| `gS` | vim-surround | v | surround the selection on its own lines |
-| `<C-S>` | vim-surround | i | surround from insert mode |
-| `<C-G>s`, `<C-G>S` | vim-surround | i | surround from insert mode (terminal-safe form) |
-
-`<A-;>` is mapped in both normal and terminal mode; the terminal mapping first
-leaves terminal-normal mode, so it toggles from inside the floating shell too.
-It needs a terminal that sends Alt+; (Ghostty does).
-
-Gitgutter's own maps are disabled with `g:gitgutter_map_keys = 0`, so the hunk
-keys in `dot_vimrc` are the only ones; `]c` and `[c` fall back to Vim's
-built-in change jumps inside a diff buffer. gitgutter still contributes the
-`ih` text object. vim-fugitive adds `y<C-G>` (yank the object under the cursor)
-and `<C-r><C-G>` on the command line; blame and diffs are on the leader keys
-above.
+`<A-;>` comes from vim-floaterm: `dot_vimrc` assigns
+`g:floaterm_keymap_toggle`, and the plugin maps it in normal and terminal
+mode, so it also toggles from inside the floating shell. It needs a terminal
+that sends Alt+; (Ghostty does). Gitgutter's own maps are switched off with
+`g:gitgutter_map_keys = 0`, so the hunk keys above are the only ones. Every
+other plugin key belongs to the plugin and is in its help: `:help dirvish`,
+`:help matchup`, `:help surround`, `:help tmux-navigator`, `:help fugitive`.
 
 ### The dirvish listing
 
-Buffer-local keys in a listing opened with `-` (or `:Dirvish`). `g?` in the
-listing opens the plugin's own help with the complete set.
-
-| Key | Action |
-| --- | --- |
-| `<CR>`, `i` | edit the entry |
-| `o` | open the entry in a horizontal split |
-| `a` | open the entry in a vertical split |
-| `p` | preview the entry in the previous window, keeping focus in the listing |
-| `q`, `gq` | close the listing |
-| `~` | jump to the home directory |
-| `cd` | change directory to the listing; with a count, only the window |
-| `.` | run a shell command on the entry (`:!`) |
-| `x` | add the selection to the argument list |
-| `K` | show information about the entry |
-| `O`, `I`, `A`, `P` | the same split, edit and preview actions for several marked entries |
-| `<C-n>`, `<C-p>` | next or previous entry, previewing it |
-| `Z!` | execute the listing as a shell script (how renames and deletes are applied) |
-
-`-` is a global normal-mode map, so it also works from inside a listing.
+`-` opens the parent directory as a listing, and `[count]-` goes up that many
+levels. The listing's buffer maps are vim-dirvish's; `:help dirvish` lists
+them.
 
 ### The startify screen
 
-Vim's startup screen. The six commands are set in `dot_vimrc`; the rest are
-startify's own buffer mappings.
-
-| Key | Action |
-| --- | --- |
-| `f` | find a file (`:Files`) |
-| `r` | recent files (`:History`) |
-| `g` | find text (`:Rg`) |
-| `c` | edit `~/.vimrc` |
-| `o` | load the session for this directory and branch (`:Load`) |
-| `l` | load the last session (`:Last`) |
-| `e` | open an empty buffer |
-| `i`, `<Insert>` | open an empty buffer and enter insert mode |
-| `q` | quit the buffer, or Vim when no listed buffer is left |
-| `b` | open an entry in the current window |
-| `s` | open an entry in a split |
-| `t` | open an entry in a tab |
-| `v` | open an entry in a vertical split |
-| `B`, `S`, `T`, `V` | the same, for several entries at once |
-| `<CR>`, index key | open the entry under the cursor; the left-hand index is its key |
+`dot_vimrc` fills startify's command list: `f` files, `r` recent files, `g`
+find text, `c` the vimrc, `o` load session, `l` last session. The screen's
+remaining buffer maps are startify's; `:help startify` lists them.
 
 ### The fzf pickers
 
-| Key | Action |
-| --- | --- |
-| `<CR>` | open the selection |
-| `C-t` | open in a new tab |
-| `C-x` | open in a horizontal split |
-| `C-v` | open in a vertical split |
-| `C-e` | in `:History`, load the command on the command line for editing |
+The picker maps — open, split, tab, and `C-e` to pull a history entry onto the
+command line — are fzf.vim's; `:help fzf-vim` lists them.
 
 `<leader>fs` passes the WORD under the cursor, while the which-key label for it
 says "word under cursor".
@@ -233,27 +158,8 @@ These are buffer-local, defined by `s:Markdown()`; nothing else gets them.
 
 ### Emacs-style editing (vim-rsi)
 
-Insert and command-line maps from vim-rsi, which the configuration installs
-without overriding:
-
-| Key | Mode | Action |
-| --- | --- | --- |
-| `C-a` | i | jump to the first non-blank of the line |
-| `C-a` | c | beginning of the command line |
-| `C-b`, `C-f` | i, c | one character back or forward |
-| `C-d` | i, c | delete the character under the cursor, or end of line |
-| `C-e` | i | end of the line |
-| `C-t` | c | transpose two characters |
-| `C-u` | c | clear the line, keeping the head in a register |
-| `C-y` | c | paste the last cleared head |
-| `C-x C-a` | i, c | literal `C-a` |
-| `M-b`, `M-f` | i, c | one word back or forward |
-| `M-d` | i, c | delete a word |
-| `M-n`, `M-p` | i, c | next or previous line |
-| `M-BS`, `M-C-h` | i, c | delete the word before the cursor |
-
-In the terminal, rsi reaches these through the escape sequences it sets for
-`F29` to `F35`, because a plain Vim cannot map Meta keys directly.
+vim-rsi installs its insert and command-line maps unchanged; `:help rsi` lists
+them.
 
 ### Per-machine overrides
 
@@ -307,16 +213,11 @@ tmux. Vim does not use that path; see the conditional clipboard maps above.
 
 ### Keys from tmux plugins
 
-| Key | Plugin | Action |
-| --- | --- | --- |
-| `C-h`, `C-j`, `C-k`, `C-l` | vim-tmux-navigator | move to the pane in that direction, or leave the key to Vim when the pane runs Vim |
-| `C-\` | vim-tmux-navigator | previous pane |
-| `o` | tmux-open (copy mode) | open the selected path or URL in the system application |
-| `C-o` | tmux-open (copy mode) | open the selected path in `$EDITOR` (`vim`) |
-
-vim-tmux-navigator also binds those keys in copy mode, so they move panes while
-scrolling. tmux-open's search-engine keys need `@open-*` options that this
-configuration does not set, so it binds nothing else.
+tmux-open adds copy mode `o` and `C-o` to open the selection in the system
+application or in `$EDITOR`, and its search-engine keys stay unbound because
+this configuration sets no `@open-*` options; `list-keys -T copy-mode-vi` shows
+the table. vim-tmux-navigator's `C-h`, `C-j`, `C-k`, `C-l` and `C-\` bind there
+too.
 
 ## Bash
 
@@ -385,10 +286,8 @@ swap, every `C-` shortcut above moves to the physical Caps Lock position.
 
 ## Deliberately dropped
 
-These keys existed before the migration from Neovim to Vim and were removed on
-purpose. Do not add them back without deciding to reintroduce the behavior. The
-migration and its wider losses are recorded in
-[Vim migration](vim-migration.md).
+These keys came from plugins the configuration no longer installs and were not
+replaced. Do not add them back without deciding to reintroduce the behavior.
 
 | Key | What it was | Why it is gone |
 | --- | --- | --- |
@@ -398,10 +297,7 @@ migration and its wider losses are recorded in
 | dashboard `n` | new file | startify uses `i` |
 | dashboard `s` | load session | startify uses `o`, and `:Load`/`:Last` remain |
 
-Other shapes of the old setup are gone with their plugins, though the keys did
-not move: no-neck-pain's window handling is replaced by goyo on `<leader>tc`,
-oil.nvim's listing by dirvish on `-`, and persistence.nvim by `:Load`/`:Last`.
-`<leader>hu` still exists but now unstages the buffer rather than a single hunk,
-because gitgutter cannot unstage a hunk.
-
-The clipboard maps were not dropped; they are conditional, as described above.
+Window centering is goyo on `<leader>tc`, directory listings are dirvish on
+`-`, and sessions are `:Load`/`:Last`; the plugins that did those jobs before
+are gone, not their keys. `<leader>hu` still exists but unstages the buffer
+rather than a single hunk, because gitgutter cannot unstage a hunk.

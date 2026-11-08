@@ -13,6 +13,9 @@ floaterm's toggle, gitgutter's maps (disabled in favour of the explicit ones in
 config only names its light and dark themes. Per-machine overrides load from
 `~/.vim/init.local.vim`.
 
+Backups and editor state stay outside the working tree: `~/.cache/vim/backup`
+for backups, `~/.local/state/vim` for swap files, undo history and sessions.
+
 `run_onchange_after_vim-plugins.sh.tmpl` sources the snapshot, removes plugins
 the configuration no longer declares, and verifies every plugin against the
 snapshot, because a failed checkout does not fail Vim. Its `include` checksum
@@ -29,7 +32,9 @@ Upgrade in a throwaway `HOME` so the applied configuration stays at the old
 pins until the new snapshot is committed and applied.
 
 The fleet runs Vim 9 from Fedora or Ubuntu, which is well above every
-plugin's minimum. Plugin requirements are in each plugin's README.
+plugin's minimum. Plugin requirements are in each plugin's README. Ubuntu's
+`vim` package is a `-clipboard` build, so the clipboard maps in
+[Shortcuts](shortcuts.md) do not exist there.
 
 Seed the throwaway `HOME` with the config and the current pins:
 
