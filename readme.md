@@ -12,13 +12,11 @@ On a Mac, the apply installs `gh` and `jq` with Homebrew when they are missing,
 and adds the Amp CLI and the Amp app; the app needs Apple silicon and macOS 26.
 
 This repository manages macOS configuration plus Fedora and headless Ubuntu
-provisioning. A Mac gets the shared bash, git, ssh, tmux, Ghostty, vim and Amp
-configuration, but none for the developer tools only Linux provisions: mise,
-opencode, topgrade and git-lfs. Its developer environment is out of scope, and
-gh, jq and Amp are the only tools the apply installs. Package install scripts
-target Fedora Linux and headless Ubuntu, so nothing else installs a Mac's
-applications. Ubuntu servers get the CLI set only: no hugo, YubiKey, Wayland
-clipboard tools, or Ghostty. Other distros are unsupported.
+provisioning; other distros are unsupported. A Mac gets the shared
+configuration and none of the Linux developer tooling; the Mac's apply
+installs only `gh`, `jq`, and the Amp CLI and app. See the
+[Provisioning model](.agents/docs/provisioning.md) for the exact scope.
+Ubuntu servers get the CLI set only.
 
 Install
 -------
