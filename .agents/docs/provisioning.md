@@ -46,11 +46,19 @@ VM policy takes precedence over the other columns.
 travelling 5 NFC. Its machine key is also an authentication fallback for the
 managed SSH destinations and GitHub SSH access.
 
-macOS gets none of the provisioning above: this repository installs no
-applications, package manager, SSH agent, or YubiKey resident key there
-(Apple's OpenSSH has no FIDO provider). It manages the shared configuration,
-the KeePassXC settings, and the iCloud notes symlink, and it creates and
-registers the machine key on GitHub for signing only.
+macOS gets none of the Linux provisioning above: this repository manages no
+Homebrew bundle, SSH agent, or YubiKey resident key there (Apple's OpenSSH
+has no FIDO provider). It manages the shared configuration, the KeePassXC
+settings, and the iCloud notes symlink, and it creates and registers the
+machine key on GitHub for signing only.
+
+`run_onchange_install-macos-tools.sh.tmpl` installs `gh`, for first key
+registration, and `jq`, to derive `~/.allowed_signers`, with the Mac's
+existing Homebrew when either is missing; those are the only tools a Mac's
+apply installs. Nothing provisions mise there, so the managed mise config
+takes effect only on a Mac that already has mise. Each signing script still
+names its own missing tool and fails before the remaining scripts run, because
+registration and the allowlist are part of signing.
 
 Managed SSH configuration applies only to `github.com`,
 `git.terroir.systems`, and `chalon`.

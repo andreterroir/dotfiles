@@ -148,10 +148,12 @@ machine still exists. Hostnames are compared lowercase, so the table's
   explicit repository signing overrides without silent fallback.
 - macOS is managed for configuration only. Its developer environment is out
   of scope: do not reintroduce the Homebrew bundle or bootstrap, the launchd
-  SSH agent, the Homebrew shell environment, or PATH shims. Non-developer
-  macOS configuration (KeePassXC settings, the iCloud notes symlink, terminal
-  and appearance settings) belongs in the tree. Every macOS target is in
-  `managedHosts`, so a Mac gets the full profile, not the transient one.
+  SSH agent, the Homebrew shell environment, or PATH shims. The apply may use
+  the Mac's existing Homebrew to install `gh` and `jq`, the only tools its
+  signing scripts call. Non-developer macOS configuration (KeePassXC settings,
+  the iCloud notes symlink, terminal and appearance settings) belongs in the
+  tree. Every macOS target is in `managedHosts`, so a Mac gets the full
+  profile, not the transient one.
 - Linux provisioning is gated: `.chezmoi.osRelease` is empty off Linux. Nest
   a distro check inside `eq .chezmoi.os "linux"`; `text/template` evaluates
   both sides of `and`, so a combined condition still looks up the missing

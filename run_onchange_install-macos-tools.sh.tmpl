@@ -1,0 +1,24 @@
+{{ if and (eq .chezmoi.os "darwin") (not .transient) -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# The signing scripts need gh to register keys and jq to derive the
+# allowlist. A Mac already has Homebrew, so install just those two rather
+# than reinstating a managed bundle.
+set -euo pipefail
+
+missing=()
+command -v gh >/dev/null 2>&1 || missing+=(gh)
+command -v jq >/dev/null 2>&1 || missing+=(jq)
+if [ "${#missing[@]}" -eq 0 ]; then
+	echo '>gh and jq already installed'
+	exit 0
+fi
+
+if ! command -v brew >/dev/null 2>&1; then
+	echo "error: Homebrew is required to install ${missing[*]}; install it and run chezmoi apply" >&2
+	exit 1
+fi
+
+echo ">installing ${missing[*]} with Homebrew"
+HOMEBREW_NO_AUTO_UPDATE=1 brew install "${missing[@]}"
+{{ end -}}

@@ -145,6 +145,13 @@ if [ "$needs_registration" = false ]; then
 	exit 0
 fi
 
+# Registration is the only step that needs gh, so an installed key pair
+# with nothing to upload still succeeds without it.
+if ! command -v gh >/dev/null 2>&1; then
+	echo 'error: gh is not installed; cannot register public keys with GitHub; install the GitHub CLI and run chezmoi apply' >&2
+	exit 1
+fi
+
 # gh may hold several accounts (work + personal): make $GH_ACCOUNT
 # active so refresh and add never hit another login.
 if gh auth switch --hostname github.com --user "$GH_ACCOUNT" 2>/dev/null; then
