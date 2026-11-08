@@ -11,18 +11,6 @@ export XZ_DEFAULTS=--threads=0
 export ZSTD_COMPRESS=--threads=0
 export LESS=--RAW-CONTROL-CHARS
 
-{{ if eq .chezmoi.os "darwin" -}}
-# Homebrew binaries. User directories are prepended after this so they
-# win.
-if [ -d "/opt/homebrew/" ]; then
-	export HOMEBREW_NO_AUTO_UPDATE
-	eval "$(/opt/homebrew/bin/brew shellenv)"
-	export SSH_AUTH_SOCK="$HOME/.ssh/homebrew-agent.sock"
-	# Use homebrew utilities instead of macOS provided commands
-	PATH="$(brew --prefix)/opt/gnu-sed/libexec/gnubin:$PATH"
-	PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
-fi
-{{ end -}}
 # Prepend user directories; the last prepended is searched first:
 # mise, cargo, go, ~/.bin, ~/bin, ~/.local/bin. Managed binaries live in
 # ~/.bin, so they win over hand-installed ones in ~/bin.
@@ -50,7 +38,7 @@ if [ -f "$HOME/.config/opencode/opencode.local.json" ]; then
 fi
 
 # Agents support SSH authentication, encrypted keys, and opt-in YubiKey signing.
-{{ if .linux.desktop -}}
+{{ if .desktop -}}
 # GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not.
 # gcr advertises every ~/.ssh public key and loads it on demand, so
 # preloading here would only make ssh-add prompt for the machine key's
@@ -59,7 +47,7 @@ if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]; then
 	export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
 fi
 {{ end -}}
-{{ if and .server (eq .chezmoi.os "linux") -}}
+{{ if .server -}}
 # The ssh-agent user service owns this socket and loads the machine key
 # at boot; a forwarded agent, when present, takes precedence.
 if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/ssh-agent.sock" ]; then

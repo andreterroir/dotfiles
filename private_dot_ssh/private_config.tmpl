@@ -1,15 +1,6 @@
-{{ if eq .chezmoi.os "darwin" -}}
-IgnoreUnknown UseKeychain
-{{ end -}}
 Include ~/.ssh/local_config
-{{- if eq .chezmoi.os "darwin" }}
-Include ~/.colima/ssh_config
-{{- end }}
 Host *
 	AddKeysToAgent yes
-	{{- if eq .chezmoi.os "darwin" }}
-	UseKeychain yes
-	{{- end }}
 	HashKnownHosts no
 	IdentityFile none
 

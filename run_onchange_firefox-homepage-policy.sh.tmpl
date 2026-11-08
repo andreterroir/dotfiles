@@ -1,5 +1,4 @@
-{{ if eq .chezmoi.os "linux" -}}
-{{   if and (eq .chezmoi.osRelease.id "fedora") .linux.desktop -}}
+{{ if and (eq .chezmoi.osRelease.id "fedora") .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Fedora ships the start page as a package default that every firefox update
@@ -19,5 +18,4 @@ fi
 
 sudo install -D -m 0644 "$source_file" "$policy"
 echo '>firefox homepage policy installed'
-{{   end -}}
 {{ end -}}

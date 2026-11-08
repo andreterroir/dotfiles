@@ -2,18 +2,7 @@
 no_self_update = true
 disable = [
     "vim",
-{{- if eq .chezmoi.os "darwin" }}
-    "mas",
-    "microsoft_office",
-    "system",
-{{ end -}}
 ]
 assume_yes = true
-
-{{- if eq .chezmoi.os "darwin" }}
-[brew]
-greedy_cask = true
-autoremove = true
-{{ end -}}
 
 # vim: ft=toml

@@ -26,11 +26,6 @@ is_approved_yubikey() {
 	return 1
 }
 
-{{ if eq .chezmoi.os "darwin" -}}
-PATH="/opt/homebrew/opt/openssh/bin:$PATH"
-export PATH
-{{ end -}}
-
 # Every machine signs commits with its own ed25519 key by default.
 MACHINE_KEY="$HOME/.ssh/id_ed25519"
 identity_changed=false

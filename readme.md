@@ -7,7 +7,9 @@ Prerequisites
 - curl
 - git
 
-Package install scripts target macOS, Fedora Linux, and headless Ubuntu.
+This repository manages Linux only; macOS is no longer supported, and an
+existing macOS setup keeps whatever this repository applied before.
+Package install scripts target Fedora Linux and headless Ubuntu.
 Ubuntu servers get the CLI set only: no hugo, YubiKey, or Wayland clipboard
 tools. Other distros are unsupported.
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra; Ubuntu
@@ -42,9 +44,9 @@ Provisioning
 ------------
 
 Desktop/server role selects tooling; VMs keep that tooling but do not get
-password-manager apps. Desktops install KeePassXC, and macOS also installs
-KeePassium from the Mac App Store. KeePassXC user settings are managed;
-the database is not, and KeeShare settings are deliberately excluded.
+password-manager apps. Desktops install KeePassXC. KeePassXC user settings
+are managed; the database is not, and KeeShare settings are deliberately
+excluded.
 See the [Provisioning model](.agents/docs/provisioning.md) for role
 detection, VM configuration, credentials, sudo, and background services.
 After changing `vm`, run `chezmoi init` before apply or update.

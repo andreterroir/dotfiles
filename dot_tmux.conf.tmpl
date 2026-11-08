@@ -30,13 +30,10 @@ bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 bind-key -T copy-mode-vi Y send-keys -X copy-end-of-line-and-cancel
 bind-key -T copy-mode-vi C-y send-keys -X copy-line-and-cancel
 set-option -g set-clipboard on
-{{- if .linux.desktop }}
+{{- if .desktop }}
 bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel wl-copy
 bind-key -T prefix * run "wl-paste --primary | tmux load-buffer - ; tmux paste-buffer"
 bind-key -T prefix + run "wl-paste | tmux load-buffer - ; tmux paste-buffer"
-{{- else if eq .chezmoi.os "darwin" }}
-bind-key -T prefix * run 'pbpaste | tmux load-buffer - ; tmux paste-buffer'
-bind-key -T prefix + run 'pbpaste | tmux load-buffer - ; tmux paste-buffer'
 {{- end }}
 
 # Restore layout, visible pane text and a few cheap programs after a reboot.
@@ -55,20 +52,11 @@ set -g @plugin 'ctrlmachine/tmux-amp-theme'
 # Keep these after amp-theme: continuum prepends its autosave hook to status-right.
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
-{{- if eq .chezmoi.os "darwin" }}
-set -g @plugin 'erikw/tmux-dark-notify'
-set -g @dark-notify-theme-path-light '$HOME/.config/tmux/amp-light.conf'
-set -g @dark-notify-theme-path-dark '$HOME/.config/tmux/amp-dark.conf'
-# Homebrew is only added to PATH in .bash_profile which is loaded by shell later
-set-environment -g PATH "/opt/homebrew/bin:$PATH"
-{{- else }}
 set -g @amp-theme-appearance 'auto'
-{{- end }}
 run '~/.tmux/plugins/tpm/tpm'
 # Override after plugins load — amp-theme overwrites these if set earlier.
-# amp-{dark,light}.conf repeat status-right; dark-notify re-runs the theme.
 # Continuum's autosave runs from a status-right hook it prepends at load, which
-# these overrides replace, so the hook is repeated here and in the theme files.
+# these overrides replace, so the hook is repeated here.
 set -g window-status-current-style 'fg=blue,bold'
 set -g status-right-length 60
 set -g status-right "#(~/.tmux/plugins/tmux-continuum/scripts/continuum_save.sh)#[bg=#161616,fg=#B8AFA0] #{b:pane_current_path} #[bg=#E7894C,fg=#0F0F0F,bold] %H:%M %a %d %b "

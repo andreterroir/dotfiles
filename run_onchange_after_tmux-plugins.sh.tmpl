@@ -4,11 +4,6 @@ set -euo pipefail
 
 # {{ include "dot_tmux.conf.tmpl" | sha256sum }}
 
-# A fresh macOS bootstrap has not put Homebrew on chezmoi's PATH yet.
-if [ -x /opt/homebrew/bin/tmux ]; then
-	PATH="/opt/homebrew/bin:$PATH"
-fi
-
 if ! command -v tmux >/dev/null 2>&1; then
 	echo '>tmux-plugins: tmux is not installed; skipping' >&2
 	exit 0

@@ -1,5 +1,4 @@
-{{ if eq .chezmoi.os "linux" -}}
-{{   if and (eq .chezmoi.osRelease.id "fedora") .linux.desktop -}}
+{{ if and (eq .chezmoi.osRelease.id "fedora") .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail
@@ -69,5 +68,4 @@ write("enabled-extensions", enabled + [uuid for uuid in wanted if uuid not in en
 disabled = read("disabled-extensions")
 write("disabled-extensions", [uuid for uuid in disabled if uuid not in wanted])
 PY
-{{   end -}}
 {{ end -}}

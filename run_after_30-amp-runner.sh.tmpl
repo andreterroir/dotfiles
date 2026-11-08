@@ -1,4 +1,3 @@
-{{ if eq .chezmoi.os "linux" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Run the Amp runner that serves ~/code on every Linux machine, so
@@ -54,4 +53,3 @@ fi
 
 mkdir -p "$(dirname "$state_file")"
 printf '%s %s\n' "$unit_hash" "$binary_hash" >"$state_file"
-{{ end -}}

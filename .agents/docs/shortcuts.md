@@ -281,9 +281,9 @@ uses vi keys.
 | `<prefix>C-l` | send `C-l` to the pane (clears the screen) |
 | `<prefix>C-\` | send `C-\` to the pane |
 
-`<prefix>*` and `<prefix>+` read the selection with `wl-paste` on Linux
-desktops and `pbpaste` on macOS; no other target gets them. `C-l` and `C-\`
-are sent through because vim-tmux-navigator takes the unprefixed keys.
+`<prefix>*` and `<prefix>+` read the selection with `wl-paste`; only
+desktops get them. `C-l` and `C-\` are sent through because
+vim-tmux-navigator takes the unprefixed keys.
 
 tmux's own bindings are unchanged around these: `<prefix>"` and `<prefix>%`
 still split, and `<prefix>z` (zoom), `<prefix>x` (kill pane), `<prefix>c` (new
@@ -300,7 +300,7 @@ work.
 | `y` | copy the selection and leave copy mode |
 | `Y` | copy to the end of the line and leave |
 | `C-y` | copy the line and leave |
-| `Enter` | copy the selection to `wl-copy` and leave (Linux desktops only) |
+| `Enter` | copy the selection to `wl-copy` and leave (desktops only) |
 
 `set-clipboard on` lets programs that emit OSC 52 write the clipboard through
 tmux. Vim does not use that path; see the conditional clipboard maps above.
@@ -373,15 +373,15 @@ fullscreen:
 
 | Key | Action |
 | --- | --- |
-| `Super+=` on Linux, `Cmd+=` on macOS | toggle the quick terminal (global, works from any app) |
+| `Super+=` | toggle the quick terminal (global, works from any app) |
 | `F11` | toggle fullscreen |
 
 ## Keyboard
 
 `~/.bin/swap_ctrl_caps` toggles the `ctrl:swapcaps` xkb option while preserving
-the other options. It is a GNOME tool, installed on Linux only (`.chezmoiignore`
-drops it on macOS), and it changes the layout rather than binding a key: after a
-swap, every `C-` shortcut above moves to the physical Caps Lock position.
+the other options. It is a GNOME tool, and it changes the layout rather than
+binding a key: after a swap, every `C-` shortcut above moves to the physical
+Caps Lock position.
 
 ## Deliberately dropped
 
@@ -397,6 +397,8 @@ migration and its wider losses are recorded in
 | `<leader>hi` | inline hunk preview | no inline preview; `<leader>hp` previews in a split |
 | dashboard `n` | new file | startify uses `i` |
 | dashboard `s` | load session | startify uses `o`, and `:Load`/`:Last` remain |
+| `Cmd+=` (macOS) | Ghostty quick terminal | macOS is no longer managed; `Super+=` is the only binding |
+| `<prefix>*`, `<prefix>+` via `pbpaste` (macOS) | paste from the macOS clipboard | macOS is no longer managed; the bindings read `wl-paste` |
 
 Other shapes of the old setup are gone with their plugins, though the keys did
 not move: no-neck-pain's window handling is replaced by goyo on `<leader>tc`,

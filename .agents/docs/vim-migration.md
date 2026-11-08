@@ -34,7 +34,6 @@ Neovim left the rest of the repository with it:
 | --- | --- | --- |
 | Fedora packages | `neovim` | `vim-enhanced` |
 | Ubuntu packages | `neovim` | `vim` |
-| Homebrew packages | `neovim` | `vim` |
 | `EDITOR` in `dot_bash_profile.tmpl` | `nvim` | `vim` |
 | `v` and `vi` aliases in `dot_bashrc` | `nvim` | `vim` |
 | Git editor `~/.bin/git-editor` | `exec nvim` | `exec vim` |

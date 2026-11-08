@@ -28,8 +28,8 @@ simply keeps its last commit.
 Upgrade in a throwaway `HOME` so the applied configuration stays at the old
 pins until the new snapshot is committed and applied.
 
-The fleet runs Vim 9 from Homebrew, Fedora, or Ubuntu, which is well above
-every plugin's minimum. Plugin requirements are in each plugin's README.
+The fleet runs Vim 9 from Fedora or Ubuntu, which is well above every
+plugin's minimum. Plugin requirements are in each plugin's README.
 
 Seed the throwaway `HOME` with the config and the current pins:
 
@@ -97,8 +97,8 @@ APIs, so breakage shows up here rather than in startup:
 | fzf.vim | `:Files`, `:Rg`, `:Maps`, `:History`, `:Helptags` |
 | vim-fugitive | `:Git add`, `:Git restore`, `:Git blame`, `:Gdiffsplit` |
 
-fzf.vim requires fzf 0.63 or newer. Homebrew and Fedora ship newer releases,
-and Ubuntu 26.04 ships 0.67. On Ubuntu 24.04, whose package is 0.44, the first
+fzf.vim requires fzf 0.63 or newer. Fedora ships a newer release, and
+Ubuntu 26.04 ships 0.67. On Ubuntu 24.04, whose package is 0.44, the first
 picker offers to download a binary into the plugin directory instead.
 
 ## Regenerating the pin

@@ -34,20 +34,17 @@ Neovim changed and which capabilities it dropped.
 `run_onchange_install-*-packages` runs before
 `run_onchange_set-up-default-shell` (which runs `chsh`). Scripts with a
 `run_after_` prefix run after all of those, whatever their name, so a
-script that needs a tool the package script installs belongs there. On
-macOS the install script provides Homebrew Bash; Fedora and Ubuntu use
-the distro Bash, which is already present. Keep this ordering in
-mind when adding `run_*` scripts whose preconditions are installed
-by another script.
+script that needs a tool the package script installs belongs there.
+Fedora and Ubuntu use the distro Bash, which is already present. Keep this
+ordering in mind when adding `run_*` scripts whose preconditions are
+installed by another script.
 
 ## File conventions
 
 - `dot_*`            → `~/.<name>` (e.g. `dot_gitconfig.tmpl` → `~/.gitconfig`)
 - `private_*`        → target with restricted (`0700`) permissions
-- `*.tmpl`           → chezmoi templates; use `{{ }}`, gate on
-                       `.chezmoi.os` ("linux"/"darwin") and the role data
-                       variables (`desktop`, `linux.desktop`, `server`, `vm`,
-                       `keepass`)
+- `*.tmpl`           → chezmoi templates; use `{{ }}` and the role data
+                       variables (`desktop`, `server`, `vm`, `keepass`)
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run at most once
 - `symlink_*`        → emit a symlink whose target is the file's contents
@@ -105,15 +102,14 @@ keep pointing at `~/code/dotfiles`.
 
 Every hostname this repository names, whether a `chezmoi.hostname` that
 templates gate on or an SSH destination. Role is derived at bootstrap from
-the OS, not from the hostname, and describes only the machines chezmoi
-manages (see Boundaries).
+the machine itself (`gnome-shell` on PATH, `systemd-detect-virt`), not from
+the hostname, and describes only the machines chezmoi manages (see
+Boundaries).
 
 | Hostname | OS | Role | Notes |
 | --- | --- | --- | --- |
-| slate | macOS | desktop | the only work machine |
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
 | black | Fedora Linux | desktop | the desktop workstation |
-| Chloes-MBP | macOS | desktop | a laptop |
 | slate-vm-work | Fedora Linux | desktop, vm | VM without password-manager apps; YubiKey optional |
 | greenhouse | Ubuntu Linux | server | headless Amp runner; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
@@ -121,7 +117,8 @@ manages (see Boundaries).
 
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
-machine still exists.
+machine still exists. `slate` and `Chloes-MBP` were macOS chezmoi targets and
+are no longer managed: the repository supports Linux only.
 
 ## Boundaries
 
@@ -131,9 +128,10 @@ machine still exists.
   [Commit signing](.agents/docs/signing.md) for signing and agents.
 - VM machine keys are GitHub authentication fallbacks only. Preserve
   explicit repository signing overrides without silent fallback.
-- `.chezmoi.osRelease` is empty off Linux. Nest a distro check inside
-  `eq .chezmoi.os "linux"`; `text/template` evaluates both sides of
-  `and`, so a combined condition still looks up the missing `id` key.
+- Linux only: `.chezmoi.toml.tmpl` and `.chezmoiignore.tmpl` fail on any
+  other platform, so templates and `run_*` scripts may assume Linux. Do not
+  reintroduce `eq .chezmoi.os "linux"` guards; put new platform support
+  behind that fail instead.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
   running scripts) rather than `chezmoi source-path`: a nested
   `chezmoi` invocation deadlocks on the parent `chezmoi apply`'s

@@ -1,3 +1,6 @@
+{{- if ne .chezmoi.os "linux" -}}
+{{- fail (printf "this repository manages Linux only; %s is not supported" .chezmoi.os) -}}
+{{- end -}}
 {{- if not (hasKey . "keepass") -}}
 {{- fail "KeePass provisioning policy is missing; run chezmoi init before apply or update" -}}
 {{- end -}}
@@ -10,33 +13,16 @@ license
 readme.md
 plug-snapshot.vim
 install.sh
-{{ if eq .chezmoi.os "linux" -}}
-icloud
-{{ end -}}
-{{ if eq .chezmoi.os "darwin" -}}
-# the target path, not the dot_bin/ source name
-.bin/swap_ctrl_caps
-{{ end -}}
-{{ if ne .chezmoi.os "darwin" -}}
-Library
-{{ else if not .keepass -}}
-Library/Application Support/KeePassXC
-{{ end -}}
-{{ if or (ne .chezmoi.os "linux") (not .keepass) -}}
+{{ if not .keepass -}}
 .config/keepassxc
 {{ end -}}
-{{ if eq .chezmoi.os "linux" -}}
-{{   if not .server -}}
+{{ if not .server -}}
 .config/systemd/user/ssh-agent.service
-{{   end -}}
-{{   if not .linux.desktop -}}
+{{ end -}}
+{{ if not .desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
-{{   end -}}
-{{   if not (and (eq .chezmoi.osRelease.id "fedora") .linux.desktop) -}}
-.config/autostart/syncthing-start.desktop
-{{   end -}}
-{{ else -}}
-.config/systemd
+{{ end -}}
+{{ if not (and (eq .chezmoi.osRelease.id "fedora") .desktop) -}}
 .config/autostart/syncthing-start.desktop
 {{ end -}}
 .config/opencode/opencode.local.json

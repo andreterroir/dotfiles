@@ -67,29 +67,6 @@ them in the platform agent. For server/VM key requirements, see
 Existing agents remain configured for SSH authentication, encrypted desktop
 keys, and optional YubiKey signing.
 
-### macOS
-
-Apple's OpenSSH has no FIDO provider (`ssh-keygen -t ed25519-sk` fails with
-"No FIDO SecurityKeyProvider specified", and `ssh-keygen -K` with "Cannot
-download keys without provider"), so the `openssh` formula provides the
-binaries and `run_after_10-ssh-identity.sh.tmpl` prepends
-`/opt/homebrew/opt/openssh/bin` to `PATH`.
-
-The system agent (`com.openssh.ssh-agent`, the default `SSH_AUTH_SOCK`) loads a
-resident key but refuses FIDO signatures with "agent refused operation", so
-YubiKey operations use Homebrew's agent.
-`Library/LaunchAgents/systems.terroir.homebrew-ssh-agent.plist` runs
-`~/.bin/homebrew-ssh-agent`, bootstrapped by
-`run_onchange_after_11-homebrew-ssh-agent.sh.tmpl`; it serves
-`~/.ssh/homebrew-agent.sock` and loads the resident and machine keys.
-The desktop machine key is normally passphrase-protected, and only the
-system `ssh-add` can unlock it from the Keychain, so the wrapper loads it with
-`/usr/bin/ssh-add --apple-use-keychain`; Homebrew's `ssh-add` has no Keychain
-support.
-`dot_bash_profile.tmpl` and `dot_bashrc` export `SSH_AUTH_SOCK` at that socket.
-`UseKeychain` and `AddKeysToAgent` in `private_dot_ssh/private_config.tmpl`
-concern `ssh`, not this signing path.
-
 ### Fedora GNOME desktop
 
 GNOME 46 moved SSH support out of `gnome-keyring-daemon` into gcr's

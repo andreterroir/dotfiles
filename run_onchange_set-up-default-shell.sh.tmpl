@@ -2,17 +2,7 @@
 # vi: set ft=bash
 set -euo pipefail
 
-{{ if eq .chezmoi.os "darwin" -}}
-# macOS ships Bash 3.2, which is too old for the interactive config.
-# install-macos-packages sorts first and installs this binary.
-bash_path="/opt/homebrew/bin/bash"
-if [ ! -x "$bash_path" ]; then
-	echo "Homebrew Bash is not installed at $bash_path" >&2
-	exit 1
-fi
-{{ else -}}
-bash_path="/bin/bash"
-{{ end -}}
+bash_path=/bin/bash
 if ! grep --quiet --line-regexp --fixed-strings "$bash_path" /etc/shells; then
 	echo "$bash_path" | sudo tee -a /etc/shells
 fi

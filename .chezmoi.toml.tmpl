@@ -1,10 +1,13 @@
+{{- if ne .chezmoi.os "linux" -}}
+{{- fail (printf "this repository manages Linux only; %s is not supported" .chezmoi.os) -}}
+{{- end -}}
 {{- $vm := false -}}
 {{- if hasKey . "vm" -}}
     {{- $vm = .vm -}}
-{{- else if eq .chezmoi.os "linux" -}}
+{{- else -}}
     {{- $vm = eq (output "sh" "-c" "systemd-detect-virt --vm --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
 {{- end -}}
-{{- $desktop := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") -}}
+{{- $desktop := ne (lookPath "gnome-shell") "" -}}
 {{- $keepass := and $desktop (not $vm) -}}
 sourceDir = "{{ .chezmoi.sourceDir }}"
 
@@ -17,5 +20,4 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
     vm = {{ $vm }}
     keepass = {{ $keepass }}
     desktop = {{ $desktop }}
-    linux.desktop = {{ and $desktop (eq .chezmoi.os "linux") }}
     server = {{ not $desktop }}
