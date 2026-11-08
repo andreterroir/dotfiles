@@ -20,7 +20,7 @@
 {{- $transient := false -}}
 {{- $signal := lower (env "CHEZMOI_TRANSIENT") -}}
 {{- if eq $signal "" -}}
-    {{- $transient = or (ne (env "AMP_ORB") "") $container (not $known) -}}
+    {{- $transient = or $container (not $known) -}}
 {{- else if not (or (eq $signal "0") (eq $signal "false")) -}}
     {{- $transient = true -}}
 {{- end -}}

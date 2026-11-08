@@ -3,6 +3,11 @@
 # (no repo, no chezmoi), see readme.md.
 set -eu
 
+if [ -n "${AMP_ORB:-}" ]; then
+	echo "Amp orbs are not a supported target; this set-up does not run inside one." >&2
+	exit 1
+fi
+
 transient=false
 remaining=$#
 while [ "$remaining" -gt 0 ]; do

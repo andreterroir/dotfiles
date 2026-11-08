@@ -1,3 +1,6 @@
+{{- if ne (env "AMP_ORB") "" -}}
+{{- fail "Amp orbs are not a supported target; this set-up does not run inside one" -}}
+{{- end -}}
 {{- if not (hasKey . "keepass") -}}
 {{- fail "KeePass provisioning policy is missing; run chezmoi init before apply or update" -}}
 {{- end -}}

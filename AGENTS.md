@@ -73,9 +73,10 @@ instead. When the checkout is a linked worktree, use
 `chezmoi --source "$(git rev-parse --show-toplevel)"` to validate that
 worktree regardless of the configured source.
 
-A transient environment — an orb, a container, or a hostname outside
+A transient environment — a container, or a hostname outside
 `managedHosts` — runs `./install.sh --transient`; see
-[Transient profile](.agents/docs/transient.md) for detection.
+[Transient profile](.agents/docs/transient.md) for detection. Amp
+orbs are not targets at all: the set-up refuses to run inside one.
 
 0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.

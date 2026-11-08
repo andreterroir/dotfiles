@@ -1,9 +1,14 @@
 # Transient profile
 
-A transient environment is a machine that may be discarded: an Amp orb, a
-container, or a hostname outside `managedHosts` (including an unlisted VM).
-The profile applies the full configuration inside that machine, but
-establishes no identity and changes nothing outside it.
+A transient environment is a machine that may be discarded: a container, or a
+hostname outside `managedHosts` (including an unlisted VM). The profile applies
+the full configuration inside that machine, but establishes no identity and
+changes nothing outside it.
+
+Amp orbs are not targets at all: an orb is neither a standard environment nor
+one this repository controls, so the set-up refuses to run inside one.
+`install.sh` aborts, and an apply fails in `.chezmoiignore.tmpl`, both keyed on
+the orb's `AMP_ORB` variable.
 
 ## Invocation
 
@@ -54,10 +59,9 @@ Init derives and persists the `transient` value:
 
 - `CHEZMOI_TRANSIENT` wins when set. Any value except `0` or `false` enables
   the profile; `0` or `false` disables it.
-- Otherwise the profile is enabled when `AMP_ORB` is set, when Linux reports
-  a container (`systemd-detect-virt --container`), or when
-  `chezmoi.hostname` is not in `managedHosts`. An unlisted VM is transient
-  through its hostname.
+- Otherwise the profile is enabled when Linux reports a container
+  (`systemd-detect-virt --container`) or when `chezmoi.hostname` is not in
+  `managedHosts`. An unlisted VM is transient through its hostname.
 - `managedHosts` in `.chezmoidata.toml` lists the chezmoi targets as lowercase
   short hostnames. Matching strips a `.local` suffix and ignores case. Keep it
   in sync with the Machines table in `AGENTS.md`; SSH-only destinations are
