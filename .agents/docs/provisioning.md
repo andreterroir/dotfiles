@@ -167,6 +167,12 @@ serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 keeps the runner up without a login, as it does for the servers' ssh-agent.
 Transient environments skip this setup; see [Transient profile](transient.md).
 
+Running the runner on every non-transient machine, servers included, is
+deliberate: threads must be able to reach every machine from ampcode.com.
+The cost is that whoever controls that Amp account can run code on all of
+them, and, through the VMs' passwordless sudo, as root on the VMs; share a
+runner workspace only with people trusted on the machine.
+
 The script re-runs when the unit, Amp's settings, or the script itself
 changes: header comments checksum the unit file and
 `~/.config/amp/settings.json`, and chezmoi re-runs a `run_onchange_` script
