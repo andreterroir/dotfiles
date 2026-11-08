@@ -1,6 +1,6 @@
 [user]
 	name = André Terroir
-	email = andre@terroir.systems
+	email = {{ .gitEmail }}
 {{- if not .transient }}
 	signingKey = "{{ .chezmoi.homeDir }}/.ssh/id_ed25519"
 {{- end }}

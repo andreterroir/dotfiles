@@ -1,3 +1,8 @@
+# Identity constants used by the Git config, the SSH identity script, and
+# the signature allowlist. Keep in sync with the GitHub account.
+githubAccount = "andreterroir"
+gitEmail = "andre@terroir.systems"
+
 # Chezmoi targets as lowercase short hostnames. Unknown hostnames, including
 # unlisted VMs, are transient; keep in sync with the Machines table in
 # AGENTS.md.

@@ -20,8 +20,10 @@ if [ ! -t 0 ]; then
 fi
 {{ end -}}
 
-GH_ACCOUNT=andreterroir
-{{ includeTemplate ".chezmoitemplates/approved-yubikeys.bash" . }}
+GH_ACCOUNT={{ .githubAccount }}
+approved_yubikeys=(
+{{ range .approvedYubiKeys }}	'{{ . }}'
+{{ end }})
 is_approved_yubikey() {
 	local key="$1" approved_yubikey
 	for approved_yubikey in "${approved_yubikeys[@]}"; do
