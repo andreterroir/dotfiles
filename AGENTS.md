@@ -135,6 +135,9 @@ machine still exists. Hostnames are compared lowercase, so the table's
 `Chloes-MBP` is `chloes-mbp` in `managedHosts`. `server` is not
 greenhouse-specific: personal servers remain first-class targets in that role.
 
+Fedora desktops upgrade in place between releases; see
+[Fedora upgrades](.agents/docs/upgrades.md).
+
 ## Boundaries
 
 - Deploy a tool's configuration only where a package script installs the

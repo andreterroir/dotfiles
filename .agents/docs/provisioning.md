@@ -41,6 +41,14 @@ application itself is not provisioned. Apply replaces the whole file, so
 KeeShare settings are deliberately omitted and any local KeeShare key is
 discarded. Neither the database nor its synchronization is provisioned here.
 
+## Package sources
+
+Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra; Ubuntu takes
+mise from mise's own apt repository. Fedora desktops skip Spotify on ARM
+because its Flathub package is x86_64-only. Chezmoi downloads the two
+configured Ghostty themes from a pinned upstream revision because Terra's
+Ghostty package omits bundled themes.
+
 ## Authentication and sudo
 
 VM policy takes precedence over the other columns.
@@ -127,8 +135,10 @@ and enables Window Navigator, Launch New Instance, Night Theme Switcher, and
 AppIndicator support. Fedora packages all but Night Theme Switcher, so `dnf`
 updates those. Night Theme Switcher comes from extensions.gnome.org, where each
 build targets one shell version: it is fetched for the running shell and
-reinstalled whenever the script changes. Enabling writes the `org.gnome.shell`
-key the Shell watches, so a fresh install takes effect at the next login.
+reinstalled whenever the script changes, which includes a Fedora release
+upgrade; see [Fedora upgrades](upgrades.md). Enabling writes the
+`org.gnome.shell` key the Shell watches, so a fresh install takes effect at the
+next login.
 
 ## Syncthing
 
