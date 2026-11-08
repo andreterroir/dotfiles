@@ -44,7 +44,8 @@ installed by another script.
 - `*.tmpl`           → chezmoi templates; use `{{ }}`, gate on
                        `.chezmoi.os` ("linux"/"darwin") and the role data
                        variables (`desktop`, `linux.desktop`, `server`, `vm`,
-                       `keepass`, `transient`)
+                       `transient`); derive `desktop && !vm` for KeePass
+                       gating
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run at most once
 - `symlink_*`        → emit a symlink whose target is the file's contents

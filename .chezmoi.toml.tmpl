@@ -7,7 +7,6 @@
 {{- $container := false -}}
 {{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
 {{- $desktop := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") -}}
-{{- $keepass := and $desktop (not $vm) -}}
 {{- $known := false -}}
 {{- $dataFile := joinPath .chezmoi.sourceDir ".chezmoidata.toml" -}}
 {{- if stat $dataFile -}}
@@ -33,7 +32,6 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}", "{{ "{{ .Target }}" }}"]
 [data]
     vm = {{ $vm }}
-    keepass = {{ $keepass }}
     desktop = {{ $desktop }}
     linux.desktop = {{ and $desktop (eq .chezmoi.os "linux") }}
     server = {{ not $desktop }}

@@ -42,7 +42,7 @@ sudo dnf install -y \
 	gnome-shell-extension-launch-new-instance \
 	gnome-shell-extension-windowsNavigator \
 	gnome-tweaks \
-{{ if .keepass }}	keepassxc \
+{{ if and .desktop (not .vm) }}	keepassxc \
 {{ end }}	make \
 	meld \
 	powertop \

@@ -1,12 +1,6 @@
 {{- if ne (env "AMP_ORB") "" -}}
 {{- fail "Amp orbs are not a supported target; this set-up does not run inside one" -}}
 {{- end -}}
-{{- if not (hasKey . "keepass") -}}
-{{- fail "KeePass provisioning policy is missing; run chezmoi init before apply or update" -}}
-{{- end -}}
-{{- if ne .keepass (and .desktop (not .vm)) -}}
-{{- fail "KeePass provisioning policy is stale; run chezmoi init before apply or update" -}}
-{{- end -}}
 {{- if not (hasKey . "transient") -}}
 {{- fail "Transient provisioning policy is missing; run chezmoi init before apply or update" -}}
 {{- end -}}
@@ -25,10 +19,10 @@ icloud
 {{ end -}}
 {{ if ne .chezmoi.os "darwin" -}}
 Library
-{{ else if not .keepass -}}
+{{ else if and .desktop (not .vm) -}}
 Library/Application Support/KeePassXC
 {{ end -}}
-{{ if or (ne .chezmoi.os "linux") (not .keepass) -}}
+{{ if or (ne .chezmoi.os "linux") (and .desktop (not .vm)) -}}
 .config/keepassxc
 {{ end -}}
 {{ if .transient -}}

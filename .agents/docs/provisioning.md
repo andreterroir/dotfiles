@@ -8,9 +8,8 @@ and [Commit signing](signing.md) for signing configuration and agent setup.
 
 Init derives the data keys in `.chezmoi.toml.tmpl` from the machine and
 persists them in `~/.config/chezmoi/chezmoi.toml`. Templates and `run_*`
-scripts gate on these keys, never on a hostname. A config whose `keepass` or
-`transient` key is missing, or whose `keepass` no longer matches
-`desktop && !vm`, fails apply with "run chezmoi init before apply or update".
+scripts gate on these keys, never on a hostname. A config whose `transient`
+key is missing fails apply with "run chezmoi init before apply or update".
 
 | Key | Chosen by | Selects |
 | --- | --- | --- |
@@ -18,7 +17,6 @@ scripts gate on these keys, never on a hostname. A config whose `keepass` or
 | `linux.desktop` | `desktop` on Linux | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
 | `server` | `!desktop` | the headless package set, and topgrade on Ubuntu servers via mise |
 | `vm` | `systemd-detect-virt --vm` on Linux, otherwise false; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public identities and SSH fallbacks, and the role's own tooling |
-| `keepass` | `desktop && !vm` | the KeePassXC package on Linux and its managed settings file on Linux and macOS |
 | `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, the Amp runner, and the macOS `gh` and `jq` install; see [Transient profile](transient.md) |
 
 `desktop`, `linux.desktop`, and `server` are derived and have no switch. `vm`
@@ -33,8 +31,9 @@ A VM whose hostname is not in `managedHosts` is transient (see
 [Transient profile](transient.md)); a managed VM such as `slate-vm-work`
 keeps the machine-key policy below.
 
-Linux desktops install KeePassXC. Init derives `keepass` as `desktop && !vm` so
-servers and VMs install no password manager. KeePassXC user settings are
+Linux desktops install KeePassXC. Templates derive the KeePass policy as
+`desktop && !vm`, so servers and VMs install no password manager. KeePassXC
+user settings are
 managed at `~/.config/keepassxc/keepassxc.ini` on Linux and at
 `~/Library/Application Support/KeePassXC/keepassxc.ini` on macOS, where the
 application itself is not provisioned. Apply replaces the whole file, so
