@@ -52,10 +52,28 @@ if [ -z "$current_branch" ]; then
     exit 1
 fi
 
-main_path=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
+main_path=$(git worktree list --porcelain |
+    awk '/^worktree / && !seen { print substr($0, 10); seen = 1 }')
 
+# Relative path from the main worktree, for display only. Both arguments are
+# absolute paths from `git worktree list`, so comparing components is enough.
 relpath_from_main() {
-    python3 -c 'import os,sys; sys.stdout.write(os.path.relpath(sys.argv[1], sys.argv[2]))' "$1" "$main_path"
+    from="$main_path" to="$1" awk 'BEGIN {
+        from = ENVIRON["from"]; to = ENVIRON["to"]
+        sub(/\/+$/, "", from)
+        sub(/\/+$/, "", to)
+        if (from == "") from = "/"
+        if (to == "") to = "/"
+        nf = split(from, f, "/")
+        nt = split(to, t, "/")
+        for (i = 1; i <= nf && i <= nt && f[i] == t[i]; i++)
+            ;
+        out = ""
+        for (j = i; j <= nf; j++) if (f[j] != "") out = out "../"
+        for (j = i; j <= nt; j++) if (t[j] != "") out = out t[j] "/"
+        sub(/\/$/, "", out)
+        print (out == "" ? "." : out)
+    }'
 }
 
 run() {
@@ -76,16 +94,15 @@ run git worktree prune
 
 # Branches currently checked out in a worktree cannot be deleted with
 # `git branch -d`; collect them up front so the branch loop can skip them.
-# Ignore prunable entries so dry-run matches the prune above.
-declare -A worktree_branch_paths=()
-while IFS=$'\t' read -r wt_path wt_branch; do
-    [ -n "$wt_path" ] && [ -n "$wt_branch" ] && worktree_branch_paths["$wt_branch"]="$wt_path"
-done < <(git worktree list --porcelain | awk '
+# Prunable entries are ignored so dry-run matches the prune above. This is a
+# plain "branch<TAB>path" list because macOS ships Bash 3.2, which has no
+# associative arrays.
+worktree_branches=$(git worktree list --porcelain | awk '
     /^worktree /   { path = substr($0, 10); branch = ""; prunable = 0; next }
     /^branch refs\/heads\// { branch = substr($0, 19); next }
     /^prunable/    { prunable = 1; next }
-    /^$/           { if (path != "" && branch != "" && !prunable) { print path "\t" branch; path = ""; branch = ""; prunable = 0 } }
-    END            { if (path != "" && branch != "" && !prunable) print path "\t" branch }
+    /^$/           { if (path != "" && branch != "" && !prunable) { print branch "\t" path; path = ""; branch = ""; prunable = 0 } }
+    END            { if (path != "" && branch != "" && !prunable) print branch "\t" path }
 ')
 
 printf '%sBranch cleanup:\n' "$prefix"
@@ -96,9 +113,11 @@ while IFS= read -r branch; do
     case "$branch" in
         main|master|develop) continue ;;
     esac
-    if [ -n "${worktree_branch_paths[$branch]+set}" ]; then
+    worktree_path=$(printf '%s\n' "$worktree_branches" |
+        branch="$branch" awk -F'\t' '$1 == ENVIRON["branch"] { path = $2 } END { print path }')
+    if [ -n "$worktree_path" ]; then
         printf '  %s skipped (checked out in worktree %s)\n' \
-            "$branch" "$(relpath_from_main "${worktree_branch_paths[$branch]}")"
+            "$branch" "$(relpath_from_main "$worktree_path")"
         continue
     fi
     if [ -n "$(git branch --list "$branch" --merged "$current_branch" 2>/dev/null)" ]; then
