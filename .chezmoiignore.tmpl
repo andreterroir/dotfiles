@@ -46,8 +46,7 @@ Library/Application Support/KeePassXC
 {{   if not (and (eq .chezmoi.osRelease.id "fedora") .linux.desktop) -}}
 .config/autostart/syncthing-start.desktop
 {{   end -}}
-{{   if ne .chezmoi.osRelease.id "fedora" -}}
-# only Fedora installs Ghostty
+{{   if not (and (eq .chezmoi.osRelease.id "fedora") .linux.desktop) -}}
 .config/ghostty
 {{   end -}}
 {{ else -}}

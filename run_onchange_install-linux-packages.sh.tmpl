@@ -24,16 +24,12 @@ sudo dnf install -y \
 	fd-find \
 	fzf \
 	gh \
-	ghostty \
 	git-lfs \
 	gnupg2 \
 	golang \
-	hugo \
-	jetbrains-mono-fonts \
 	jq \
 	mise \
 	opencode-cli \
-	pcsc-tools \
 	remove-retired-packages \
 	ripgrep \
 	tree \
@@ -41,8 +37,7 @@ sudo dnf install -y \
 	tmux \
 	topgrade \
 	vim-enhanced \
-	wget2-wget \
-	yubikey-manager
+	wget2-wget
 
 # Fedora no longer ships godoc. Install it with the Go toolchain, as on
 # Ubuntu, using the configured per-user Go cache.
@@ -51,11 +46,10 @@ if [ ! -x "$HOME/.cache/go/bin/godoc" ]; then
 		go install golang.org/x/tools/cmd/godoc@latest
 fi
 
-sudo systemctl enable --now pcscd
-
 {{ if .linux.desktop -}}
 sudo dnf install -y \
 	ImageMagick \
+	ghostty \
 	gnome-extensions-app \
 	gnome-shell-extension-appindicator \
 	gnome-shell-extension-launch-new-instance \
@@ -67,7 +61,13 @@ sudo dnf install -y \
 	powertop \
 	syncthing \
 	wl-clipboard \
-	yt-dlp
+	yt-dlp \
+	hugo \
+	jetbrains-mono-fonts \
+	yubikey-manager \
+	pcsc-tools
+
+sudo systemctl enable --now pcscd
 
 # Spotify's Flathub package is x86_64-only.
 flatpak install --assumeyes \
