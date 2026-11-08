@@ -176,10 +176,5 @@ if [ ! -x "$HOME/.local/bin/amp" ]; then
 	echo '>installing amp'
 	curl -fsSL https://ampcode.com/install.sh | bash
 fi
-
-if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-	echo '>installing TPM'
-	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-fi
 {{   end -}}
 {{ end -}}

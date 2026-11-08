@@ -61,11 +61,10 @@ set -g @dark-notify-theme-path-light '$HOME/.config/tmux/amp-light.conf'
 set -g @dark-notify-theme-path-dark '$HOME/.config/tmux/amp-dark.conf'
 # Homebrew is only added to PATH in .bash_profile which is loaded by shell later
 set-environment -g PATH "/opt/homebrew/bin:$PATH"
-run '/opt/homebrew/opt/tpm/share/tpm/tpm'
 {{- else }}
 set -g @amp-theme-appearance 'auto'
-run '~/.tmux/plugins/tpm/tpm'
 {{- end }}
+run '~/.tmux/plugins/tpm/tpm'
 # Override after plugins load — amp-theme overwrites these if set earlier.
 # amp-{dark,light}.conf repeat status-right; dark-notify re-runs the theme.
 # Continuum's autosave runs from a status-right hook it prepends at load, which

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+# {{ include "dot_tmux.conf.tmpl" | sha256sum }}
+
+# A fresh macOS bootstrap has not put Homebrew on chezmoi's PATH yet.
+if [ -x /opt/homebrew/bin/tmux ]; then
+	PATH="/opt/homebrew/bin:$PATH"
+fi
+
+if ! command -v tmux >/dev/null 2>&1; then
+	echo '>tmux-plugins: tmux is not installed; skipping' >&2
+	exit 0
+fi
+
+tpm="$HOME/.tmux/plugins/tpm"
+if [ ! -x "$tpm/bin/install_plugins" ]; then
+	echo '>tmux-plugins: installing TPM' >&2
+	rm -rf "$tpm"
+	mkdir -p "$HOME/.tmux/plugins"
+	GIT_TERMINAL_PROMPT=0 git clone https://github.com/tmux-plugins/tpm "$tpm"
+fi
+
+had_server=0
+if tmux list-sessions >/dev/null 2>&1; then
+	had_server=1
+	# A server started before TPM loaded has no plugin path; install_plugins aborts without it.
+	tmux show-environment -g TMUX_PLUGIN_MANAGER_PATH >/dev/null 2>&1 ||
+		tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/"
+fi
+
+# Reads @plugin from the applied tmux config and clones whatever is missing.
+"$tpm/bin/install_plugins"
+
+# install_plugins starts a server when none was running, which loads the config
+# and can trigger a restore; do not leave that server behind.
+if [ "$had_server" = 0 ]; then
+	tmux kill-server 2>/dev/null || true
+fi
