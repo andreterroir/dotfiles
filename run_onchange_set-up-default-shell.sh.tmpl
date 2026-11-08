@@ -7,11 +7,12 @@ bash_path="/bin/bash"
 if ! grep --quiet --line-regexp --fixed-strings "$bash_path" /etc/shells; then
 	echo "$bash_path" | sudo tee -a /etc/shells{{ if .transient }} || true{{ end }}
 fi
-if [ "$SHELL" != "$bash_path" ]; then
-	# chsh needs a PAM-capable tty. A non-interactive apply has none.
+if [ "$(getent passwd "$(id -u)" | cut -d: -f7)" != "$bash_path" ]; then
+	# chsh needs a PAM-capable tty. A non-interactive apply has none;
+	# defer rather than fail the apply.
 	if [ ! -t 0 ]; then
-		echo "cannot change login shell to $bash_path: no tty for chsh" >&2
-		{{ if .transient }}exit 0{{ else }}exit 1{{ end }}
+		echo ">login shell unchanged; run chezmoi apply from a terminal to change it to $bash_path" >&2
+		exit 0
 	fi
 	chsh -s "$bash_path"
 fi
