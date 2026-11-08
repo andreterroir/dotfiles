@@ -54,4 +54,10 @@ reinstalls them at those commits, so installed plugins match the pin on every
 machine. See [Vim plugins](.agents/docs/vim-plugins.md) for the upgrade
 and verification procedure.
 
+Shortcuts
+---------
+
+Every key the configuration binds — Vim and its plugins, tmux, Bash, git and
+Ghostty — is catalogued in [Shortcuts](.agents/docs/shortcuts.md).
+
 See [chezmoi](https://www.chezmoi.io/).

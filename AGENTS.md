@@ -51,6 +51,16 @@ by another script.
                        dropped from the source tree and state left over
                        from retired tools
 
+## Shortcuts
+
+Every key the configuration binds is catalogued in
+[Shortcuts](.agents/docs/shortcuts.md). Any change that adds, removes or
+rebinds a key updates that document in the same change: the maps and plugin
+globals in `dot_vimrc`, the bindings in `dot_tmux.conf.tmpl`, the readline and
+fzf keys in `dot_bashrc`, the git aliases and mergetool, and the Ghostty
+keybinds. Record a deliberate removal under the section that lists dropped
+keys, with its reason, so the key is not reintroduced by accident.
+
 ## Workflow
 
 The default installation uses `~/code/dotfiles` as chezmoi's `sourceDir`.
