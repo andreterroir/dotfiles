@@ -51,15 +51,25 @@ set -g @continuum-restore 'on'
 set-option -g @plugin 'tmux-plugins/tpm'
 set-option -g @plugin 'christoomey/vim-tmux-navigator'
 set -g @plugin 'tmux-plugins/tmux-open'
-set -g @plugin 'ctrlmachine/tmux-amp-theme'
-# Keep these after amp-theme: continuum prepends its autosave hook to status-right.
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
-set -g @amp-theme-appearance 'auto'
 run '~/.tmux/plugins/tpm/tpm'
-# Override after plugins load — amp-theme overwrites these if set earlier.
+# Styles stick to the default and 16-colour palette, so the Ghostty theme
+# (light/dark) applies directly without per-tool appearance switching.
 # Continuum's autosave runs from a status-right hook it prepends at load, which
-# these overrides replace, so the hook is repeated here.
-set -g window-status-current-style 'fg=blue,bold'
+# this override replaces, so the hook is repeated here.
+set -g status-style bg=default,fg=default
+set -g status-left '#[bold] #S '
+set -g status-left-length 20
+set -g window-status-format '#[fg=colour8]#I:#W#{?window_flags,#{window_flags}, }'
+set -g window-status-current-format '#[fg=blue,bold]#I:#W#{?window_flags,#{window_flags}, }'
+set -g window-status-separator ''
+set -g pane-border-style fg=colour8
+set -g pane-active-border-style '#{?pane_in_mode,fg=yellow,#{?synchronize-panes,fg=red,fg=blue}}'
+set -g mode-style fg=default,bg=colour8
+set -g message-style bg=default,fg=default
+set -g message-command-style bg=default,fg=default
+set -g copy-mode-match-style bg=colour8
+set -g copy-mode-current-match-style fg=black,bg=blue
 set -g status-right-length 60
-set -g status-right "#(~/.tmux/plugins/tmux-continuum/scripts/continuum_save.sh)#[bg=#161616,fg=#B8AFA0] #{b:pane_current_path} #[bg=#E7894C,fg=#0F0F0F,bold] %H:%M %a %d %b "
+set -g status-right "#(~/.tmux/plugins/tmux-continuum/scripts/continuum_save.sh)#[fg=colour8] #{b:pane_current_path} #[bold] %H:%M %a %d %b "
