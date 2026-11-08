@@ -112,18 +112,21 @@ Every hostname this repository names, whether a `chezmoi.hostname` that
 templates gate on or an SSH destination. Role is derived at bootstrap from
 the machine itself (`gnome-shell` on PATH, `systemd-detect-virt`), not from
 the hostname, and describes only the machines chezmoi manages (see
-Boundaries).
+Boundaries). What a role provides is described in the
+[Provisioning model](.agents/docs/provisioning.md#roles-and-profile-data);
+the Notes column records only host-specific overrides and hosts that are not
+chezmoi targets.
 
 | Hostname | OS | Role | Notes |
 | --- | --- | --- | --- |
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
 | black | Fedora Linux | desktop | the desktop workstation |
-| slate | macOS | desktop | configuration only; its developer environment is not provisioned here |
+| slate | macOS | desktop | configuration only, as for every Mac |
 | Chloes-MBP | macOS | desktop | configuration only, like slate |
-| slate-vm-work | Fedora Linux | desktop, vm | VM without password-manager apps; YubiKey optional |
-| greenhouse | Ubuntu Linux | server | headless Amp runner; planned for decommissioning; older commits call it `netcup` |
+| slate-vm-work | Fedora Linux | desktop, vm | the managed VM |
+| greenhouse | Ubuntu Linux | server | headless; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
-| git.terroir.systems | unrecorded | server | an externally managed host; an SSH destination, not a chezmoi target |
+| git.terroir.systems | unrecorded | server | externally managed; an SSH destination, not a chezmoi target |
 
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
