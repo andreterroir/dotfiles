@@ -2,7 +2,7 @@
 {{   if eq .chezmoi.osRelease.id "fedora" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-set -e
+set -euo pipefail
 
 # Terra's main repo, the documented Ghostty install path; it also carries
 # mise and topgrade. Do not enable terra-release-extras, -mesa or -multimedia.
@@ -10,11 +10,6 @@ if ! rpm -q terra-release >/dev/null; then
 	sudo dnf install -y --nogpgcheck \
 		--repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
 		terra-release terra-gpg-keys
-fi
-
-# Earlier versions added mise's own RPM repo; Terra now provides mise.
-if [ -f /etc/yum.repos.d/mise.repo ]; then
-	sudo rm -f /etc/yum.repos.d/mise.repo
 fi
 
 sudo dnf install -y \
@@ -69,8 +64,11 @@ sudo dnf install -y \
 
 sudo systemctl enable --now pcscd
 
-# Spotify's Flathub package is x86_64-only.
-flatpak install --assumeyes \
+# Spotify's Flathub package is x86_64-only. Name the remote, and add
+# Flathub when it is not configured yet, instead of relying on a
+# previous setup.
+sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install --system --assumeyes flathub \
 {{ if eq .chezmoi.arch "amd64" }}	com.spotify.Client \
 {{ end }}	md.obsidian.Obsidian \
 	org.signal.Signal \
