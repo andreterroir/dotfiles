@@ -46,13 +46,6 @@ if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]; then
 	export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
 fi
 {{ end -}}
-{{ if and .server (eq .chezmoi.os "linux") -}}
-# The ssh-agent user service owns this socket and loads the machine key
-# at boot; a forwarded agent, when present, takes precedence.
-if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/ssh-agent.sock" ]; then
-	export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$XDG_RUNTIME_DIR/ssh-agent.sock}"
-fi
-{{ end -}}
 
 # Source machine-local login override
 [ -f "$HOME/.bash_profile.local" ] && source "$HOME/.bash_profile.local"

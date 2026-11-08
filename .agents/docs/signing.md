@@ -111,15 +111,9 @@ never needs the PIN that the agent would otherwise have to ask for.
 
 ### Headless servers
 
-`run_after_12-ssh-agent.sh.tmpl` enables a systemd user service
-(`~/.config/systemd/user/ssh-agent.service`) that runs
-`ssh-agent -a $XDG_RUNTIME_DIR/ssh-agent.sock`, loads the machine key, and sets
-`SSH_AUTH_SOCK` in the user manager environment. It also enables linger, so the
-agent runs from boot rather than from a login. `dot_bash_profile.tmpl` exports
-the socket to login shells, keeping a forwarded agent if one is present.
-
-This agent remains available for SSH clients, but default commit signing
-does not require it. A forwarded agent can still support explicit YubiKey
+Nothing on a server runs an agent for the machine key: servers and VMs sign
+with the key file directly, their machine keys have no passphrase, and a
+forwarded agent, when present, serves SSH clients and explicit YubiKey
 signing without holding the server's local machine key.
 
 ## Verification

@@ -16,7 +16,7 @@ scripts gate on these keys, never on a hostname. A config whose `keepass` or
 | --- | --- | --- |
 | `desktop` | true on macOS, and on Linux with `gnome-shell` on `PATH` | the desktop profile, and the resident YubiKey key on Linux |
 | `linux.desktop` | `desktop` on Linux | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
-| `server` | `!desktop` | the headless package set, the `ssh-agent` user service and its socket, and `topgrade` in the mise config |
+| `server` | `!desktop` | the headless package set, and topgrade on Ubuntu servers via mise |
 | `vm` | `systemd-detect-virt --vm` on Linux, otherwise false; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public identities and SSH fallbacks, and the role's own tooling |
 | `keepass` | `desktop && !vm` | the KeePassXC package on Linux and its managed settings file on Linux and macOS |
 | `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, the Amp runner, and the macOS `gh` and `jq` install; see [Transient profile](transient.md) |
@@ -165,8 +165,8 @@ obsidian's folders: share it from x1 or black, and accept that offer too.
 `amp --no-tui` from `~/code`, names the runner after the machine's hostname,
 serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 `~/code`, so threads can be created on the machine from ampcode.com. Linger
-keeps the runner up without a login, as it does for the servers' ssh-agent.
-Transient environments skip this setup; see [Transient profile](transient.md).
+keeps the runner up without a login. Transient environments skip this setup;
+see [Transient profile](transient.md).
 
 Running the runner on every non-transient machine, servers included, is
 deliberate: threads must be able to reach every machine from ampcode.com.

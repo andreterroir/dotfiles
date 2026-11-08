@@ -33,13 +33,9 @@ Library/Application Support/KeePassXC
 {{ end -}}
 {{ if .transient -}}
 # identity agents stay out of transient environments
-.config/systemd/user/ssh-agent.service
 .config/systemd/user/gcr-ssh-agent.service.d
 {{ end -}}
 {{ if eq .chezmoi.os "linux" -}}
-{{   if not .server -}}
-.config/systemd/user/ssh-agent.service
-{{   end -}}
 {{   if not .linux.desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
 {{   end -}}
