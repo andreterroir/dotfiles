@@ -9,8 +9,7 @@ missing plugins and checks installed ones out at the pin.
 The configuration is legacy Vim script and uses no Lua or Neovim API calls.
 Plugins configure themselves through VimL globals: startify's command list, which-key's description dictionary,
 floaterm's toggle, gitgutter's maps (disabled in favour of the explicit ones in
-`dot_vimrc`) and goyo's width. daybreak is pinned in the same snapshot; the
-config only names its light and dark themes. Per-machine overrides load from
+`dot_vimrc`) and goyo's width. Per-machine overrides load from
 `~/.vim/init.local.vim`.
 
 Backups and editor state stay outside the working tree: `~/.cache/vim/backup`
@@ -61,20 +60,18 @@ date shows when each plugin's checked-out commit was last changed upstream:
 
 A clean start proves the plugins load and the configuration applies. Run it
 with the config in place and check the reports, not just the exit status: the
-color scheme, the options from `dot_vimrc`, the commands each plugin adds, and
-the commands the keymaps call.
+options from `dot_vimrc`, the commands each plugin adds, and the commands the
+keymaps call.
 
-    HOME=$H vim -Nu "$H/.vimrc" -es -c 'call writefile([&background, g:colors_name, &backupdir,
-          \ exists(":Goyo"), exists(":GitGutterNextHunk"), exists(":FloatermToggle"),
-          \ exists(":Startify"), exists(":Dirvish"), exists(":Load")],
-          \ "/tmp/report")' -c 'qa!'
+    HOME=$H vim -Nu "$H/.vimrc" -es -c 'call writefile([&backupdir, exists(":Goyo"), exists(":GitGutterNextHunk"), exists(":FloatermToggle"), exists(":Startify"), exists(":Dirvish"), exists(":Load")], "/tmp/report")' -c 'qa!'
 
 Also require `:messages` to be free of `vim: plugin setup failed` and of
 `vim-plug: plugin(s) missing`.
 
 Ex mode does not exercise windows. Run a real session in a terminal and check:
 
-- the github colorscheme paints the UI and the background follows daybreak;
+- the buffer renders in the terminal theme's foreground and background, with
+  no colorscheme and no syntax highlighting;
 - startify renders its commands, recent files and footer;
 - gitgutter draws signs, `]c` and `[c` move between hunks, and
   `<leader>hs` stages a hunk;
@@ -90,8 +87,6 @@ APIs, so breakage shows up here rather than in startup:
 
 | Plugin | Used by `dot_vimrc` |
 | --- | --- |
-| vim-colors-github | `colorscheme github`, light and dark from `background` |
-| daybreak | `g:daybreak_light` and `g:daybreak_dark`, both `github` |
 | vim-startify | header, lists, commands, footer with the plugin count |
 | vim-which-key | `g:which_key_map`, `:WhichKey` and `:WhichKeyVisual` |
 | lexima.vim | default pair rules |
@@ -112,10 +107,7 @@ picker offers to download a binary into the plugin directory instead.
 
 Copy the result over the repository's `plug-snapshot.vim`; only the timestamp
 and the commits that moved should differ. The run script's checksum line comes
-from the file, so it needs no edit. Keep daybreak's entry on a commit that
-contains `autoload/daybreak.vim` and `plugin/daybreak.vim`; older commits are
-Lua-only and do nothing in Vim. A daybreak follow-up that fixes how Windows
-consoles are detected changes only that snapshot line.
+from the file, so it needs no edit.
 
 Validate the deploy path before committing. Render the script and run it
 against a second clean `HOME` that holds only `.vimrc` and the new snapshot;

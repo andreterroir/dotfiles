@@ -16,10 +16,6 @@ let mapleader = ' '
 
 call plug#begin('~/.vim/plugged')
 
-" colorscheme; one file, light and dark picked by 'background'
-Plug 'cormacrelf/vim-colors-github'
-" match the system light/dark appearance
-Plug 'andreterroir/daybreak.nvim'
 " center the focused buffer
 Plug 'junegunn/goyo.vim'
 " restrict allowed modeline options
@@ -55,10 +51,6 @@ Plug 'airblade/vim-gitgutter'
 Plug 'justinmk/vim-dirvish'
 
 call plug#end()
-
-" daybreak switches the github palette with the system appearance
-let g:daybreak_light = 'github'
-let g:daybreak_dark = 'github'
 
 " an empty mode maps like :map: normal, visual, select, operator-pending
 function! s:Map(mode, lhs, rhs) abort
@@ -112,10 +104,7 @@ syntax off
 filetype on
 filetype plugin off
 filetype indent on
-" enable true color support
-set termguicolors
-let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+" render in the terminal theme's own colours: no colorscheme, no true colour
 
 " defaults Neovim provided and Vim does not
 set backspace=indent,eol,start
@@ -312,7 +301,7 @@ let s:session_dir = expand('~/.local/state/vim/sessions')
 if !isdirectory(s:session_dir)
   call mkdir(s:session_dir, 'p')
 endif
-" keep the saved options, notably 'background', out of the session
+" keep saved options out of the session; they belong to the config
 set sessionoptions-=options
 
 function! s:SessionPath(branch) abort
