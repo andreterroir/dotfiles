@@ -39,8 +39,6 @@ fi
 script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
 
 "$chezmoi" init --source="${script_dir}"
-if [ "$("$chezmoi" --source="${script_dir}" execute-template '{{ .transient }}' 2>/dev/null)" = true ]; then
-	echo "Applying the transient profile: packages and services, no identity." >&2
-fi
+# init has no --recursive/--parent-dirs, so apply flags cannot move there.
 echo "Running 'chezmoi apply $*'" >&2
 "$chezmoi" apply --source="${script_dir}" "$@"
