@@ -32,6 +32,8 @@ Library/Application Support/KeePassXC
 {{ if eq .chezmoi.os "linux" -}}
 {{   if not .linux.desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
+# the swap script needs GNOME
+.bin/swap_ctrl_caps
 {{   end -}}
 {{   if not (and (eq .distro "fedora") .linux.desktop) -}}
 .config/autostart/syncthing-start.desktop
