@@ -43,8 +43,16 @@ Library/Application Support/KeePassXC
 {{   if not (and (eq .chezmoi.osRelease.id "fedora") .linux.desktop) -}}
 .config/autostart/syncthing-start.desktop
 {{   end -}}
+{{   if ne .chezmoi.osRelease.id "fedora" -}}
+# only Fedora installs Ghostty; Ubuntu servers get just its terminfo
+.config/ghostty
+{{   end -}}
 {{ else -}}
 .config/systemd
 .config/autostart/syncthing-start.desktop
+# developer tools only the Linux package scripts install
+.config/mise
+.config/opencode
+.config/topgrade.toml
 {{ end -}}
 .config/opencode/opencode.local.json

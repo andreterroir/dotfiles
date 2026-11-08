@@ -5,7 +5,6 @@
   "permission": {
     "external_directory": {
       "/tmp/**": "allow",
-      "/private/tmp/**": "allow",
       "~/.agents/**": "allow"
     },
     "read": {

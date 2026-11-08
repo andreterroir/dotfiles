@@ -67,10 +67,11 @@ registration, and `jq`, to derive `~/.allowed_signers`, with the Mac's
 existing Homebrew when either is missing. It also installs the Amp CLI with
 Amp's installer, unless an `amp` is already on PATH, and the `amp-app` cask on
 Apple silicon with macOS 26 or later; those are the only tools a Mac's apply
-installs. Nothing provisions mise there, so the managed mise config
-takes effect only on a Mac that already has mise. Each signing script still
-names its own missing tool and fails before the remaining scripts run, because
-registration and the allowlist are part of signing.
+installs. Nothing provisions mise, opencode, topgrade or git-lfs there, so
+`.chezmoiignore.tmpl` and the Git configuration leave their settings off macOS
+too. Each signing script still names its own missing tool and fails before the
+remaining scripts run, because registration and the allowlist are part of
+signing.
 
 Managed SSH configuration applies only to `github.com`,
 `git.terroir.systems`, and `chalon`.

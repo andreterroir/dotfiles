@@ -11,8 +11,8 @@ installed globally; do not duplicate them here.
   conventions, etc.), deployed by chezmoi to
   `~/.agents/AGENTS.md` and symlinked from `dot_claude/`,
   `dot_codex/`, `dot_copilot/`, `private_dot_config/opencode/`, and
-  `private_dot_config/` (as `~/.config/AGENTS.md` for Amp). Edit there,
-  not here.
+  `private_dot_config/` (as `~/.config/AGENTS.md` for Amp). The opencode
+  link is Linux-only, like opencode. Edit there, not here.
 - `~/.config/amp/AGENTS.md` is not managed by chezmoi. Amp reads it
   alongside `~/.config/AGENTS.md`, so instructions that platforms such
   as an orb write there survive applies instead of being replaced. A
@@ -137,6 +137,11 @@ greenhouse-specific: personal servers remain first-class targets in that role.
 
 ## Boundaries
 
+- Deploy a tool's configuration only where a package script installs the
+  tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same OS,
+  distro and role data. A gated target is left unmanaged where an earlier
+  apply wrote it, not removed. The macOS non-developer configuration below is
+  the deliberate exception.
 - Gate tooling on role data, not hostnames; `vm` is independent of role.
   See [Provisioning model](.agents/docs/provisioning.md) for detection,
   authentication exceptions, and sudo policy; see

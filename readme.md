@@ -17,13 +17,15 @@ and the Amp app with Homebrew; the app needs Apple silicon and macOS 26.
 This repository manages macOS configuration plus Fedora and headless Ubuntu
 provisioning. The macOS developer environment is out of scope: it installs no
 Homebrew bundle or bootstrap, launchd SSH agent, Homebrew shell environment,
-or PATH shims. gh, jq and Amp are the only tools a Mac's apply installs; the
-shared bash, git, ssh, tmux, Ghostty, vim, mise, opencode and Amp configuration
-still applies to macOS, and mise itself is not provisioned there.
+or PATH shims. gh, jq and Amp are the only tools a Mac's apply installs; a
+Mac gets the shared bash, git, ssh, tmux, Ghostty, vim and Amp configuration,
+but no configuration for the developer tools only Linux provisions: mise,
+opencode, topgrade and git-lfs.
 Package install scripts target Fedora Linux and headless Ubuntu; on a Mac,
 nothing else installs applications.
-Ubuntu servers get the CLI set only: no hugo, YubiKey, or Wayland clipboard
-tools. Other distros are unsupported.
+Ubuntu servers get the CLI set only: no hugo, YubiKey, Wayland clipboard
+tools, or Ghostty, whose terminfo they install without its configuration.
+Other distros are unsupported.
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra; Ubuntu
 takes mise from mise's own apt repository.
 Fedora desktops skip Spotify on ARM because its Flathub package is x86_64-only.
