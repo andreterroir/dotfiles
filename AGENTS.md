@@ -126,6 +126,8 @@ Boundaries).
 | --- | --- | --- | --- |
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
 | black | Fedora Linux | desktop | the desktop workstation |
+| slate | macOS | desktop | configuration only; its developer environment is not provisioned here |
+| Chloes-MBP | macOS | desktop | configuration only, like slate |
 | slate-vm-work | Fedora Linux | desktop, vm | VM without password-manager apps; YubiKey optional |
 | greenhouse | Ubuntu Linux | server | headless Amp runner; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
@@ -133,9 +135,8 @@ Boundaries).
 
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
-machine still exists. `slate` and `Chloes-MBP` were macOS chezmoi targets
-from when this repository provisioned the macOS developer environment; none
-is listed here because a macOS role comes from the OS, not from a hostname.
+machine still exists. Hostnames are compared lowercase, so the table's
+`Chloes-MBP` is `chloes-mbp` in `managedHosts`.
 
 ## Boundaries
 
@@ -149,7 +150,8 @@ is listed here because a macOS role comes from the OS, not from a hostname.
   of scope: do not reintroduce the Homebrew bundle or bootstrap, the launchd
   SSH agent, the Homebrew shell environment, or PATH shims. Non-developer
   macOS configuration (KeePassXC settings, the iCloud notes symlink, terminal
-  and appearance settings) belongs in the tree.
+  and appearance settings) belongs in the tree. Every macOS target is in
+  `managedHosts`, so a Mac gets the full profile, not the transient one.
 - Linux provisioning is gated: `.chezmoi.osRelease` is empty off Linux. Nest
   a distro check inside `eq .chezmoi.os "linux"`; `text/template` evaluates
   both sides of `and`, so a combined condition still looks up the missing

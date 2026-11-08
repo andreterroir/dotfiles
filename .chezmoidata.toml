@@ -4,6 +4,8 @@
 managedHosts = [
     "x1",
     "black",
+    "slate",
+    "chloes-mbp",
     "slate-vm-work",
     "greenhouse",
 ]
