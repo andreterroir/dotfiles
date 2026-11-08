@@ -39,10 +39,22 @@ bind-key -T prefix * run 'pbpaste | tmux load-buffer - ; tmux paste-buffer'
 bind-key -T prefix + run 'pbpaste | tmux load-buffer - ; tmux paste-buffer'
 {{- end }}
 
+# Restore layout, visible pane text and a few cheap programs after a reboot.
+# Pane snapshots hold screen text; keep them out of other users' reach, and
+# pin the location resurrect picks (it falls back to XDG when this is absent).
+run-shell 'install -d -m 700 ~/.tmux/resurrect'
+set -g @resurrect-capture-pane-contents 'on'
+set -g @resurrect-pane-contents-area 'visible'
+set -g @resurrect-default-processes 'vi vim view nvim emacs man less more'
+set -g @continuum-restore 'on'
+
 set-option -g @plugin 'tmux-plugins/tpm'
 set-option -g @plugin 'christoomey/vim-tmux-navigator'
 set -g @plugin 'tmux-plugins/tmux-open'
 set -g @plugin 'ctrlmachine/tmux-amp-theme'
+# Keep these after amp-theme: continuum prepends its autosave hook to status-right.
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
 {{- if eq .chezmoi.os "darwin" }}
 set -g @plugin 'erikw/tmux-dark-notify'
 set -g @dark-notify-theme-path-light '$HOME/.config/tmux/amp-light.conf'
@@ -56,6 +68,8 @@ run '~/.tmux/plugins/tpm/tpm'
 {{- end }}
 # Override after plugins load — amp-theme overwrites these if set earlier.
 # amp-{dark,light}.conf repeat status-right; dark-notify re-runs the theme.
+# Continuum's autosave runs from a status-right hook it prepends at load, which
+# these overrides replace, so the hook is repeated here and in the theme files.
 set -g window-status-current-style 'fg=blue,bold'
 set -g status-right-length 60
-set -g status-right "#[bg=#161616,fg=#B8AFA0] #{b:pane_current_path} #[bg=#E7894C,fg=#0F0F0F,bold] %H:%M %a %d %b "
+set -g status-right "#(~/.tmux/plugins/tmux-continuum/scripts/continuum_save.sh)#[bg=#161616,fg=#B8AFA0] #{b:pane_current_path} #[bg=#E7894C,fg=#0F0F0F,bold] %H:%M %a %d %b "
