@@ -8,15 +8,16 @@
 # Run the Amp runner that serves ~/code on every Linux machine, so
 # threads can be created on it from ampcode.com. Linger starts the user
 # manager, and so the runner, at boot rather than at login.
-# An apply restarts the runner only when its unit or the installed binary
-# changed; otherwise it starts the runner if it is stopped and leaves running
-# threads alone.
+# An apply restarts the runner only when its unit, the installed binary, or
+# Amp's settings changed; otherwise it starts the runner if it is stopped and
+# leaves running threads alone.
 set -euo pipefail
 {{ if $transient }}echo '>transient profile: Amp runner setup is disabled' >&2
 exit 0
 {{ else }}
 amp="$HOME/.local/bin/amp"
 unit="$HOME/.config/systemd/user/amp-runner.service"
+settings="$HOME/.config/amp/settings.json"
 state_file="$HOME/.local/state/amp-runner/fingerprint"
 
 if [ ! -x "$amp" ]; then
@@ -33,7 +34,17 @@ fi
 
 unit_hash="$(sha256sum "$unit" | cut -d' ' -f1)"
 binary_hash="$(sha256sum "$amp" | cut -d' ' -f1)"
+settings_hash=missing
+if [ -f "$settings" ]; then
+    settings_hash="$(sha256sum "$settings" | cut -d' ' -f1)"
+fi
 state="$(cat "$state_file" 2>/dev/null || true)"
+state_unit=""
+state_binary=""
+state_settings=""
+if [ -n "$state" ]; then
+    read -r state_unit state_binary state_settings <<<"$state"
+fi
 
 # The runner's own auto-update replaces the binary and restarts into it when
 # idle, so an apply after that must not restart it again.
@@ -47,18 +58,21 @@ running_binary_hash() {
 
 systemctl --user enable amp-runner.service
 
-if [ "$state" = "$unit_hash $binary_hash" ] ||
+if { [ "$state_unit" = "$unit_hash" ] &&
+    [ "$state_binary" = "$binary_hash" ] &&
+    [ "$state_settings" = "$settings_hash" ]; } ||
 	! systemctl --user is-active --quiet amp-runner.service; then
 	systemctl --user start amp-runner.service
-elif [ "${state%% *}" = "$unit_hash" ] &&
+elif [ "$state_unit" = "$unit_hash" ] &&
+    [ "$state_settings" = "$settings_hash" ] &&
 	[ "$(running_binary_hash)" = "$binary_hash" ]; then
-	echo '>amp-runner: runner already runs the installed binary' >&2
+	echo '>amp-runner: runner already runs the installed binary and settings' >&2
 else
-	echo '>amp-runner: unit or binary changed; restarting' >&2
+	echo '>amp-runner: unit, binary, or settings changed; restarting' >&2
 	systemctl --user restart amp-runner.service
 fi
 
 mkdir -p "$(dirname "$state_file")"
-printf '%s %s\n' "$unit_hash" "$binary_hash" >"$state_file"
+printf '%s %s %s\n' "$unit_hash" "$binary_hash" "$settings_hash" >"$state_file"
 {{ end -}}
 {{ end -}}

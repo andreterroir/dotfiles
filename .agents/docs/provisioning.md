@@ -136,19 +136,22 @@ serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 keeps the runner up without a login, as it does for the servers' ssh-agent.
 Transient environments skip this setup; see [Transient profile](transient.md).
 
-The script records a fingerprint of the unit file and the installed `amp`
-binary in `~/.local/state/amp-runner/fingerprint`. An apply that leaves both
+The script records a fingerprint of the unit file, the installed `amp` binary,
+and `~/.config/amp/settings.json` in
+`~/.local/state/amp-runner/fingerprint`. An apply that leaves all three
 unchanged only starts the runner if it is stopped, so it does not interrupt
-running threads. When the unit changes, or the binary changes while the runner
-still runs the old one, the runner restarts once. If the binary changed but
-the runner already runs it (for example after its own update), apply only
-records the new fingerprint. A restart ends any thread running at the time,
-so apply while the runner is idle. The runner updates itself by default
+running threads. When the unit or settings change, or the binary changes while
+the runner still runs the old one, the runner restarts once. If the binary
+changed but the runner already runs it (for example after its own update),
+apply only records the new fingerprint. Changing a runner setting such as
+`amp.runner.env.enabled` restarts the runner once. A restart ends any thread
+running at the time, so apply while the runner is idle. The runner updates
+itself by default
 (`amp.runner.autoUpdate.enabled` is true): it installs new releases and
 restarts into them once no thread is running, at most once every 12 hours.
-The fingerprint therefore covers unit edits and binaries installed outside
-that path, such as a reinstall or a manual upgrade; with auto-update
-disabled, apply also supplies the restarts for new releases.
+The fingerprint therefore covers unit edits, runner settings, and binaries
+installed outside that path, such as a reinstall or a manual upgrade; with
+auto-update disabled, apply also supplies the restarts for new releases.
 
 `private_dot_config/private_amp/settings.json` enables
 `amp.runner.env.enabled`, so runner threads get the Secrets & Env Vars
