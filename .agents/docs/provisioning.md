@@ -4,16 +4,30 @@ Chezmoi manages the shared configuration; machine-local overrides remain
 untracked. See [AGENTS.md](../../AGENTS.md#machines) for the machine inventory
 and [Commit signing](signing.md) for signing configuration and agent setup.
 
-## Roles and password managers
+## Roles and profile data
 
-Init derives `desktop` without prompting: true on macOS and on Linux with
-`gnome-shell` on PATH. `server` is its inverse; `linux.desktop` identifies
-Linux desktops. Role selects tools and the SSH agent, not a hostname.
+Init derives the data keys in `.chezmoi.toml.tmpl` from the machine and
+persists them in `~/.config/chezmoi/chezmoi.toml`. Templates and `run_*`
+scripts gate on these keys, never on a hostname. A config whose `keepass` or
+`transient` key is missing, or whose `keepass` no longer matches
+`desktop && !vm`, fails apply with "run chezmoi init before apply or update".
 
-`vm` is independent of role. Linux init detects it with
-`systemd-detect-virt --vm` unless already configured, preserving the value on
-subsequent init runs. On other platforms it defaults to false and can be set
-in the chezmoi config. VMs retain desktop/server tooling.
+| Key | Chosen by | Selects |
+| --- | --- | --- |
+| `desktop` | true on macOS, and on Linux with `gnome-shell` on `PATH` | the desktop profile, and the resident YubiKey key on Linux |
+| `linux.desktop` | `desktop` on Linux | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
+| `server` | `!desktop` | the headless package set, the `ssh-agent` user service and its socket, `topgrade` in the mise config, and Ubuntu's Ghostty terminfo |
+| `vm` | `systemd-detect-virt --vm` on Linux, otherwise false; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public identities and SSH fallbacks, and the role's own tooling |
+| `keepass` | `desktop && !vm` | the KeePassXC package on Linux and its managed settings file on Linux and macOS |
+| `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, the Amp runner, and macOS tool installation; see [Transient profile](transient.md) |
+
+`desktop`, `linux.desktop`, and `server` are derived and have no switch. `vm`
+and the transient profile do: set `vm` in `~/.config/chezmoi/chezmoi.toml`,
+run `./install.sh --transient`, or set `CHEZMOI_TRANSIENT`. `install.sh`
+passes every other argument to `chezmoi apply`. Init persists the data, so a
+later bare `chezmoi apply` or `chezmoi update` reuses it; run `chezmoi init`
+after changing `vm` or upgrading the source, which also drops retired keys
+from the config.
 
 A VM whose hostname is not in `managedHosts` is transient (see
 [Transient profile](transient.md)); a managed VM such as `slate-vm-work`
@@ -26,10 +40,6 @@ managed at `~/.config/keepassxc/keepassxc.ini` on Linux and at
 application itself is not provisioned. Apply replaces the whole file, so
 KeeShare settings are deliberately omitted and any local KeeShare key is
 discarded. Neither the database nor its synchronization is provisioned here.
-
-Run `chezmoi init` before apply/update after changing `vm` so the derived data
-is recomputed. Init also rewrites `~/.config/chezmoi/chezmoi.toml`, so run it
-after upgrading the source to drop retired data keys and hooks.
 
 ## Authentication and sudo
 
