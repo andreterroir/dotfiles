@@ -81,8 +81,10 @@ specified" and `ssh-keygen -K` with "Cannot download keys without provider",
 and the Homebrew `openssh` formula that provided them is no longer installed.
 `run_after_10-ssh-identity.sh.tmpl` therefore creates the machine key if it is
 missing and registers it on GitHub for signing, which is what `dot_gitconfig.tmpl`
-signs with. A resident key and its agent, if wanted, stay the machine's own
-concern. First registration needs `gh`, and the allowlist below needs `jq`;
+signs with, and for authentication, which managed SSH to GitHub,
+git.terroir.systems, and chalon uses. A resident key and its agent, if
+wanted, stay the machine's own concern. First registration needs `gh`,
+and the allowlist below needs `jq`;
 a Mac's apply installs both with Homebrew when they are missing. The `gh`
 check runs only after finding a public key that still needs uploading, so a
 Mac whose keys are already registered needs no `gh` at all.

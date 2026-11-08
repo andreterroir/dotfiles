@@ -102,11 +102,12 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 `run_after_10-ssh-identity.sh.tmpl` creates missing machine keys and registers
 public keys with GitHub for `andreterroir`. Transient environments skip this
 section entirely; see [Transient profile](transient.md). Machine keys are
-signing keys; x1 and VM machine keys are also authentication keys. On non-VM
-Linux desktops it downloads a missing resident key with `ssh-keygen -K` (touch
-and PIN) and registers it for authentication and signing. On VMs it only
-registers resident keys explicitly installed beforehand; non-VM servers and
-macOS skip them, because Apple's OpenSSH has no FIDO provider.
+signing keys; x1, VM, and macOS machine keys are also authentication keys. On
+non-VM Linux desktops it downloads a missing resident key with `ssh-keygen -K`
+(touch and PIN) and registers it for authentication and signing. On VMs it
+only registers resident keys explicitly installed beforehand; non-VM servers
+and macOS skip them, because Apple's OpenSSH has no FIDO provider, so a Mac
+authenticates with its machine key.
 
 GitHub registration requires a terminal and account login. API outages are
 tolerated when local keys already exist, but fail apply after creating a
