@@ -1,19 +1,15 @@
-{{- $transient := false -}}
-{{- if hasKey . "transient" -}}
-    {{- $transient = .transient -}}
-{{- end -}}
 [user]
 	name = André Terroir
 	email = andre@terroir.systems
-{{- if not $transient }}
+{{- if not .transient }}
 	signingKey = "{{ .chezmoi.homeDir }}/.ssh/id_ed25519"
 {{- end }}
 [commit]
-{{- if not $transient }}
+{{- if not .transient }}
 	gpgsign = true
 {{- end }}
 	verbose = true
-{{- if not $transient }}
+{{- if not .transient }}
 [gpg]
 	format = ssh
 [gpg "ssh"]

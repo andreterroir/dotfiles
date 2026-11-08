@@ -4,9 +4,8 @@
 {{- if ne .keepass (and .desktop (not .vm)) -}}
 {{- fail "KeePass provisioning policy is stale; run chezmoi init before apply or update" -}}
 {{- end -}}
-{{- $transient := false -}}
-{{- if hasKey . "transient" -}}
-    {{- $transient = .transient -}}
+{{- if not (hasKey . "transient") -}}
+{{- fail "Transient provisioning policy is missing; run chezmoi init before apply or update" -}}
 {{- end -}}
 AGENTS.md
 assets
@@ -29,7 +28,7 @@ Library/Application Support/KeePassXC
 {{ if or (ne .chezmoi.os "linux") (not .keepass) -}}
 .config/keepassxc
 {{ end -}}
-{{ if $transient -}}
+{{ if .transient -}}
 # identity agents stay out of transient environments
 .config/systemd/user/ssh-agent.service
 .config/systemd/user/gcr-ssh-agent.service.d

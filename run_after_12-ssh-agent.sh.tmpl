@@ -1,13 +1,9 @@
-{{- $transient := false -}}
-{{- if hasKey . "transient" -}}
-    {{- $transient = .transient -}}
-{{- end -}}
 {{ if and .server (eq .chezmoi.os "linux") -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Run the SSH agent that signs unattended commits from boot rather than
 # login, and load the machine key into it. Servers only.
-set -euo pipefail{{ if $transient }}
+set -euo pipefail{{ if .transient }}
 echo '>transient profile: SSH agent setup is disabled' >&2
 exit 0
 {{ end }}
