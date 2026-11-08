@@ -19,7 +19,7 @@ scripts gate on these keys, never on a hostname. A config whose `keepass` or
 | `server` | `!desktop` | the headless package set, the `ssh-agent` user service and its socket, `topgrade` in the mise config, and Ubuntu's Ghostty terminfo |
 | `vm` | `systemd-detect-virt --vm` on Linux, otherwise false; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public identities and SSH fallbacks, and the role's own tooling |
 | `keepass` | `desktop && !vm` | the KeePassXC package on Linux and its managed settings file on Linux and macOS |
-| `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, the Amp runner, and macOS tool installation; see [Transient profile](transient.md) |
+| `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, the Amp runner, and the macOS `gh` and `jq` install; see [Transient profile](transient.md) |
 
 `desktop`, `linux.desktop`, and `server` are derived and have no switch. `vm`
 and the transient profile do: set `vm` in `~/.config/chezmoi/chezmoi.toml`,
@@ -64,8 +64,10 @@ machine key on GitHub for signing only.
 
 `run_onchange_install-macos-tools.sh.tmpl` installs `gh`, for first key
 registration, and `jq`, to derive `~/.allowed_signers`, with the Mac's
-existing Homebrew when either is missing; those are the only tools a Mac's
-apply installs. Nothing provisions mise there, so the managed mise config
+existing Homebrew when either is missing. It also installs the Amp CLI with
+Amp's installer, unless an `amp` is already on PATH, and the `amp-app` cask on
+Apple silicon with macOS 26 or later; those are the only tools a Mac's apply
+installs. Nothing provisions mise there, so the managed mise config
 takes effect only on a Mac that already has mise. Each signing script still
 names its own missing tool and fails before the remaining scripts run, because
 registration and the allowlist are part of signing.

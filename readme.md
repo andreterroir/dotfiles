@@ -11,16 +11,17 @@ Prerequisites
 On a Mac, the apply installs `gh` and `jq` with Homebrew when they are missing:
 the SSH identity script registers the machine key with gh, and the signing
 allowlist is derived with jq. Bash, `curl`, and `ssh-keygen`, which the scripts
-also call, ship with macOS.
+also call, ship with macOS. It also installs the Amp CLI with Amp's installer
+and the Amp app with Homebrew; the app needs Apple silicon and macOS 26.
 
 This repository manages macOS configuration plus Fedora and headless Ubuntu
 provisioning. The macOS developer environment is out of scope: it installs no
 Homebrew bundle or bootstrap, launchd SSH agent, Homebrew shell environment,
-or PATH shims. gh and jq are the only tools a Mac's apply installs; the shared
-bash, git, ssh, tmux, Ghostty, vim, mise, opencode and Amp configuration still
-applies to macOS, and mise itself is not provisioned there.
-Package install scripts target Fedora Linux and headless Ubuntu, so nothing
-installs a Mac's applications.
+or PATH shims. gh, jq and Amp are the only tools a Mac's apply installs; the
+shared bash, git, ssh, tmux, Ghostty, vim, mise, opencode and Amp configuration
+still applies to macOS, and mise itself is not provisioned there.
+Package install scripts target Fedora Linux and headless Ubuntu; on a Mac,
+nothing else installs applications.
 Ubuntu servers get the CLI set only: no hugo, YubiKey, or Wayland clipboard
 tools. Other distros are unsupported.
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra; Ubuntu

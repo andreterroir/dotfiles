@@ -147,7 +147,8 @@ greenhouse-specific: personal servers remain first-class targets in that role.
   of scope: do not reintroduce the Homebrew bundle or bootstrap, the launchd
   SSH agent, the Homebrew shell environment, or PATH shims. The apply may use
   the Mac's existing Homebrew to install `gh` and `jq`, the only tools its
-  signing scripts call. Non-developer macOS configuration (KeePassXC settings,
+  signing scripts call, and the Amp app; the Amp CLI comes from Amp's
+  installer, as on Linux. Non-developer macOS configuration (KeePassXC settings,
   the iCloud notes symlink, terminal and appearance settings) belongs in the
   tree. Every macOS target is in `managedHosts`, so a Mac gets the full
   profile, not the transient one.
