@@ -128,7 +128,7 @@ obsidian's folders: share it from x1 or black, and accept that offer too.
 
 ## Amp runner
 
-`run_after_30-amp-runner.sh.tmpl` enables the systemd user unit
+`run_onchange_after_30-amp-runner.sh.tmpl` enables the systemd user unit
 `~/.config/systemd/user/amp-runner.service` on every Linux machine. It runs
 `amp --no-tui` from `~/code`, names the runner after the machine's hostname,
 serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
@@ -136,22 +136,32 @@ serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 keeps the runner up without a login, as it does for the servers' ssh-agent.
 Transient environments skip this setup; see [Transient profile](transient.md).
 
-The script records a fingerprint of the unit file, the installed `amp` binary,
-and `~/.config/amp/settings.json` in
-`~/.local/state/amp-runner/fingerprint`. An apply that leaves all three
-unchanged only starts the runner if it is stopped, so it does not interrupt
-running threads. When the unit or settings change, or the binary changes while
-the runner still runs the old one, the runner restarts once. If the binary
-changed but the runner already runs it (for example after its own update),
-apply only records the new fingerprint. Changing a runner setting such as
+The script re-runs when the unit, Amp's settings, or the script itself
+changes: header comments checksum the unit file and
+`~/.config/amp/settings.json`, and chezmoi re-runs a `run_onchange_` script
+only when its content changes. On a re-run it restarts the runner if it is
+active and starts it if it is stopped, so changing a runner setting such as
 `amp.runner.env.enabled` restarts the runner once. A restart ends any thread
-running at the time, so apply while the runner is idle. The runner updates
-itself by default
+running at the time, so apply while the runner is idle.
+
+An apply that leaves the unit and settings unchanged does not run the script
+at all, which changes two behaviors. Replacing the `amp` binary by hand, such
+as with a reinstall or a manual upgrade, no longer restarts the runner, since
+the runner's auto-update applies new releases itself. And a deliberately
+stopped runner stays stopped unless the unit or settings change or it is
+started by hand, as do a runner disabled with `systemctl --user disable` and
+linger removed by hand.
+
+A run that exits early, because `amp` is missing or no user manager answers,
+still counts as done, so a later apply does not retry it: once the
+precondition holds, enable and start the runner by hand with
+`systemctl --user enable --now amp-runner.service`.
+
+The runner updates itself by default
 (`amp.runner.autoUpdate.enabled` is true): it installs new releases and
 restarts into them once no thread is running, at most once every 12 hours.
-The fingerprint therefore covers unit edits, runner settings, and binaries
-installed outside that path, such as a reinstall or a manual upgrade; with
-auto-update disabled, apply also supplies the restarts for new releases.
+With auto-update disabled, apply supplies a restart only when the unit or
+settings change.
 
 `private_dot_config/private_amp/settings.json` enables
 `amp.runner.env.enabled`, so runner threads get the Secrets & Env Vars

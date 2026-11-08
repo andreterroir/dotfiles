@@ -16,6 +16,8 @@ bin/update-passwords
 .bin/git-ssh-keygen
 # Git now selects the machine key directly
 .bin/git-signing-key
+# the Amp runner keys off run_onchange now and no longer records this state
+.local/state/amp-runner/fingerprint
 # Passage was retired in favour of KeePassXC. Remove its managed state and
 # installed artifacts. The old store and machine-local identities stay as
 # raw data; Passage is no longer installed to read them.
