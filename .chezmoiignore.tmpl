@@ -33,10 +33,10 @@ Library/Application Support/KeePassXC
 {{   if not .linux.desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
 {{   end -}}
-{{   if not (and (eq .chezmoi.osRelease.id "fedora") .linux.desktop) -}}
+{{   if not (and (eq .distro "fedora") .linux.desktop) -}}
 .config/autostart/syncthing-start.desktop
 {{   end -}}
-{{   if not (and (eq .chezmoi.osRelease.id "fedora") .linux.desktop) -}}
+{{   if not (and (eq .distro "fedora") .linux.desktop) -}}
 .config/ghostty
 {{   end -}}
 {{ else -}}

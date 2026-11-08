@@ -1,7 +1,7 @@
 [tools]
 zig = "0.16.0"
 "github:exercism/cli" = "3.5.8"
-{{ if and .server (eq .chezmoi.osRelease.id "ubuntu") -}}
+{{ if and .server (eq .distro "ubuntu") -}}
 "github:topgrade-rs/topgrade" = "17.12.2"
 {{ end -}}
 {{ if .desktop -}}

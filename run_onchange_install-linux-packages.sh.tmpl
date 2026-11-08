@@ -1,5 +1,5 @@
 {{ if eq .chezmoi.os "linux" -}}
-{{   if eq .chezmoi.osRelease.id "fedora" -}}
+{{   if eq .distro "fedora" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail
@@ -68,7 +68,7 @@ flatpak install --system --assumeyes flathub \
 	org.zotero.Zotero
 
 {{   end -}}
-{{   else if and (eq .chezmoi.osRelease.id "ubuntu") .server -}}
+{{   else if and (eq .distro "ubuntu") .server -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Headless Ubuntu only. hugo is intentionally omitted.
@@ -141,7 +141,7 @@ fi
 {{ end -}}
 
 {{ if eq .chezmoi.os "linux" -}}
-{{   if and (eq .chezmoi.osRelease.id "ubuntu") .server -}}
+{{   if and (eq .distro "ubuntu") .server -}}
 # --no-modify-path skips the installer's shell PATH edit. Link the
 # binary into ~/.local/bin, which is already on PATH.
 if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
@@ -152,7 +152,7 @@ mkdir -p "$HOME/.local/bin"
 ln -sfn "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"
 
 {{   end -}}
-{{   if or (eq .chezmoi.osRelease.id "fedora") (and (eq .chezmoi.osRelease.id "ubuntu") .server) -}}
+{{   if or (eq .distro "fedora") (and (eq .distro "ubuntu") .server) -}}
 if [ ! -x "$HOME/.local/bin/amp" ]; then
 	echo '>installing amp'
 	curl -fsSL https://ampcode.com/install.sh | bash

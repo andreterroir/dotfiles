@@ -5,15 +5,21 @@
     {{- $vm = eq (output "sh" "-c" "systemd-detect-virt --vm --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
 {{- end -}}
 {{- $container := false -}}
-{{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
+{{- if eq .chezmoi.os "linux" -}}
+    {{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
+{{- end -}}
 {{- $desktop := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") -}}
+{{- $distro := "" -}}
+{{- if eq .chezmoi.os "linux" -}}
+    {{- $distro = .chezmoi.osRelease.id -}}
+{{- else if eq .chezmoi.os "darwin" -}}
+    {{- $distro = "darwin" -}}
+{{- end -}}
 {{- $known := false -}}
-{{- $dataFile := joinPath .chezmoi.sourceDir ".chezmoidata.toml" -}}
-{{- if stat $dataFile -}}
-    {{- $data := fromToml (output "cat" $dataFile) -}}
+{{- if stat (joinPath .chezmoi.sourceDir ".chezmoidata.toml") -}}
+    {{- $data := fromToml (include ".chezmoidata.toml") -}}
     {{- if hasKey $data "managedHosts" -}}
-        {{- $host := lower (trimSuffix ".local" .chezmoi.hostname) -}}
-        {{- $known = has $host $data.managedHosts -}}
+        {{- $known = has (lower (trimSuffix ".local" .chezmoi.hostname)) $data.managedHosts -}}
     {{- end -}}
 {{- end -}}
 {{- $transient := false -}}
@@ -31,6 +37,7 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
     command = "vim"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}", "{{ "{{ .Target }}" }}"]
 [data]
+    distro = "{{ $distro }}"
     vm = {{ $vm }}
     desktop = {{ $desktop }}
     linux.desktop = {{ and $desktop (eq .chezmoi.os "linux") }}

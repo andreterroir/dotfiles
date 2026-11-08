@@ -166,10 +166,10 @@ Fedora desktops upgrade in place between releases; see
   the iCloud notes symlink, terminal and appearance settings) belongs in the
   tree. Every macOS target is in `managedHosts`, so a Mac gets the full
   profile, not the transient one.
-- Linux provisioning is gated: `.chezmoi.osRelease` is empty off Linux. Nest
-  a distro check inside `eq .chezmoi.os "linux"`; `text/template` evaluates
+- Gate on the persisted `distro` key (`fedora`, `ubuntu`, `darwin`), not on
+  `.chezmoi.osRelease`, which is empty off Linux: `text/template` evaluates
   both sides of `and`, so a combined condition still looks up the missing
-  `id` key.
+  `id` key there.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
   running scripts) rather than `chezmoi source-path`: a nested
   `chezmoi` invocation deadlocks on the parent `chezmoi apply`'s

@@ -13,6 +13,7 @@ key is missing fails apply with "run chezmoi init before apply or update".
 
 | Key | Chosen by | Selects |
 | --- | --- | --- |
+| `distro` | `.chezmoi.osRelease.id` on Linux, `darwin` on macOS, empty elsewhere | the distro-specific package sets and gates |
 | `desktop` | true on macOS, and on Linux with `gnome-shell` on `PATH` | the desktop profile, and the resident YubiKey key on Linux |
 | `linux.desktop` | `desktop` on Linux | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
 | `server` | `!desktop` | the headless package set, and topgrade on Ubuntu servers via mise |
