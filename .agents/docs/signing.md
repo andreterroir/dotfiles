@@ -75,15 +75,18 @@ keys, and optional YubiKey signing.
 ### macOS
 
 macOS is managed for configuration only, so this repository configures no
-agent and provisions no resident key there. Apple's OpenSSH has no FIDO
-provider: `ssh-keygen -t ed25519-sk` fails with "No FIDO SecurityKeyProvider
-specified" and `ssh-keygen -K` with "Cannot download keys without provider",
-and the Homebrew `openssh` formula that provided them is no longer installed.
+agent and provisions no resident key there. Apple's OpenSSH, which `ssh`,
+`ssh-keygen`, and Git resolve to, has no FIDO provider: `ssh-keygen -t
+ed25519-sk` fails with "No FIDO SecurityKeyProvider specified" and
+`ssh-keygen -K` with "Cannot download keys without provider". The Homebrew
+`openssh` formula does provide one, but it is not part of this configuration
+and works only when its binaries are invoked directly.
 `run_after_10-ssh-identity.sh.tmpl` therefore creates the machine key if it is
 missing and registers it on GitHub for signing, which is what `dot_gitconfig.tmpl`
-signs with, and for authentication, which managed SSH to GitHub,
-git.terroir.systems, and chalon uses. A resident key and its agent, if
-wanted, stay the machine's own concern. First registration needs `gh`,
+signs with. GitHub access goes through `gh` over HTTPS, and the machine key is
+what a Mac uses for `git.terroir.systems` and `chalon`; an agent, if wanted,
+is the machine's own concern.
+First registration needs `gh`,
 and the allowlist below needs `jq`;
 a Mac's apply installs both with Homebrew when they are missing. The `gh`
 check runs only after finding a public key that still needs uploading, so a

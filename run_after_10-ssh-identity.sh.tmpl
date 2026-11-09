@@ -2,9 +2,9 @@
 # vi: set ft=bash
 # Finish this machine's SSH identity: put its key on disk and make sure
 # GitHub holds its machine key for signing and its YubiKey for signing and
-# authentication. x1's and the Macs' machine keys are also authentication
-# keys. VMs use their machine key for GitHub and only register existing sk
-# keys.
+# authentication. Every machine reaches GitHub through gh over HTTPS; x1's
+# machine key is the only machine key that also authenticates. VMs only
+# register sk keys that already exist.
 # The sk key download needs a YubiKey touch and registration may need a
 # browser login; a non-tty VM/server apply creates only its machine key.
 # Re-runs are idempotent when the keys are already on GitHub.
@@ -54,7 +54,7 @@ fi
 
 signing_keys_to_add=("$MACHINE_KEY.pub")
 auth_keys_to_add=()
-{{ if or .vm (and .desktop (or (eq .chezmoi.os "darwin") (eq .chezmoi.hostname "x1"))) -}}
+{{ if and .desktop (eq .chezmoi.hostname "x1") -}}
 auth_keys_to_add+=("$MACHINE_KEY.pub")
 {{ end -}}
 

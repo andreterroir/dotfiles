@@ -12,22 +12,22 @@ Host github.com git.terroir.systems chalon
 	IdentityFile ~/.ssh/identities/yubikey-1
 	IdentityFile ~/.ssh/identities/yubikey-2
 	IdentitiesOnly yes
-
-Host github.com
-	IdentityFile ~/.ssh/id_ed25519
 {{ else -}}
 Host github.com git.terroir.systems chalon
 	IdentityFile ~/.ssh/id_ed25519_sk
 
 {{- if .desktop }}
 	IdentitiesOnly yes
-{{- if eq .chezmoi.os "darwin" }}
-	# Macs provision no YubiKey resident key; their machine key signs
-	# and authenticates.
-	IdentityFile ~/.ssh/id_ed25519
-{{- else if eq .chezmoi.hostname "x1" }}
-	# x1's machine key is an intentional authentication fallback.
+{{- if eq .chezmoi.hostname "x1" }}
+	# x1's machine key is the one intentional authentication fallback.
 	IdentityFile ~/.ssh/id_ed25519
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{ if and .desktop (eq .chezmoi.os "darwin") -}}
+# Macs cannot use a YubiKey resident key; the machine key serves the
+# personal SSH destinations, while GitHub access goes through gh.
+Host git.terroir.systems chalon
+	IdentityFile ~/.ssh/id_ed25519
+{{ end -}}

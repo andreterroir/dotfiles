@@ -151,12 +151,14 @@ Fedora desktops upgrade in place between releases; see
   distro and role data. A gated target is left unmanaged where an earlier
   apply wrote it, not removed. The macOS non-developer configuration below is
   the deliberate exception.
-- Gate tooling on role data, not hostnames; `vm` is independent of role.
+- Gate tooling on role data, not hostnames; `vm` is independent of role. The
+  one deliberate hostname gate is x1's machine-key authentication exception.
   See [Provisioning model](.agents/docs/provisioning.md) for detection,
   authentication exceptions, and sudo policy; see
   [Commit signing](.agents/docs/signing.md) for signing and agents.
-- VM machine keys are GitHub authentication fallbacks only. Preserve
-  explicit repository signing overrides without silent fallback.
+- GitHub access is `gh` over HTTPS on every machine; only x1's machine key is
+  registered for GitHub authentication. Preserve explicit repository signing
+  overrides without silent fallback.
 - macOS is managed for configuration only. Its developer environment is out
   of scope: do not reintroduce the Homebrew bundle or bootstrap, the launchd
   SSH agent, the Homebrew shell environment, or PATH shims. The apply may use
