@@ -8,18 +8,12 @@ installed globally; do not duplicate them here.
 ## Where agent instructions live
 
 - `dot_agents/AGENTS.md` — user-global instructions (code review, commit
-  conventions, etc.), deployed by chezmoi to
-  `~/.agents/AGENTS.md` and symlinked from `dot_claude/`,
-  `dot_codex/`, `dot_copilot/`, `private_dot_config/opencode/`, and
-  `private_dot_config/` (as `~/.config/AGENTS.md` for Amp). Edit there,
-  not here.
-- `~/.config/amp/AGENTS.md` is not managed by chezmoi. Amp reads it
-  alongside `~/.config/AGENTS.md`, so instructions that platforms such
-  as an orb write there survive applies instead of being replaced. A
-  one-time script retires the symlink earlier applies left there.
-- `AGENTS.md` (this file) — repo-level instructions only, for anything
-  specific to *editing this repository* (chezmoi workflow, file
-  conventions, boundaries).
+  conventions, etc.), deployed by chezmoi to `~/.agents/AGENTS.md` and
+  symlinked from `dot_claude/`, `dot_codex/`, `dot_copilot/`,
+  `private_dot_config/opencode/`, and `private_dot_config/` (as
+  `~/.config/AGENTS.md` for Amp). Edit there, not here.
+- `~/.config/amp/AGENTS.md` is not managed by chezmoi, so instructions a
+  platform such as an orb writes there survive an apply.
 
 ## Repository layout
 
@@ -34,8 +28,7 @@ supported platforms and installation. See
 packages install. Scripts with an `after_` prefix (`run_after_`,
 `run_once_after_`, `run_onchange_after_`) run after all of those, whatever
 their name, so a script that needs a tool the package script installs belongs
-there. Keep this ordering in mind when adding `run_*` scripts whose
-preconditions are installed by another script.
+there.
 
 ## File conventions
 
@@ -43,8 +36,7 @@ preconditions are installed by another script.
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}` and gate on the
                        profile data (`desktop` | `devserver` | `transient`,
-                       exclusive, plus `distro`, `vm`, and `work`); derive
-                       `desktop && !vm` for KeePass gating.
+                       exclusive, plus `distro`, `vm`, and `work`)
 - `run_onchange_*`   → scripts re-run when their checksum changes; the script
                        name sorts the run order, which is why the identity
                        script's `10-` prefix puts it before the allowlist
@@ -56,10 +48,6 @@ preconditions are installed by another script.
                        as the tmux plugin list the plugin script checksums
 - `executable_*`     → emitted with the executable bit set
 - `.chezmoiignore.tmpl` / `.chezmoi.toml.tmpl` → chezmoi config; edit deliberately
-- `.chezmoiremove`   → when present, glob patterns (relative to `$HOME`)
-                       for targets chezmoi removes on every apply; used
-                       transiently to retire files dropped from the
-                       source tree and state left over from retired tools
 
 ## Shortcuts
 
@@ -68,10 +56,9 @@ Every key the configuration binds or overrides is catalogued in
 rebinds a key updates that document in the same change: the maps and plugin
 globals in `dot_vimrc`, the bindings in `dot_tmux.conf.tmpl`, the readline and
 fzf keys in `dot_bashrc`, the git aliases and mergetool, the Ghostty keybinds,
-and the window-management keys in
-`run_onchange_set-up-gnome-window-shortcuts.sh.tmpl`. Record a deliberate
-removal under the section that lists dropped keys, with its reason, so the key
-is not reintroduced by accident.
+and the window-management keys in `run_onchange_set-up-gnome-window-shortcuts.sh.tmpl`.
+Record a deliberate removal under the section that lists dropped keys, with its
+reason, so the key is not reintroduced by accident.
 
 ## Workflow
 
@@ -81,17 +68,13 @@ instead. When the checkout is a linked worktree, use
 `chezmoi --source "$(git rev-parse --show-toplevel)"` to validate that
 worktree regardless of the configured source.
 
-A transient environment — a container, an Amp orb, or a hostname outside
-`managedHosts` — receives the portable set-up only; see
-[Transient profile](.agents/docs/transient.md) for detection.
-
 0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
 2. Ignore pending scripts that always run (`run_*` without `once_` or
    `onchange_`), which appear on every status check. If any other changes
    remain, inspect `chezmoi --source "$(git rev-parse --show-toplevel)" diff`
    and ask the user how to proceed (apply, discard, or stash) before making
-   changes. Pending once/onchange scripts still require this decision.
+   changes.
 3. Preview any change before applying with
    `chezmoi --source "$(git rev-parse --show-toplevel)" diff` or
    `chezmoi --source "$(git rev-parse --show-toplevel)" apply --dry-run`.
@@ -101,7 +84,8 @@ A transient environment — a container, an Amp orb, or a hostname outside
    only once the user has confirmed.
 
 Run validation before committing to catch template syntax errors and
-unintended changes. Do a fast forward only merge when asked to integrate the changes into main branch.
+unintended changes. Do a fast forward only merge when asked to integrate the
+changes into main branch.
 
 ## Apply writes configuration
 
@@ -109,18 +93,14 @@ An apply writes configuration; it does not have to make it live. A machine is
 not expected to run the newest version of this setup at any point in time, so a
 change taking effect at the next login, boot, or service start is fine.
 
-No part of an apply — a `run_*` script, a `modify_` script, or `install.sh` —
-follows its work with a command whose only purpose is to make an
-already-written change take effect. Work is installing packages and plugins,
-writing files, and registering a service with `systemctl enable` or
+No part of an apply follows its work with a command whose only purpose is to
+make an already-written change take effect. Work is installing packages and
+plugins, writing files, and registering a service with `systemctl enable` or
 `loginctl enable-linger`; a refresh is a separate `systemctl daemon-reload`,
-`systemctl start`, `systemctl restart`, `systemctl enable --now`, loading a key
-into a running agent, or the like. Writing a file or a settings key that a
-running program picks up by itself is still writing configuration, and a unit
-or drop-in is read when the manager next loads it. Ending a side effect of the
-work, such as the tmux server the plugin install started, is not a refresh.
-
-An exception is a comment next to it that gives the reason.
+`start`, `restart`, or `enable --now`, loading a key into a running agent, or
+the like. Ending a side effect of the work, such as the tmux server the plugin
+install started, is not a refresh. An exception is a comment next to it that
+gives the reason.
 
 ## Shipping
 
@@ -135,18 +115,12 @@ receives shipped changes that way: update its checkout and re-run
 
 ## Machines
 
-Every hostname this repository names, whether a `chezmoi.hostname` that
-templates gate on or an SSH destination. The Role column records the profile
-plus the VM class; the desktop profile needs `gnome-shell` on PATH, the dev
-server is the `greenhouse` hostname, and `vm` comes from the `managedVMs` list.
-`work` comes from the `workMachines` list and decides the keys a machine
-registers with the personal GitHub account and whether it deploys the Amp
-runner.
-The table describes only the machines chezmoi manages (see Boundaries). What a
-profile provides is described in the
-[Provisioning model](.agents/docs/provisioning.md#profile-data);
-the Notes column records only host-specific overrides and hosts that are not
-chezmoi targets.
+The machines chezmoi manages. The Role column records the profile plus the VM
+class; `vm` comes from the `managedVMs` list, and `work` from the
+`workMachines` list, which decides the keys a machine registers with the
+personal GitHub account and whether it deploys the Amp runner. What a profile
+provides is described in the
+[Provisioning model](.agents/docs/provisioning.md#profile-data).
 
 | Hostname | OS | Role | Notes |
 | --- | --- | --- | --- |
@@ -154,37 +128,28 @@ chezmoi targets.
 | black | Fedora Linux | desktop | the desktop workstation |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed work VM; `work`, so it registers no keys with the personal GitHub account |
 | slate-vm-personal | Fedora Linux | desktop, vm | the personal desktop VM |
-| greenhouse | Ubuntu Linux | devserver | headless; planned for decommissioning; older commits call it `netcup` |
-| chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
-| git.terroir.systems | unrecorded | server | externally managed; an SSH destination, not a chezmoi target |
+| greenhouse | Ubuntu Linux | devserver | headless; the only dev server |
 
-`github.com` is a service, not a machine. `xps13` appears in older commits
-but is retired: a hostname found in the history is not evidence that the
-machine still exists. Hostnames are compared lowercase. `greenhouse` is the
-only dev server, so no other headless host can be fully provisioned.
-
-Fedora desktops upgrade in place between releases; see
+Hostnames are compared lowercase, with a `.local` suffix stripped. Fedora
+desktops upgrade in place between releases; see
 [Fedora upgrades](.agents/docs/upgrades.md).
 
 ## Boundaries
 
-- This is a public GitHub repository - make sure no changes include private
-  information that's cannot be freely disclosed. Raise a concern before
-  publishing any changes if they are suspected to contain anything sensitive
-  information.
-- The desktop and dev-server set-ups are Linux-only, and macOS stays
-  unsupported: it is not provisioned. A non-Linux host is not refused, but the
-  flags fall back to the portable set-up, so nothing is installed and the
-  set-up does not clean up what an earlier apply left there.
+- This is a public GitHub repository: no change may include private information
+  that cannot be freely disclosed. Raise a concern before publishing anything
+  that might be sensitive.
+- The set-ups are Linux-only. A non-Linux host is not refused, but it gets the
+  portable files, nothing is installed, and what an earlier apply left there
+  stays.
 - Deploy a tool's configuration only where a package script installs the
   tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same OS,
   distro and role data. A gated target is left unmanaged where an earlier
   apply wrote it, not removed.
 - Gate tooling on profile data, not hostnames; `vm` and `work` are independent
   of the profile. The only hostname gate is the `greenhouse` dev-server
-  selection.
-  See [Provisioning model](.agents/docs/provisioning.md) for detection,
-  authentication, and sudo policy; see
+  selection. See [Provisioning model](.agents/docs/provisioning.md) for
+  detection, authentication, and sudo policy; see
   [Commit signing](.agents/docs/signing.md) for signing and agents.
 - GitHub access is `gh` over HTTPS on every machine, and an apply registers a
   machine key only for signing. Which keys GitHub also holds for

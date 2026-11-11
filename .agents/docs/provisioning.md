@@ -7,80 +7,148 @@ and [Commit signing](signing.md) for signing configuration and agent setup.
 ## Profile data
 
 Init derives the data keys in `.chezmoi.toml.tmpl` from the machine and
-persists them in `~/.config/chezmoi/chezmoi.toml`. Templates and `run_*`
-scripts gate on these keys; the only hostname the set-up reads is the
-`greenhouse` dev server. The three profile flags are exclusive by
-construction, because one derivation writes all three; a config that lacks them
-or `work` fails apply with "run chezmoi init before apply or update".
+persists them in `~/.config/chezmoi/chezmoi.toml`; templates and `run_*`
+scripts gate on them. A config without the three profile flags or `work` fails
+apply with "run chezmoi init before apply or update", and no key has a switch.
 
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims on Fedora desktops, the profile's own tooling, and keeping Syncthing and the Flathub apps off the machine |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
 | `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it deploys the Amp runner |
-| `desktop` | `gnome-shell` on `PATH` | the desktop set-up in [Supported set-ups](#supported-set-ups) |
+| `desktop` | `gnome-shell` on `PATH` | the desktop set-up |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
-| `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up; see [Transient profile](transient.md) |
+| `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up |
 
-Every key is derived and none has a switch. Virtualization is not detected:
-`vm` names the managed VMs, so a container, an orb, or an unlisted VM never
-carries it and cannot reach the VM policy. `work` is independent of both the
-profile and the VM class, so a work machine keeps its profile's set-up.
-`install.sh` passes its arguments to `chezmoi apply`. Init persists the data, so
-a later bare `chezmoi apply` or `chezmoi update` reuses it; run `chezmoi init`
-after changing a value or upgrading the source, which also drops retired keys
-from the config.
+One derivation writes the three profile flags, so they exclude each other.
+Virtualization is not detected: `vm` names the managed VMs, so an unlisted VM
+is transient and never reaches the VM policy. Init persists the data, so a
+change to a value or to the source needs `chezmoi init` again; `install.sh`
+passes its arguments to `chezmoi apply`.
 
-A VM whose hostname is not in `managedHosts` is transient (see
-[Transient profile](transient.md)); a managed VM such as `slate-vm-work`
-keeps the VM's machine-key policy below.
+KeePassXC is installed on Linux desktops only, derived as `desktop && !vm`. It
+keeps its own settings and database, so `~/.config/keepassxc` stays unmanaged.
 
-Linux desktops install KeePassXC. Templates derive the KeePass policy as
-`desktop && !vm`, so dev servers, portable environments, and VMs
-install no password manager. KeePassXC keeps its own settings, database, and
-synchronization; this repository leaves `~/.config/keepassxc` unmanaged.
+## Set-ups
 
-## Supported set-ups
-
-A host that fits none of the other rows falls back to the portable set-up, so
-nothing is refused: a managed host that is headless and is not `greenhouse`,
-and any host that is not Linux, get the portable files and no provisioning.
-The fallback is a safety net, not support: macOS remains an unsupported
-platform that this repository does not provision.
+A host that fits no row gets the portable set-up and nothing else: it is not
+refused, and what an earlier apply left there stays.
 
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
-| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
+| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
 | desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; Amp runner, except on a `work` machine |
-| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
-| portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
+| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh`, chezmoi, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
+| portable | a container, an Amp orb, a hostname outside `managedHosts`, or a host that is not Linux | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, the agent instructions | none: no keys, no allowlist, no runner, no sudo, no packages |
 
-`work` changes the identity and the runner, and nothing else: the machine keeps
-its profile's installs, configuration, and services, creates its machine key,
-and registers nothing with the personal GitHub account (see
-[SSH identity bootstrap](#ssh-identity-bootstrap)). It deploys no
-[Amp runner](#amp-runner) either, so the personal Amp account has no standing
-execution there. `slate-vm-work` is the only one today: it takes the
-desktop-VM row's set-up, and its machine key stays off the personal account.
+`work` changes the identity and the runner, and nothing else: the machine
+keeps its profile's installs, configuration, and services, creates its machine
+key, registers nothing with the personal GitHub account, and deploys no
+[Amp runner](#amp-runner). `slate-vm-work` is the only one today.
 
-The portable set-up leaves the host's shell, Git, and tmux configuration and
-plugins unmanaged, along with `~/.gitignore`, `~/.bin/git-editor`, `~/.ssh`,
-`~/.config/amp`, `~/.config/mise`, `~/.config/opencode`, `~/.config/systemd`,
-`~/.config/topgrade.toml`, and the Claude, Codex, and Copilot homes. A harness
-that owns those files, as an orb does, keeps its credential helper, hooks, and
-environment loading.
+## Portable set-up
 
-## Package sources
+A container, an Amp orb, or an unlisted host may be discarded, so it receives
+only files that apply anywhere. `chezmoi init` derives the profile from the
+machine; there is no flag to force it. Run `./install.sh` with `HOME` set to
+the throwaway home, because the apply writes into `$HOME`; other arguments go
+to `chezmoi apply`.
 
-Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra; Ubuntu takes
-mise from mise's own apt repository. Fedora desktops skip Spotify on ARM
-because its Flathub package is x86_64-only. Chezmoi downloads the two
-configured Ghostty themes from a pinned upstream revision because Terra's
-Ghostty package omits bundled themes.
+- Vim and its pinned plugins, `~/.bin/git-cleanup`, the agent instructions at
+  `~/.agents/AGENTS.md` and `~/.config/AGENTS.md`, and the `~/cs` link wherever
+  `~/Sync/cheatsheets` exists are the whole set-up. The package, sudo, and mise
+  scripts render empty, and the tmux plugin script does not run.
+- The host keeps its own shell, Git, and tmux configuration: `~/.bashrc`,
+  `~/.bash_profile`, `~/.gitconfig`, `~/.tmux.conf`, `~/.gitignore`, and
+  `~/.bin/git-editor` stay as they are. A harness that owns those files keeps
+  its credential helper, hooks, and environment loading.
+- `~/.ssh`, `~/.config/amp`, `~/.config/mise`, `~/.config/opencode`,
+  `~/.config/systemd`, and `~/.config/topgrade.toml` stay unmanaged, so a
+  forwarded agent and the platform's own tool settings keep working.
+- Vim plugins come from their upstream repositories, so a first apply needs
+  network access; the script skips when Vim is absent.
+- No key, allowlist, agent unit, or runner is created, and nothing registers
+  with GitHub or ampcode.com: authentication comes from the environment, such
+  as a forwarded agent. This profile writes no `~/.gitconfig`, so an existing
+  one keeps its own signing settings, as does an environment-provided
+  configuration such as Amp's `/etc/gitconfig`; without either, commits are
+  unsigned.
+- Material an earlier profile left in the home is not removed: start from a
+  fresh home, or delete the keys, allowlist, and agent units yourself.
 
-Ubuntu's `fd-find` installs `fdfind`, so the script links it as `~/.local/bin/fd`.
-The opencode installer runs with `--no-modify-path` and the binary is linked
-into `~/.local/bin` too, which is already on `PATH`.
+`managedHosts` lists the chezmoi targets as lowercase short hostnames,
+compared after stripping a `.local` suffix. Add a physical machine before its
+first full apply, and run `chezmoi init` after changing the list. An absent
+list makes every host transient.
+
+## SSH identity
+
+`run_once_after_10-ssh-identity.sh.tmpl` creates a missing machine key and
+registers its public key with GitHub for `andreterroir`, as a signing key. A
+desktop keeps its passphrase; VM and server keys are created without one, and
+an existing encrypted key there stops the script with instructions to run
+`ssh-keygen -p -f ~/.ssh/id_ed25519` and leave the new passphrase empty.
+
+Machine keys are the identity remote servers authorize. Every managed machine
+offers `~/.ssh/id_ed25519`, and a server accepts it once that public key is in
+the remote account's `~/.ssh/authorized_keys`. Enrolling one is manual: this
+repository does not manage `~/.ssh/authorized_keys` anywhere. Aliases and
+forwarding rules belong in `~/.ssh/local_config`; a forwarded agent can hold
+more keys than a server tries (six attempts by default), so pin an intended
+identity there with `IdentityFile` and `IdentitiesOnly`.
+
+A `work` machine stops after creating its key: no `gh` login, no registration,
+and nothing about it reaches the personal GitHub account. Its commits sign
+with that key and verify only where `~/.allowed_signers` lists it, and a
+refresh rebuilds that file from GitHub's keys, so an entry added by hand is
+lost and GitHub shows the commits unverified. The flag stops future
+registration only, so a machine marked `work` later keeps what it registered
+until `gh ssh-key delete`.
+
+Registration takes two browser confirmations: a login that grants the
+`admin:ssh_signing_key` scope, and a refresh that drops it again, because
+GitHub fixes a token's scopes when it issues it. Where the session has a
+clipboard `gh` can write to, it copies the one-time code, so the step is a
+paste; else the code is printed to retype. A run that has to register and
+cannot reach GitHub, or cannot find `gh`, fails, and the next apply retries it.
+
+## One-shot set-up scripts
+
+The identity script above and `run_once_after_allowed-signers.sh.tmpl` (see
+[Commit signing](signing.md#verification)) are the repository's only `run_once_`
+scripts, and each runs once per version of its rendered content. Clearing their
+state re-runs both:
+
+    chezmoi state delete-bucket --bucket=scriptState
+    chezmoi apply
+
+`scriptState` records every script, but `run_onchange_` runs are keyed in
+`entryState`, which this leaves alone. Use it to retry a failed run, to
+recreate a deleted machine key, and to refresh `~/.allowed_signers` after a
+machine registers a new signing key.
+
+## VM sudo
+
+`run_onchange_before_00-vm-sudo.sh.tmpl` installs a VM-only, root-owned `0440`
+rule at `/etc/sudoers.d/99-chezmoi-<uid>` before package installation. It
+validates the rule with `visudo` before activation and checks passwordless
+sudo without a cached credential, so the first apply needs a terminal and the
+user's existing sudo password. No sudo grant is installed on remote servers;
+remove any pre-existing grant there, or on a VM reclassified as a non-VM,
+before applying again.
+
+## Packages and sources
+
+Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra, whose main
+repository is enough: do not enable `terra-release-extras`, `-mesa`, or
+`-multimedia`. Ubuntu takes mise from mise's own apt repository, and `gh` from
+GitHub's, because Ubuntu's package is stale. Chezmoi's installer writes its
+binary into `~/.local/bin`; opencode's installer cannot change `PATH`, so the
+script links its binary there too. Ubuntu's `fd-find` package provides
+`fdfind`, so the script links that name as `fd`. Chezmoi downloads the two
+configured Ghostty themes from a pinned upstream revision, because Terra's
+Ghostty package omits bundled themes. Fedora desktops skip Spotify on ARM,
+where its Flathub package is x86_64-only.
 
 Fedora ships `start.fedoraproject.org` as the homepage default that every
 Firefox update restores, so `run_onchange_firefox-homepage-policy.sh.tmpl`
@@ -91,118 +159,11 @@ unlocked.
 A VM guest whose host OpenGL stops below 4.3 cannot run Ghostty's default
 renderer: virgl exposes the host's ceiling, such as Apple's OpenGL 4.1, and
 Ghostty requires 4.3. Fedora desktop VMs therefore get a drop-in for
-`app-com.mitchellh.ghostty.service` and a `~/.bin/ghostty` wrapper, which
-cover D-Bus and shell launches, setting `LIBGL_ALWAYS_SOFTWARE=1` to render
-through llvmpipe and its OpenGL 4.6. systemd reads a drop-in only when it
-loads the unit, so reload the user manager or log out once after the apply
-that writes it. The gate does not probe the host, so a VM that could render
-in hardware still gets the shims, and processes started from Ghostty inherit
-the variable. Every other desktop keeps the accelerated renderer.
-
-## Authentication and sudo
-
-Credentials and sudo follow the set-up in the table above: KeePassXC and the
-machine's own sudo policy on a desktop, no password manager and no passwordless
-grant on a dev server, passwordless sudo on a VM, which is snapshotted and
-disposable, and nothing at all in the portable set-up. Remote servers
-authenticate a machine's own key: every managed machine offers
-`~/.ssh/id_ed25519`, and a server accepts it once that public key is in the
-remote account's `~/.ssh/authorized_keys`.
-
-GitHub access is `gh` OAuth over HTTPS on every machine: Git reaches GitHub
-through the `gh` credential helper, so nothing depends on SSH to GitHub. An
-apply registers a machine key for signing only. Which keys GitHub also holds
-for authentication, as it does x1's, is a convention rather than something
-the set-up maintains: changing one by hand needs the `admin:public_key` scope
-for the duration, and a rebuilt machine needs its key added again.
-Registration only ever adds: a machine keeps what it registered until that
-key is deleted by hand.
-
-The managed SSH configuration offers this machine's identities to every host;
-whether a key is authorized is the remote server's decision, so a machine key
-authenticates wherever its public key is enrolled. Enrolling one is a manual
-step: this repository does not manage `~/.ssh/authorized_keys` on any host, and
-`git.terroir.systems` and `chalon` are SSH destinations it does not manage at
-all, so a machine's public key is added by hand and again when the machine is
-rebuilt or its key is replaced. Aliases and forwarding rules belong in
-`~/.ssh/local_config`. A forwarded agent can hold more keys than a server tries
-before it gives up (six attempts by default), so pin an intended identity with
-`IdentityFile` and `IdentitiesOnly` in `~/.ssh/local_config` for such a host.
-
-### VM sudo
-
-`run_onchange_before_00-vm-sudo.sh.tmpl` installs a VM-only, root-owned
-`0440` rule at `/etc/sudoers.d/99-chezmoi-<uid>` before package installation.
-It validates the rule with `visudo` before activation and checks passwordless
-sudo without a cached credential. The first apply needs a terminal and the
-user's existing sudo password. No sudo grant is installed on remote servers;
-administrators must remove any pre-existing passwordless grants there.
-If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
-
-## SSH identity bootstrap
-
-`run_once_after_10-ssh-identity.sh.tmpl` creates missing machine keys and
-registers public keys with GitHub for `andreterroir`. Transient environments
-skip this section entirely; see [Transient profile](transient.md). Machine keys
-are signing keys; a key GitHub also holds for authentication, as with x1's, is
-a convention outside the set-up.
-
-Registration takes two browser confirmations: a login that grants the admin
-scope for adding the key, and a refresh after the upload that drops it again,
-because GitHub fixes a token's scopes when it issues it. Where the session has
-a clipboard `gh` can write to, it copies each one-time code, so the step is a
-paste; a headless or remote session prints the code to retype.
-
-A `work` machine stops after creating the machine key: no `gh` login, and no
-registration, so nothing about it reaches the personal GitHub account. Its
-commits still sign with that machine key, and they verify only where
-`~/.allowed_signers` lists it; that file is rebuilt from
-GitHub's signing keys, so an entry added by hand lasts until the next refresh,
-and GitHub shows the commits unverified. The flag stops future registration
-only: a machine marked `work` after it was provisioned keeps what it registered
-until it is removed with `gh ssh-key delete`, and its existing `gh` login, which
-Git's credential helper uses, stays. The allowlist script still reads the
-public signing keys from GitHub, which sends nothing about this machine.
-
-A machine's identity does not change, so chezmoi runs the script once for each
-version of its rendered content: a first apply, and again only when the script
-or the data it renders changes. A provisioned machine passes without a
-terminal, touching nothing. A step with work to do fails when it cannot be
-done — generating a passphrase-protected key or registering keys with GitHub
-without a terminal, or any step whose GitHub is unreachable or whose `gh` is
-missing — and the next apply retries it. A key
-deleted after that run is therefore not recreated by an ordinary apply; see
-[One-shot set-up scripts](#one-shot-set-up-scripts).
-
-VM/server machine keys have no passphrase, so unattended signing needs no
-agent. Existing encrypted keys are never rewritten: apply stops with
-instructions to run
-`ssh-keygen -p -f ~/.ssh/id_ed25519` and leave the new passphrase empty.
-This preserves the key and registrations. Desktop keys retain their
-passphrase policy; see [Unlocking and agents](signing.md#unlocking-and-agents).
-
-An existing machine keeps what an earlier apply set up: resident-key files in
-`~/.ssh`, `yubikey-manager`, `pcsc-tools` and an enabled `pcscd`, the
-`~/.config/systemd/user/gcr-ssh-agent.service.d/no-ssh-askpass.conf` drop-in,
-and any YubiKey keys already on GitHub, which stay in `~/.allowed_signers` and
-anywhere a server still authorizes them. This set-up no longer manages that
-part and deliberately removes none of it.
-
-## One-shot set-up scripts
-
-`run_once_after_10-ssh-identity.sh.tmpl` above and
-`run_once_after_allowed-signers.sh.tmpl` (see
-[Commit signing](signing.md#verification)) are the repository's only `run_once_`
-scripts. Clearing their state and applying re-runs both:
-
-    chezmoi state delete-bucket --bucket=scriptState
-    chezmoi apply
-
-`scriptState` records every script, but `run_onchange_` runs are keyed in
-`entryState`, which this leaves alone, so only these two re-run. Use it to
-retry a failed run, to recreate a deleted machine key, and to refresh
-`~/.allowed_signers` on the other machines after a machine registers a new
-signing key: the file only reflects GitHub at the last completed run.
+`app-com.mitchellh.ghostty.service` and a `~/.bin/ghostty` wrapper, covering
+D-Bus and shell launches, with `LIBGL_ALWAYS_SOFTWARE=1` rendering through
+llvmpipe and its OpenGL 4.6. The gate does not probe the host. systemd reads a
+drop-in only when it loads the unit, so reload the user manager or log out
+once after the apply that writes it.
 
 ## GNOME Shell extensions
 
@@ -212,11 +173,10 @@ Instance, Night Theme Switcher, and AppIndicator support. Fedora packages all
 but Night Theme Switcher, so `dnf` updates those. ddterm's `F12` default would
 grab a key browsers use for DevTools, so the script sets its hotkey to
 `Super+=`, which GNOME leaves unbound. Night Theme Switcher comes from
-extensions.gnome.org, where each build targets one shell version: it is fetched
-for the running shell and reinstalled whenever the script changes, which
-includes a Fedora release upgrade; see [Fedora upgrades](upgrades.md). Enabling
-writes the `org.gnome.shell` key the Shell watches, so a fresh install takes
-effect at the next login.
+extensions.gnome.org, where each build targets one shell version: it is
+fetched for the running shell and reinstalled whenever the script changes,
+which includes a Fedora release upgrade. Enabling writes the `org.gnome.shell`
+key the Shell watches, so a fresh install takes effect at the next login.
 
 ## Syncthing
 
@@ -228,100 +188,67 @@ host keeps its own device key and a config Syncthing rewrites at runtime, under
 `~/.local/state/syncthing`.
 
 The `obsidian` device is the standard introducer: mark it as one on every
-desktop, and it shares Sync, Documents, and notes. An introducer adds a
-device only to folders it already shares with the receiver and never
-creates folders, so accept obsidian's folder offers in the new machine's
-GUI; creating a folder by hand assigns a new folder ID that never syncs.
-Desktops that mark obsidian as an introducer pick up the new device in
-those folders without pairing with the new machine. `archive` is outside
-obsidian's folders: share it from x1 or black, and accept that offer too.
+desktop, and it shares Sync, Documents, and notes. An introducer adds a device
+only to folders it already shares with the receiver and never creates folders,
+so accept its folder offers in the new machine's GUI; a folder created by hand
+gets a new folder ID that never syncs. `archive` is outside obsidian's
+folders: share it from x1 or black, and accept that offer too.
+
+`symlink_cs.tmpl` links `~/cs` to `~/Sync/cheatsheets` on any machine where
+that folder exists, and creates nothing where it does not.
 
 ## tmux plugins
 
 `.chezmoitemplates/tmux-plugins` holds the plugin list that
 `dot_tmux.conf.tmpl` includes, and `run_onchange_after_tmux-plugins.sh.tmpl`
 checksums it, so adding a plugin re-runs the installer. The script installs
-TPM when it is missing, then reads `@plugin` from the applied configuration and
-clones whatever is missing. A server started before TPM loaded has no
-`TMUX_PLUGIN_MANAGER_PATH`, which the installer needs, so the script sets it,
-and it stops the server it started, because loading the configuration can
-restore a session.
+TPM when it is missing, then clones whatever `@plugin` lines are missing. A
+server started before TPM loaded has no `TMUX_PLUGIN_MANAGER_PATH`, which the
+installer needs, so the script sets it, and it stops a server it started,
+because loading the configuration can restore a session.
 
 ## Amp runner
 
 `run_onchange_after_amp-runner.sh.tmpl` enables the systemd user unit
 `~/.config/systemd/user/amp-runner.service` on every machine with a desktop or
 dev-server profile, except a `work` machine. It runs `amp --no-tui` from
-`~/code`, names the runner after the machine's hostname, serves
-`~/code/dotfiles` explicitly, and discovers the other checkouts beneath
-`~/code`, so threads can be created on the machine from ampcode.com. Linger
-keeps the runner up without a login. The unit puts the same user directories
-on `PATH` as `~/.bash_profile`, because a thread inherits the service's
-environment rather than a login shell's. Transient environments skip this
-setup; see [Transient profile](transient.md).
-
-`--remote-control-portals` gives every thread on the runner a Portal tab for
-the dev servers and pages it starts, as orb threads have. A runner's portals
-are not public and have no review button; this runner is not shared, so only
-the Amp account opens them. The Amp apps' own **Allow Portals** switches stay
-manual, so turning portals on for an app's runner remains the user's choice.
-
-Running the runner on every non-transient machine, servers included, is
-deliberate: threads must be able to reach every machine from ampcode.com. A
-`work` machine is the exception, because the account that controls the runner
-is personal: it stays off a machine whose identity this repository does not
-put on the personal account either. The cost elsewhere is that whoever
-controls that Amp account can run code on all of them, and, through the
-passwordless sudo of the machines that carry it, as root there; share a
-runner workspace only with people trusted on the machine.
+`~/code`, names the runner after the hostname, serves `~/code/dotfiles` and
+discovers the other checkouts beneath `~/code`, so threads can be created on
+the machine from ampcode.com. Linger keeps it up without a login, and the unit
+puts `~/.bash_profile`'s user directories on `PATH`, because a thread inherits
+the service's environment rather than a login shell's.
 
 A `work` machine is gated rather than torn down: chezmoi stops deploying the
-unit and the enabling script, but a machine that already ran a runner keeps it,
-and its linger, until `systemctl --user disable --now amp-runner.service` and
+unit and the script, but a machine that already ran a runner keeps it, and its
+linger, until `systemctl --user disable --now amp-runner.service` and
 `loginctl disable-linger` run there. Dropping a machine from `workMachines`
-restores the unit but does not re-run the script, whose content did not change,
-so enable the runner by hand with
-`systemctl --user enable --now amp-runner.service`.
+restores the unit but does not re-run the script, so enable it by hand.
 
-Enabling is the script's work: it writes the unit's `default.target.wants` link
-and turns linger on, which brings a user manager up at boot, so the runner
-starts with the next boot or login. No apply step starts or restarts the runner
-or reloads systemd of its own accord — `systemctl --user enable` re-reads the
-unit files as part of enabling, which starts nothing — as
-[AGENTS.md](../../AGENTS.md#apply-writes-configuration) requires, so an apply
-never ends a thread that is running. A changed unit or setting takes effect the
-next time the runner starts.
+Enabling is the script's work: it writes the unit's `default.target.wants`
+link and turns linger on, so the runner starts with the next boot or login. No
+apply step starts or restarts it, as
+[AGENTS.md](../../AGENTS.md#apply-writes-configuration) requires. A run that
+exits early, because `amp` is missing or no user manager answers, counts as
+done, so enable the runner by hand once the precondition holds. The runner
+updates itself, installing new releases and restarting into them once no
+thread is running, at most once every 12 hours.
 
-The script re-runs only when its own content changes, so an ordinary apply
-leaves the runner alone. A runner stopped with `systemctl --user stop` comes
-back when the user manager next starts; `systemctl --user disable` or `mask`
-keeps it down, and linger removed by hand stays removed, until that script
-changes or they undo it. Replacing the `amp` binary by hand, such as with a
-reinstall or a manual upgrade, does not restart the runner either: the runner's
-auto-update applies new releases itself.
+`--remote-control-portals` gives every thread on the runner a Portal tab for
+the dev servers and pages it starts. A runner's portals are not public and
+have no review button; this runner is not shared, so only the Amp account opens
+them, and the Amp apps' **Allow Portals** switches stay manual.
 
-A run that exits early, because `amp` is missing or no user manager answers,
-still counts as done, so a later apply does not retry it: once the
-precondition holds, enable and start the runner by hand with
-`systemctl --user enable --now amp-runner.service`.
-
-The runner updates itself by default
-(`amp.runner.autoUpdate.enabled` is true): it installs new releases and
-restarts into them once no thread is running, at most once every 12 hours.
-With auto-update disabled, the runner keeps the release it started with until
-it starts again, at the next boot or by hand.
+Running the runner on every non-transient machine is deliberate, so threads
+reach every machine from ampcode.com. The cost is that whoever controls that
+Amp account can run code there, and as root through a VM's passwordless sudo;
+share a runner workspace only with people trusted on the machine.
 
 `private_dot_config/private_amp/modify_settings.json` enables
 `amp.runner.env.enabled`, so runner threads get the Secrets & Env Vars
 configured on ampcode.com, as orb threads do. The script merges the managed
-keys into the file the CLI owns, which needs `jq`: a first apply that runs
-before the package script installs it leaves the file alone, and the next
-apply merges it. The runner fetches the values when a
-thread starts and injects them into the thread's shell commands, MCP servers,
-and plugins, so changing a value on ampcode.com needs no runner restart.
-Every thread on the runner can read those variables, including threads
-created remotely. A runner shared with `--share` injects only the workspace
-and project values; personal values are not injected at all, including into
-your own threads on it. Share a runner only with people trusted to run code
-on the machine, and keep credentials that only some threads should see out of
-the shared set.
+keys into the file the CLI owns: it writes that file when it is empty, and
+needs `jq` to merge an existing one, so a first apply that runs before the
+package script installs `jq` leaves a non-empty file alone and the next apply
+merges it. Every thread on the runner can read those variables,
+including threads created remotely; a runner shared with `--share` injects
+only the workspace and project values.

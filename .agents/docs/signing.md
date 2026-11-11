@@ -1,15 +1,14 @@
 # Commit signing
 
 On managed machines, `~/.gitconfig` sets `commit.gpgsign`, so every commit is
-signed with SSH keys (`gpg.format = ssh`). All machines use their own
-`~/.ssh/id_ed25519` by default, for both interactive and automated commits.
-Desktop or dev-server profile, VM classification, and terminal presence do not
-change that choice. This set-up provisions no hardware-backed identity, though
-an override can still select a key it no longer manages.
+signed with SSH keys (`gpg.format = ssh`). All machines sign with their own
+`~/.ssh/id_ed25519`, interactive and automated commits alike. This set-up
+provisions no hardware-backed identity, though an override can still select a
+key it no longer manages.
 
-Machine-key signatures identify the signing key, not a human presence check.
-Anyone with access to the key can sign, including automation. Authentication
-and key provisioning are separate policies described in the
+A machine-key signature identifies the signing key, not a human presence
+check: anyone with the key can sign, including automation. Authentication and
+key provisioning are separate policies, described in the
 [Provisioning model](provisioning.md).
 
 ## Configuration
@@ -23,60 +22,46 @@ and key provisioning are separate policies described in the
 
 Transient environments omit these settings, leaving signing to an
 environment-provided configuration such as Amp's `/etc/gitconfig`; see
-[Transient profile](transient.md).
+[Portable set-up](provisioning.md#portable-set-up).
 
-Git invokes `ssh-keygen -Y sign` with the private-key path. OpenSSH can use a
-matching key in the active agent or read the private key directly. An absent
-agent or a forwarded agent containing only unrelated keys does not prevent
-signing with an unencrypted local key. Using the private-key path makes that
-local signing capability explicit rather than relying on public-key lookup.
-
-Existing `user.signingKey` overrides in a repository or
+Git invokes `ssh-keygen -Y sign` with the private-key path, so OpenSSH reads
+the key directly or uses a matching key in the active agent. An absent agent,
+or one holding only unrelated keys, does not prevent signing with an
+unencrypted local key. Existing `user.signingKey` overrides in a repository or
 `~/.gitconfig.local` take precedence over the managed default; inspect them
 with `git config --show-origin --get user.signingKey`.
 
 ## Unlocking and agents
 
-Desktop machine keys can remain passphrase-protected. Unattended signing
-requires an agent that can unlock or already holds that key; a fresh session
-or an unrelated forwarded agent cannot unlock an encrypted local key by
-itself. Do not remove desktop key passphrases for unattended signing; unlock
-them in the platform agent. For dev-server and VM key requirements, see
-[SSH identity bootstrap](provisioning.md#ssh-identity-bootstrap).
-
-Existing agents remain configured for SSH authentication and encrypted desktop
-keys.
+Desktop machine keys can remain passphrase-protected, so unattended signing
+needs an agent that holds or unlocks the key. Do not remove the passphrase to
+get one.
 
 ### Fedora GNOME desktop
 
-GNOME 46 moved SSH support out of `gnome-keyring-daemon` into gcr's
-`gcr-ssh-agent`: a socket-activated systemd user socket at
-`$XDG_RUNTIME_DIR/gcr/ssh`. It relays to an OpenSSH agent and, on a signature
-request, runs `ssh-add` for the matching private key in `~/.ssh` itself, so
-the machine key is usable without preloading.
-`dot_bash_profile.tmpl` exports the socket if the session has not, then loads
-`~/.ssh/id_ed25519` into it for Git signing and remote authentication. It adds
-only a key that `ssh-keygen -y -P ''` reads without a passphrase: an encrypted
-key is left to gcr, which loads it with the passphrase it stores when something
-first signs with it, because a login-shell `ssh-add` would prompt every time.
+GNOME 46 moved SSH support into gcr's `gcr-ssh-agent`: a socket-activated
+systemd user socket at `$XDG_RUNTIME_DIR/gcr/ssh`. It relays to an OpenSSH
+agent and, on a signature request, runs `ssh-add` for the matching key itself.
+`dot_bash_profile.tmpl` exports the socket if the session has not, then adds
+`~/.ssh/id_ed25519` when `ssh-keygen -y -P ''` reads it without a passphrase.
+An encrypted key is left to gcr, which stores its passphrase at the first
+signature, because a login-shell `ssh-add` would prompt every time.
 
 ### Dev servers
 
-Nothing on a dev server runs an agent for the machine key: dev servers and VMs
-sign with the key file directly, their machine keys have no passphrase, and a
-forwarded agent, when present, serves SSH clients without holding the dev
-server's local machine key.
+Nothing runs an agent for the machine key: dev servers and VMs sign with the
+key file directly, and their keys have no passphrase. A forwarded agent, when
+present, serves SSH clients without holding that key.
 
 ## Verification
 
 `run_once_after_allowed-signers.sh.tmpl` rewrites `~/.allowed_signers` from
 GitHub's `ssh_signing_keys` under the principal `andre@terroir.systems`, so
 every machine verifies every other machine's signature. A `work` machine
-registers no key, so its signatures verify nowhere: the file lists GitHub's
-keys, and an entry added by hand is lost at the next refresh. The script runs
-once, so refresh it on demand on the other machines after a machine registers
-a new signing key; a run without GitHub or `jq` fails and leaves the file it
-has. See [One-shot set-up scripts](provisioning.md#one-shot-set-up-scripts).
+registers no key, so its signatures verify nowhere, and an entry added by hand
+is lost at the next refresh. The script runs once, so refresh the file on the
+other machines after a machine registers a new signing key; see
+[One-shot set-up scripts](provisioning.md#one-shot-set-up-scripts).
 
 ```
 git log --show-signature -1
