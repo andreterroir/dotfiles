@@ -7,9 +7,8 @@ set -euo pipefail
 wm=org.gnome.desktop.wm.keybindings
 mk=org.gnome.mutter.keybindings
 
-# Edits a key's chord list in place: add appends what is missing, drop removes
-# what is listed, and everything else in the list survives, so an apply never
-# discards GNOME's defaults or anything bound here later.
+# Edit a key's chord list in place: add appends what is missing, drop removes
+# what is listed, and every other chord survives.
 chords() {
 	local op="$1" schema="$2" key="$3"
 	shift 3
@@ -37,16 +36,15 @@ subprocess.run(
 PY
 }
 
-# Rectangle on macOS binds Control+Command plus a home-row letter; Command maps
-# to Super, so the same letter keeps the muscle memory.
+# Rectangle on macOS binds Control+Command plus a home-row letter, and Command
+# maps to Super, so the letter alone keeps the muscle memory.
 chords add "$mk" toggle-tiled-left '<Control><Super>h'
 chords add "$mk" toggle-tiled-right '<Control><Super>l'
 chords add "$wm" move-to-center '<Control><Super>j' '<Control><Super>m'
 chords add "$wm" maximize '<Control><Super>k'
 chords add "$wm" unmaximize '<Control><Super>u'
 
-# Cmd+M minimizes. Super+M is the message tray's second chord, so the tray keeps
-# Super+V and hands M over rather than both keys claiming it.
+# Cmd+M minimizes, so the message tray hands Super+M over and keeps Super+V.
 chords drop org.gnome.shell.keybindings toggle-message-tray '<Super>m'
 chords add "$wm" minimize '<Super>m'
 

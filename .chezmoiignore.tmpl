@@ -10,13 +10,12 @@ readme.md
 plug-snapshot.vim
 install.sh
 {{ if not (and (eq .distro "fedora") $desktop .vm) -}}
-# Ghostty renders through llvmpipe where virgl reports OpenGL 4.1
+# Ghostty's software-GL shims are for Fedora desktop VMs
 .config/systemd/user/app-com.mitchellh.ghostty.service.d
 .bin/ghostty
 {{ end -}}
 {{ if $transient -}}
-# portable files only: no packages, services, or tool-specific homes, and the
-# host keeps its own shell, Git, and tmux configuration and plugins
+# portable files only
 10-ssh-identity.sh
 amp-runner.sh
 allowed-signers.sh
@@ -39,8 +38,7 @@ allowed-signers.sh
 tmux-plugins.sh
 {{ end -}}
 {{ if .work -}}
-# a work machine runs no Amp runner, which would give the personal Amp
-# account code execution there and root through a VM's passwordless sudo
+# a work machine runs no Amp runner
 amp-runner.sh
 .config/systemd/user/amp-runner.service
 {{ end -}}

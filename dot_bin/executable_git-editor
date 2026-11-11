@@ -1,6 +1,5 @@
 #!/bin/sh
-# Preserve a commit message across a failed commit: git rewrites
-# .git/COMMIT_EDITMSG from its template on every attempt.
+# Keep a commit message across a failed commit; git rewrites COMMIT_EDITMSG.
 set -u
 
 file=$1

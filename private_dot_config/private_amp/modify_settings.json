@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-# The CLI owns this file and rewrites it, so set the managed keys over
-# its content instead of replacing the file. Merging needs jq, which the
-# package script installs later in the same apply, so a first apply on a
-# fresh machine leaves the file alone and the next one merges it.
+# The CLI owns this file, so merge the managed keys into its content.
 set -euo pipefail
 managed='{"$schema":"https://ampcode.com/cli-settings.schema.json","amp.remoteThreadCreation.enabled":true,"amp.runner.env.enabled":true}'
 current=$(cat)

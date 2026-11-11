@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
-# Derive ~/.allowed_signers from the signing keys on GitHub, so every
-# machine verifies every other machine's signature. The list only changes
-# when a machine registers a signing key, so chezmoi runs this once for each
-# version of its rendered content; re-run it on demand after registering one.
-# A run that cannot reach GitHub fails, so the next apply retries it.
+# Derive ~/.allowed_signers from the signing keys on GitHub.
 set -euo pipefail
 
 out="$HOME/.allowed_signers"

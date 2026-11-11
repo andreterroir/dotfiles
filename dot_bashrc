@@ -16,12 +16,10 @@ if ! command -v fd > /dev/null && command -v fdfind > /dev/null ; then
 	alias fd='fdfind'
 fi
 
-# ssh passes TERM to the remote, which needs a terminfo entry for it. Send the
-# name every host has rather than xterm-ghostty or tmux-256color.
+# ssh passes TERM to the remote, which needs a terminfo entry for it.
 ssh() { TERM=xterm-256color command ssh "$@"; }
 
-# Enable CTRL-S for forward history search
-# (overwrites suspension of terminal output)
+# CTRL-S for forward history search
 stty -ixon
 
 export HISTSIZE=100000
@@ -32,10 +30,8 @@ shopt -s histappend
 # Blinking block cursor
 printf '\e[1 q'
 
-# Customize Git repository prompt. The escapes print literally under
-# sh and dash, so gate the prompt on bash.
+# Git prompt; the escapes print literally under sh and dash, so gate on bash.
 if [ -n "${BASH_VERSION:-}" ]; then
-	# Load Git helper function and customize repository prompt
 	if [ -f /usr/lib/git-core/git-sh-prompt ]; then
 		# Ubuntu
 		source /usr/lib/git-core/git-sh-prompt
@@ -49,31 +45,24 @@ if [ -n "${BASH_VERSION:-}" ]; then
 	export GIT_PS1_SHOWSTASHSTATE=1 # $
 	export GIT_PS1_SHOWUNTRACKEDFILES=1 # %
 	export GIT_PS1_SHOWUPSTREAM=auto
-	# Color the classic (user@host:workdir$) prompt
-	# 032   - green
-	# 034   - blue
 	export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " [%s]") \$ '
 	# Set terminal window title to user@host: workdir
 	export PS1="\[\e]0;\u@\h: \w\a\]$PS1"
 fi
 
-# Enable completion. Amp requires Bash 4+ and bash-completion.
+# Bash completion plus the tools configured on this machine
 if [ -r /etc/profile.d/bash_completion.sh ]; then
 	source /etc/profile.d/bash_completion.sh
 elif [ -r /usr/share/bash-completion/bash_completion ]; then
 	source /usr/share/bash-completion/bash_completion
 fi
 command -v chezmoi > /dev/null && source <(chezmoi completion bash)
-# Enable Cargo completion
 command -v rustup > /dev/null && source <(rustup completions bash cargo)
 command -v rustup > /dev/null && source <(rustup completions bash rustup)
-# Load Amp completions at runtime (per https://ampcode.com/docs/cli)
 command -v amp > /dev/null && source <(amp completions bash)
 
-# fzf key bindings (Ctrl-T, Ctrl-R, Alt-C) and ** completion.
-# fzf --bash (0.48+) embeds both. Older Ubuntu packages have no
-# --bash; completions/fzf is completion.bash, but bash-completion
-# only loads it when completing the fzf command, so source it here.
+# fzf key bindings (Ctrl-T, Ctrl-R, Alt-C) and ** completion. `fzf --bash`
+# embeds both from 0.48; older packages ship the scripts separately.
 if command -v fzf > /dev/null; then
 	_fzf_bash="$(fzf --bash 2>/dev/null)" || true
 	if [ -n "$_fzf_bash" ]; then

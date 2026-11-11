@@ -16,13 +16,12 @@ if [ ! -f "$snapshot" ]; then
 	exit 0
 fi
 
-# The snapshot pins every plugin by commit and ends in PlugUpdate!, so sourcing
-# it installs missing plugins and checks installed ones out at the pin. PlugClean
-# drops plugins the configuration no longer declares; it also logs benign
-# Ex-mode UI errors, which Vim 9.1 counts as failure, so the call is silenced.
+# The snapshot pins each plugin by commit and ends in PlugUpdate!, so sourcing
+# it installs what is missing and checks the rest out. PlugClean is silent
+# because Ex mode logs UI errors that Vim 9.1 counts as failure.
 vim -Nu "$HOME/.vimrc" -es -S "$snapshot" -c 'silent! PlugClean!' -c 'qa!'
 
-# A failed checkout does not fail vim, so verify against the snapshot.
+# A failed checkout does not fail vim, so verify every plugin against the pin.
 failed=0
 entries=$(sed -n "s/^silent! let g:plugs\['\([^']*\)'\]\.commit = '\([0-9a-f]*\)'$/\1 \2/p" "$snapshot")
 if [ -z "$entries" ]; then

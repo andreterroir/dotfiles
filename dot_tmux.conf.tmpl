@@ -1,7 +1,7 @@
 # vi: ft=tmux
 
 set-option -g escape-time 0
-# Distinguish Shift+Enter from Enter in the Amp CLI (docs: ampcode.com/docs/cli/keybindings)
+# Distinguish Shift+Enter from Enter in the Amp CLI
 set-option -s extended-keys on
 set-option -g prefix C-Space
 bind-key -T prefix \; command-prompt
@@ -36,9 +36,8 @@ bind-key -T prefix * run "wl-paste --primary | tmux load-buffer - ; tmux paste-b
 bind-key -T prefix + run "wl-paste | tmux load-buffer - ; tmux paste-buffer"
 {{- end }}
 
-# Restore layout, visible pane text and a few cheap programs after a reboot.
-# Pane snapshots hold screen text; keep them out of other users' reach, and
-# pin the location resurrect picks (it falls back to XDG when this is absent).
+# Restore layout and pane text after a reboot. This fixes resurrect's snapshot
+# directory, which then stays out of other users' reach.
 run-shell 'install -d -m 700 ~/.tmux/resurrect'
 set -g @resurrect-capture-pane-contents 'on'
 set -g @resurrect-pane-contents-area 'visible'
@@ -47,10 +46,8 @@ set -g @continuum-restore 'on'
 
 {{ include ".chezmoitemplates/tmux-plugins" -}}
 run '~/.tmux/plugins/tpm/tpm'
-# Styles stick to the default and 16-colour palette, so the Ghostty theme
-# (light/dark) applies directly without per-tool appearance switching.
-# Continuum's autosave runs from a status-right hook it prepends at load, which
-# this override replaces, so the hook is repeated here.
+# Styles use the default 16-colour palette, so the Ghostty theme applies as is.
+# Continuum prepends its autosave hook to status-right, which this replaces.
 set -g status-style bg=default,fg=default
 set -g status-left '#[bold] #S '
 set -g status-left-length 20

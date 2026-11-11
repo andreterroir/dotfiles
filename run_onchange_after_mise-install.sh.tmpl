@@ -7,7 +7,7 @@ set -euo pipefail
 # {{ include "private_dot_config/mise/config.toml.tmpl" | sha256sum }}
 mise install --yes
 {{ else -}}
-# Renders a no-op without mise; once mise exists the changed script re-runs.
+# Renders without mise; the changed script re-runs once mise exists.
 echo '>mise: not installed; skipping tool installation' >&2
 {{ end -}}
 {{ end -}}

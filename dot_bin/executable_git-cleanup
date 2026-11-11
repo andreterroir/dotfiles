@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 # git-cleanup: remove local branches merged into the current branch.
-#
-# Worktrees are never removed: they may belong to a live agent session (Amp,
-# Claude Code, Codex, OpenCode, or another tool), and a clean one gives no
-# signal that its owner is done. git branch -d refuses branches checked out
-# in any worktree, so none of them are deletable here.
-#
+# git branch -d refuses a branch checked out in any worktree, so worktrees,
+# which may belong to a live agent session, are never removed here.
 # Usage: git cleanup [-n|--dry-run] [-h|--help]
 
 set -euo pipefail

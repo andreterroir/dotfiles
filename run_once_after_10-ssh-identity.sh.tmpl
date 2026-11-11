@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
-# Finish this machine's SSH identity: put its key on disk and make sure
-# GitHub holds it for signing, except on a work machine, which creates only
-# its machine key and registers nothing. GitHub access is gh over HTTPS, and
-# machine keys are the identity remote servers authorize.
-# Registration may need a browser login. The identity of a machine does not
-# change, so chezmoi runs this once for each version of its rendered content,
-# and a provisioned machine passes without touching anything. A step with work
-# to do fails without a terminal, so the next apply retries it.
+# Put this machine's SSH key on disk and register it with GitHub for signing.
 set -euo pipefail
 
 GH_ACCOUNT={{ .githubAccount }}
@@ -48,10 +41,8 @@ exit 0
 PUBLIC_KEY="$MACHINE_KEY.pub"
 key_material="$(awk '{print $1, $2}' "$PUBLIC_KEY")"
 
-# Key registrations are public, so check them before touching gh auth:
-# a run with nothing to upload skips the browser flow. Buffering the JSON
-# avoids curl|grep SIGPIPE false negatives under pipefail. An unreachable
-# API leaves the registration unverified, so the run fails and is retried.
+# Check the public registrations first, so an upload-free run needs no gh auth.
+# The JSON is buffered, because curl|grep would SIGPIPE under pipefail.
 if ! registered_signing_keys="$(curl -fsS \
 	"https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"; then
 	echo 'error: GitHub API unavailable; cannot verify key registration; run chezmoi apply when online' >&2
@@ -62,18 +53,14 @@ if grep -qF "$key_material" <<<"$registered_signing_keys"; then
 	exit 0
 fi
 
-# Registration is the only step that needs gh, so an installed key pair
-# with nothing to upload still succeeds without it.
+# Registration is the only step that needs gh.
 if ! command -v gh >/dev/null 2>&1; then
 	echo 'error: gh is not installed; cannot register public keys with GitHub; install the GitHub CLI and run chezmoi apply' >&2
 	exit 1
 fi
 require_terminal 'registering public keys with GitHub'
 
-# gh puts the browser flow's one-time code on the clipboard (--clipboard,
-# gh 2.79+), so the step is a paste rather than a retype. Offer it only
-# when this session has a clipboard gh can use; a headless or remote
-# session keeps printing the code.
+# gh can copy the browser flow's one-time code (--clipboard, gh 2.79+).
 gh_clipboard=()
 if { [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-copy >/dev/null &&
 	command -v wl-paste >/dev/null; } ||
@@ -81,8 +68,7 @@ if { [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-copy >/dev/null &&
 	gh_clipboard=(--clipboard)
 fi
 
-# gh may hold several accounts (work + personal): make $GH_ACCOUNT
-# active so refresh and add never hit another login.
+# gh may hold several accounts, so make the personal one active.
 if gh auth switch --hostname github.com --user "$GH_ACCOUNT" 2>/dev/null; then
 	echo ">using GitHub account ${GH_ACCOUNT}"
 else
@@ -96,8 +82,7 @@ if [ "$active" != "$GH_ACCOUNT" ]; then
 	exit 1
 fi
 
-# A token whose scope this script dropped after a past registration, and
-# only such a token, needs topping up again.
+# Top up the signing scope a past run dropped after registering.
 if ! grep -qF admin:ssh_signing_key \
 	<<<"$(gh auth status --hostname github.com --active 2>&1)"; then
 	echo '>extending GitHub token scopes'
@@ -109,12 +94,8 @@ echo '>registering key on GitHub as a signing key'
 gh ssh-key add "$PUBLIC_KEY" \
 	--title "$(whoami)@$(hostname -s)-$(basename "$PUBLIC_KEY" .pub)" --type signing
 
-# The admin scope exists to register the key; a token that keeps it lets any
-# process running as this user add SSH keys to the account. Dropping it needs
-# a browser confirmation, like login does, and takes an admin:public_key left
-# by an earlier policy with it. Not fatal: the key is already on GitHub, and
-# the top-up check above re-extends the signing scope on a run that needs
-# registration again.
+# Drop the admin scope again: a token that keeps it lets any process running as
+# this user add SSH keys to the account. Not fatal, since the key is registered.
 if ! gh auth refresh --hostname github.com \
 		--remove-scopes admin:public_key --remove-scopes admin:ssh_signing_key "${gh_clipboard[@]}"; then
 	echo 'warning: could not drop the GitHub admin scopes; run gh auth refresh --hostname github.com --remove-scopes admin:public_key,admin:ssh_signing_key by hand' >&2

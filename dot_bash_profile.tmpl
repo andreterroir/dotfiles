@@ -10,16 +10,14 @@ export XZ_DEFAULTS=--threads=0
 export ZSTD_COMPRESS=--threads=0
 export LESS=--RAW-CONTROL-CHARS
 
-# Prepend user directories; the last prepended is searched first:
-# mise, cargo, go, ~/.bin, ~/bin, ~/.local/bin. Managed binaries live in
-# ~/.bin, so they win over hand-installed ones in ~/bin.
+# Prepend user directories; the last prepended is searched first, so managed
+# binaries in ~/.bin win over hand-installed ones in ~/bin.
 [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
 [ -e "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
 [ -e "$HOME/.bin" ] && PATH="$HOME/.bin:$PATH"
 [ -d "$HOME/.cache/go/bin" ] && PATH="$HOME/.cache/go/bin:$PATH"
 [ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
-# mise's shims, so shells that never run the interactive activate in
-# ~/.bashrc still find the tools mise installs
+# mise shims, so non-interactive shells find the tools mise installs
 [ -d "$HOME/.local/share/mise/shims" ] && PATH="$HOME/.local/share/mise/shims:$PATH"
 export PATH
 
@@ -37,16 +35,13 @@ if [ -f "$HOME/.config/opencode/opencode.local.json" ]; then
 fi
 
 {{ if .desktop -}}
-# GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not; gcr
-# advertises every ~/.ssh public key and loads one on demand.
+# GNOME 46+ runs gcr-ssh-agent; use its socket when the session exports none
 if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]; then
 	export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
 fi
 {{ end -}}
 {{ if and .desktop (not .vm) -}}
-# Load a passphrase-less machine key into the agent for Git signing and remote
-# authentication. An encrypted key is left to gcr, which holds its passphrase;
-# ssh-add would prompt for it in every login shell.
+# Add a passphrase-less machine key for signing; gcr unlocks an encrypted one.
 if [ -S "${SSH_AUTH_SOCK:-}" ] && [ -f "$HOME/.ssh/id_ed25519" ] &&
 	ssh-keygen -y -P '' -f "$HOME/.ssh/id_ed25519" >/dev/null 2>&1; then
 	ssh-add -q "$HOME/.ssh/id_ed25519" </dev/null 2>/dev/null || true

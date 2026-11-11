@@ -2,7 +2,7 @@
 " -- plugins --
 " -------------
 
-" bootstrap vim-plug, pinned so every machine gets the same manager
+" bootstrap vim-plug at a pinned commit, so every machine gets the same manager
 let s:plug_commit = '4c4e56b5f7384369927a075804b6a17de7644edd'
 let s:plugpath = expand('~/.vim/autoload/plug.vim')
 if !filereadable(s:plugpath)
@@ -16,39 +16,23 @@ let mapleader = ' '
 
 call plug#begin('~/.vim/plugged')
 
-" center the focused buffer
-Plug 'junegunn/goyo.vim'
-" restrict allowed modeline options
-Plug 'ypcrts/securemodelines'
-" readline style editing keybindings
-Plug 'tpope/vim-rsi'
-" repeat plugin commands with dot
-Plug 'tpope/vim-repeat'
-" highlight and navigate matching text
-Plug 'andymass/vim-matchup'
-" add, change and delete surrounding characters
-Plug 'tpope/vim-surround'
-" insert and step over matching characters
-Plug 'cohama/lexima.vim'
-" keymap discovery
-Plug 'liuchengxu/vim-which-key'
-" persistent branching undo history
-Plug 'mbbill/undotree'
-" navigation
-Plug 'christoomey/vim-tmux-navigator'
-" search
-Plug 'junegunn/fzf'
-Plug 'junegunn/fzf.vim'
-" startup screen
-Plug 'mhinz/vim-startify'
-" persistent fast access terminal
-Plug 'voldikss/vim-floaterm'
-" Git interface
-Plug 'tpope/vim-fugitive'
-" inline Git interface
-Plug 'airblade/vim-gitgutter'
-" file manager
-Plug 'justinmk/vim-dirvish'
+Plug 'junegunn/goyo.vim' " center the focused buffer
+Plug 'ypcrts/securemodelines' " restrict modeline options
+Plug 'tpope/vim-rsi' " readline editing keys
+Plug 'tpope/vim-repeat' " repeat plugin commands with dot
+Plug 'andymass/vim-matchup' " match and navigate text
+Plug 'tpope/vim-surround' " surrounding characters
+Plug 'cohama/lexima.vim' " insert matching characters
+Plug 'liuchengxu/vim-which-key' " keymap discovery
+Plug 'mbbill/undotree' " undo history tree
+Plug 'christoomey/vim-tmux-navigator' " window navigation
+Plug 'junegunn/fzf' " search
+Plug 'junegunn/fzf.vim' " search commands
+Plug 'mhinz/vim-startify' " startup screen
+Plug 'voldikss/vim-floaterm' " floating terminal
+Plug 'tpope/vim-fugitive' " Git interface
+Plug 'airblade/vim-gitgutter' " inline Git hunks
+Plug 'justinmk/vim-dirvish' " file manager
 
 call plug#end()
 
@@ -59,11 +43,10 @@ endfunction
 
 let g:goyo_width = 80
 let g:floaterm_keymap_toggle = '<A-;>'
-" gitgutter maps are global; the config defines the ones it wants
+" gitgutter maps are global; dot_vimrc defines the ones it wants
 let g:gitgutter_map_keys = 0
 
-" vim-plug leaves uninstalled plugins off the runtimepath, so configuring them
-" before :PlugInstall has run would abort this file on a new machine
+" vim-plug hides uninstalled plugins, so configure them only once installed
 let s:missing = filter(copy(g:plugs), '!isdirectory(v:val.dir)')
 
 if empty(s:missing)
@@ -100,11 +83,11 @@ endif
 " blinking block cursor for insert, replace and command modes
 set guicursor=i-r-c-ci-cr:block-blinkwait300-blinkoff150-blinkon150
 
+" render in the terminal theme's own colours: no colorscheme, no true colour
 syntax off
 filetype on
 filetype plugin off
 filetype indent on
-" render in the terminal theme's own colours: no colorscheme, no true colour
 
 " defaults Neovim provided and Vim does not
 set backspace=indent,eol,start
@@ -118,35 +101,28 @@ set nostartofline
 set shortmess=ltToOCF
 set wildoptions=pum,tagfile
 
-" render tabs as 4 spaces
+" tabs are 4 spaces, except where a file type says otherwise
 set tabstop=4
-" insert 4 spaces for a tab
 set softtabstop=4
-" insert 4 spaces for an indent
 set shiftwidth=4
-" replace each 8 spaces by a tab
 set noexpandtab
 
-" use space as vertical split character
+" use a space as the vertical split character
 let &fillchars = 'vert: '
 " show trailing characters, tabs and non-breakable spaces
 set list
 let &listchars = 'tab:  ,trail:·,nbsp:⍽,extends:»,precedes:«'
-" indent wrapped lines
+" indent wrapped lines, with a marker
 set breakindent
-" show marker for wrapped lines
 let &showbreak = '↳ '
-" recognize bullet point as well as numbered lists: optional whitespace
-" followed either by a digit with an optional ]/:/./)/} or -/*/+
-" with at least one space after
+" recognize bullets as well as numbered lists
 let &formatlistpat = '^\s*\(\d\+[\]:.)}]*\|[-\*+]\)\s\+'
-" before indented text; shift lists by width of the prefix pattern (above)
+" shift list items by their prefix, past the breakindent
 set breakindentopt=sbr,list:-1
-" in the number column
+" wrap into the number column
 set cpoptions+=n
-" conceal syntax (e.g. Markdown), but not completely (highlight code block marks)
+" conceal syntax, keeping code block marks highlighted
 set conceallevel=1
-" display line numbers
 set number
 " highlight the line number for the current line
 set cursorline
@@ -159,18 +135,13 @@ set foldlevelstart=99
 " check for hunks often enough for gitgutter signs
 set updatetime=100
 
-" do not highlight search results by default
 set nohlsearch
-" autocomplete to the longest commons string and than cycle through the
-" alternatives
 set wildmode=longest:full,full
 " how long a prefix waits before which-key opens
 set timeoutlen=500
 
-" keep backup if file is overwritten
 set backup
-" make a copy to create a backup, overwrite the original file in place
-" this preserves the file creation timestamp (birthtime)
+" write in place, so a backup keeps the file's birthtime
 set backupcopy=yes
 " keep backups, swap files, undo history and sessions out of the working tree
 let s:cache_dir = expand('~/.cache/vim')
@@ -184,8 +155,7 @@ let &backupdir = s:cache_dir . '/backup//'
 let &directory = s:state_dir . '/swap//'
 let &undodir = s:state_dir . '/undo//'
 set undofile
-" keep plaintext copies of secrets out of the state directories: no
-" undo file, swap file, or backup for /tmp and ~/.ssh
+" no plaintext copy of a secret in the state directories
 augroup secrets
   autocmd!
   autocmd BufRead,BufNewFile /tmp/*,$HOME/.ssh/* setlocal noundofile noswapfile
@@ -195,9 +165,6 @@ let &backupskip = &backupskip . ',' . expand('~/.ssh') . '/*,/tmp/*'
 " ------------
 " -- keymap --
 " ------------
-
-" an empty mode is an equivalent of :map, which applies to
-" normal, visual, select and operator-pending mode
 
 " toggles
 call s:Map('', '<leader>th', '<cmd>set hlsearch!<CR>')
@@ -212,11 +179,9 @@ call s:Map('', '<leader>;', ':')
 
 " window splits
 call s:Map('', '<leader>-', '<cmd>split<CR>')
-" todo: consider a more ergonomic map
 call s:Map('', '<leader><Bslash>', '<cmd>vsplit<CR>')
 
-" system clipboard interactions; without +clipboard the terminal's own
-" copy and paste is the only path, so leave the keys free
+" without +clipboard the terminal's own copy and paste is the only path
 if has('clipboard')
   call s:Map('n', '<leader>y', '"+y')
   call s:Map('v', '<leader>y', '"+y')
@@ -239,7 +204,7 @@ call s:Map('n', '<leader>hr', '<cmd>GitGutterUndoHunk<CR>')
 call s:Map('v', '<leader>hs', ':GitGutterStageHunk<CR>')
 call s:Map('v', '<leader>hr', ':GitGutterUndoHunk<CR>')
 call s:Map('n', '<leader>hS', '<cmd>Git add %<CR>')
-" staging happens per hunk in gitgutter; unstage applies to the buffer
+" gitgutter stages per hunk, so unstaging applies to the whole buffer
 call s:Map('n', '<leader>hu', '<cmd>Git restore --staged %<CR>')
 call s:Map('n', '<leader>hR', '<cmd>Git restore %<CR>')
 call s:Map('n', '<leader>hp', '<cmd>GitGutterPreviewHunk<CR>')
@@ -363,8 +328,8 @@ augroup END
 " -- autocommands --
 " ------------------
 
-" strip trailing whitespace on write, but not from file types where it
-" is meaningful: diff context lines and Markdown hard line breaks
+" strip trailing whitespace, except where it is meaningful: diff context and
+" Markdown hard line breaks
 function! s:StripTrailingWhitespace() abort
   if &filetype =~# '^\%(diff\|markdown\)$'
     return
@@ -380,11 +345,10 @@ augroup END
 " -- filetypes --
 " ---------------
 
-" visually wrap lines, hide line break continuation markers, and give up the
-" number column
+" wrap lines, hide the continuation markers, drop the number column, and swap
+" j/k with gj/gk for finer navigation over wrapped lines
 function! s:Markdown() abort
   setlocal spell noexpandtab linebreak showbreak=NONE nonumber
-  " swap gj/gk with j/k for finer navigation over wrapped lines
   nnoremap <buffer> <silent> j gj
   nnoremap <buffer> <silent> k gk
   nnoremap <buffer> <silent> gj j

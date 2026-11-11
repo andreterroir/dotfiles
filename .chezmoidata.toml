@@ -1,11 +1,8 @@
-# Identity constants used by the Git config, the SSH identity script, and
-# the signature allowlist. Keep in sync with the GitHub account.
+# Identity used by the Git config, the SSH identity script, and the allowlist.
 githubAccount = "andreterroir"
 gitEmail = "andre@terroir.systems"
 
-# Chezmoi targets as lowercase short hostnames. Unknown hostnames, including
-# unlisted VMs, are transient; keep in sync with the Machines table in
-# AGENTS.md.
+# Lowercase short hostnames; see the Machines table in AGENTS.md.
 managedHosts = [
     "x1",
     "black",
@@ -13,16 +10,10 @@ managedHosts = [
     "slate-vm-personal",
     "greenhouse",
 ]
-# Managed VMs. Virtualization is not detected: a container, an orb, or an
-# unlisted VM is transient instead, so it never carries `vm`.
 managedVMs = [
     "slate-vm-work",
     "slate-vm-personal",
 ]
-# Work machines keep their keys to themselves: the set-up is otherwise the
-# machine's profile and VM class, but nothing is registered with the personal
-# GitHub account. Entries belong in managedHosts too; keep in sync with the
-# Machines table in AGENTS.md.
 workMachines = [
     "slate-vm-work",
 ]

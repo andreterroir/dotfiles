@@ -1,10 +1,7 @@
 {{ if eq .chezmoi.os "linux" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-# Run the Amp runner that serves ~/code on every Linux machine, so
-# threads can be created on it from ampcode.com. Enabling the unit is
-# the work; the runner starts with the user manager at the next boot or
-# login. Linger starts that manager at boot rather than at login.
+# Enable the Amp runner; it starts with the next boot or login.
 set -euo pipefail
 
 amp="$HOME/.local/bin/amp"

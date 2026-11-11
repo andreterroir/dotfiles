@@ -4,7 +4,13 @@
 pins them. The snapshot is vim-plug's `:PlugSnapshot` output, symlinked to
 `~/.vim/plug-snapshot.vim` by `dot_vim/symlink_plug-snapshot.vim.tmpl`. It
 records one commit per plugin plus `PlugUpdate!`, so sourcing it installs
-missing plugins and checks installed ones out at the pin.
+missing plugins and checks installed ones out at the pin. `dot_vimrc` also
+bootstraps vim-plug itself from a pinned commit, so a fresh home needs network
+access once.
+
+Plugins that are not installed yet are left unconfigured: vim-plug keeps them
+off the runtimepath, and configuring one would abort the vimrc before
+`:PlugInstall` ran.
 
 The configuration is legacy Vim script and uses no Lua or Neovim API calls.
 Plugins configure themselves through VimL globals: startify's command list, which-key's description dictionary,
@@ -14,12 +20,15 @@ floaterm's toggle, gitgutter's maps (disabled in favour of the explicit ones in
 
 Backups and editor state stay outside the working tree: `~/.cache/vim/backup`
 for backups, `~/.local/state/vim` for swap files, undo history and sessions.
+Files under `/tmp` and `~/.ssh` get neither, so no plaintext copy of a secret
+lands in those directories.
 
-`run_onchange_after_vim-plugins.sh.tmpl` sources the snapshot, removes plugins
+`run_onchange_after_vim-plugins.sh.tmpl` sources the snapshot, drops plugins
 the configuration no longer declares, and verifies every plugin against the
-snapshot, because a failed checkout does not fail Vim. Its `include` checksum
-makes the script re-run whenever the snapshot changes. Never edit the snapshot
-by hand; regenerate it.
+snapshot, because a failed checkout does not fail Vim. `PlugClean!` runs
+silenced, because Ex mode logs UI errors that Vim 9.1 counts as failure.
+Its `include` checksum makes the script re-run whenever the snapshot changes.
+Never edit the snapshot by hand; regenerate it.
 
 Pins are commits on each plugin's default branch, not releases. "Latest"
 therefore means the branch head at upgrade time, and an unmaintained plugin

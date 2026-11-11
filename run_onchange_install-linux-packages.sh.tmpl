@@ -4,8 +4,7 @@
 # vi: set ft=bash
 set -euo pipefail
 
-# Terra's main repo, the documented Ghostty install path; it also carries
-# mise and topgrade. Do not enable terra-release-extras, -mesa or -multimedia.
+# Terra: Ghostty's documented install path, which also carries mise and topgrade
 if ! rpm -q terra-release >/dev/null; then
 	sudo dnf install -y --nogpgcheck \
 		--repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
@@ -54,9 +53,7 @@ sudo dnf install -y \
 	jetbrains-mono-fonts
 
 {{ if not .vm -}}
-# Personal apps stay off a VM, which needs no chat or media client. Spotify's
-# Flathub package is x86_64-only. Name the remote, and add Flathub when it is
-# not configured yet, instead of relying on a previous setup.
+# Personal apps stay off a VM; Spotify's Flathub build is x86_64-only
 sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install --system --assumeyes flathub \
 {{ if eq .chezmoi.arch "amd64" }}	com.spotify.Client \
@@ -69,14 +66,10 @@ flatpak install --system --assumeyes flathub \
 {{   else if and (eq .distro "ubuntu") .devserver -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-# Headless Ubuntu only. hugo is intentionally omitted.
+# Headless Ubuntu only.
 set -euo pipefail
 
-# mise's own apt repo, which installs zig, exercism and topgrade.
-# Ubuntu has no mise package. apt accepts an ASCII-armored keyring when
-# it is named .asc, which avoids a gpg --dearmor step (and its gnupg
-# dependency) on a fresh server.
-# https://mise.jdx.dev/installing-mise.html
+# mise's own apt repo; an ASCII-armored .asc keyring needs no gpg --dearmor.
 if ! command -v mise > /dev/null; then
 	sudo mkdir -p -m 755 /etc/apt/keyrings
 	curl -fsSL https://mise.jdx.dev/gpg-key.pub \
@@ -113,8 +106,7 @@ if [ ! -e "$HOME/.local/bin/fd" ]; then
 	ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
 fi
 
-# Official GitHub CLI apt repo. Ubuntu's own gh package is absent or
-# stale; a third-party package (snap, pacstall) must not satisfy this.
+# GitHub's own CLI repo; a snap or a stale Ubuntu package must not satisfy this.
 if ! dpkg-query -W -f '${Maintainer}' gh 2>/dev/null | grep -qx 'GitHub'; then
 	sudo mkdir -p -m 755 /etc/apt/keyrings
 	keyring="$(mktemp)"
@@ -130,15 +122,14 @@ if ! dpkg-query -W -f '${Maintainer}' gh 2>/dev/null | grep -qx 'GitHub'; then
 	sudo apt-get install -y gh
 fi
 
-# chezmoi's documented binary install. Apt has no chezmoi package.
+# chezmoi's documented binary install; apt has no package for it.
 if ! command -v chezmoi > /dev/null; then
 	sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 fi
 
 {{   end -}}
 {{   if and (eq .distro "ubuntu") .devserver -}}
-# --no-modify-path skips the installer's shell PATH edit. Link the
-# binary into ~/.local/bin, which is already on PATH.
+# --no-modify-path skips the installer's PATH edit; link into ~/.local/bin.
 if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
 	echo '>installing opencode'
 	curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path

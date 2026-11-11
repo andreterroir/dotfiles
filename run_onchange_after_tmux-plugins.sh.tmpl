@@ -20,7 +20,7 @@ fi
 had_server=0
 if tmux list-sessions >/dev/null 2>&1; then
 	had_server=1
-	# A server started before TPM loaded has no plugin path; install_plugins aborts without it.
+	# A server started before TPM loaded has no plugin path; install aborts without it.
 	tmux show-environment -g TMUX_PLUGIN_MANAGER_PATH >/dev/null 2>&1 ||
 		tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/"
 fi
@@ -28,8 +28,7 @@ fi
 # Reads @plugin from the applied tmux config and clones whatever is missing.
 "$tpm/bin/install_plugins"
 
-# install_plugins starts a server when none was running, which loads the config
-# and can trigger a restore; do not leave that server behind.
+# install_plugins starts a server when none was running, which can trigger a restore.
 if [ "$had_server" = 0 ]; then
 	tmux kill-server 2>/dev/null || true
 fi

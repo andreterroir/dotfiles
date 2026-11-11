@@ -3,15 +3,13 @@ font-family = JetBrains Mono
 font-feature = -calt, -liga, -dlig
 font-size = 16
 {{ with lookPath "tmux" -}}
-# direct: so Ghostty execs tmux instead of wrapping it in bash --posix.
-# Forcing shell-integration = bash rewrites this argv and tmux rejects --posix.
+# direct: so Ghostty execs tmux instead of wrapping it in bash --posix
 initial-command = direct:{{ . }} new -A
 {{- end }}
 confirm-close-surface = false
 shell-integration = detect
 cursor-style = block
 cursor-style-blink = true
-# prevent shell integration from overriding prompt cursor to bar
-# https://ghostty.org/docs/config/reference#cursor-style
+# keep shell integration from overriding the block cursor with a bar
 shell-integration-features = no-cursor
 keybind = f11=toggle_fullscreen

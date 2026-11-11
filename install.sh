@@ -1,6 +1,5 @@
 #!/bin/sh
-# Only for use when the repo is already cloned locally. For a fresh install
-# (no repo, no chezmoi), see readme.md.
+# For a local checkout; readme.md covers a fresh install.
 set -eu
 
 if ! chezmoi="$(command -v chezmoi)"; then
@@ -19,10 +18,10 @@ if ! chezmoi="$(command -v chezmoi)"; then
 	unset chezmoi_install_script bin_dir
 fi
 
-# POSIX way to get script's dir: https://stackoverflow.com/a/29834779/12156188
+# POSIX way to get the script's directory.
 script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
 
 "$chezmoi" init --source="${script_dir}"
-# init has no --recursive/--parent-dirs, so apply flags cannot move there.
+# init takes no --recursive/--parent-dirs, so apply flags stay here.
 echo "Running 'chezmoi apply $*'" >&2
 "$chezmoi" apply --source="${script_dir}" "$@"

@@ -11,7 +11,7 @@
 	gpgsign = true
 [core]
 	excludesfile = ~/.gitignore
-	# keep the commit message when a commit fails (e.g. a missing signing key)
+	# keeps the message when a commit fails, such as a missing signing key
 	editor = {{ .chezmoi.homeDir }}/.bin/git-editor
 [init]
         defaultBranch = main

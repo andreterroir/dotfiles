@@ -78,6 +78,16 @@ because its Flathub package is x86_64-only. Chezmoi downloads the two
 configured Ghostty themes from a pinned upstream revision because Terra's
 Ghostty package omits bundled themes.
 
+Ubuntu's `fd-find` installs `fdfind`, so the script links it as `~/.local/bin/fd`.
+The opencode installer runs with `--no-modify-path` and the binary is linked
+into `~/.local/bin` too, which is already on `PATH`.
+
+Fedora ships `start.fedoraproject.org` as the homepage default that every
+Firefox update restores, so `run_onchange_firefox-homepage-policy.sh.tmpl`
+installs `about:home` as a system policy in `/etc/firefox/policies/policies.json`.
+No RPM owns that file, so updates leave it alone, and the setting stays
+unlocked.
+
 A VM guest whose host OpenGL stops below 4.3 cannot run Ghostty's default
 renderer: virgl exposes the host's ceiling, such as Apple's OpenGL 4.1, and
 Ghostty requires 4.3. Fedora desktop VMs therefore get a drop-in for
@@ -226,6 +236,17 @@ Desktops that mark obsidian as an introducer pick up the new device in
 those folders without pairing with the new machine. `archive` is outside
 obsidian's folders: share it from x1 or black, and accept that offer too.
 
+## tmux plugins
+
+`.chezmoitemplates/tmux-plugins` holds the plugin list that
+`dot_tmux.conf.tmpl` includes, and `run_onchange_after_tmux-plugins.sh.tmpl`
+checksums it, so adding a plugin re-runs the installer. The script installs
+TPM when it is missing, then reads `@plugin` from the applied configuration and
+clones whatever is missing. A server started before TPM loaded has no
+`TMUX_PLUGIN_MANAGER_PATH`, which the installer needs, so the script sets it,
+and it stops the server it started, because loading the configuration can
+restore a session.
+
 ## Amp runner
 
 `run_onchange_after_amp-runner.sh.tmpl` enables the systemd user unit
@@ -234,8 +255,10 @@ dev-server profile, except a `work` machine. It runs `amp --no-tui` from
 `~/code`, names the runner after the machine's hostname, serves
 `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 `~/code`, so threads can be created on the machine from ampcode.com. Linger
-keeps the runner up without a login. Transient environments skip this setup;
-see [Transient profile](transient.md).
+keeps the runner up without a login. The unit puts the same user directories
+on `PATH` as `~/.bash_profile`, because a thread inherits the service's
+environment rather than a login shell's. Transient environments skip this
+setup; see [Transient profile](transient.md).
 
 `--remote-control-portals` gives every thread on the runner a Portal tab for
 the dev servers and pages it starts, as orb threads have. A runner's portals
@@ -290,7 +313,10 @@ it starts again, at the next boot or by hand.
 
 `private_dot_config/private_amp/modify_settings.json` enables
 `amp.runner.env.enabled`, so runner threads get the Secrets & Env Vars
-configured on ampcode.com, as orb threads do. The runner fetches them when a
+configured on ampcode.com, as orb threads do. The script merges the managed
+keys into the file the CLI owns, which needs `jq`: a first apply that runs
+before the package script installs it leaves the file alone, and the next
+apply merges it. The runner fetches the values when a
 thread starts and injects them into the thread's shell commands, MCP servers,
 and plugins, so changing a value on ampcode.com needs no runner restart.
 Every thread on the runner can read those variables, including threads
