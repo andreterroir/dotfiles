@@ -31,13 +31,10 @@ chezmoi apply --source=~/code/dotfiles
 
 ## What runs
 
-- Package installation, sudo setup, service definitions and enablement, and
-  the file configuration (shell, Git, Vim, tmux, agent instructions) are
-  applied. Packages, services, plugins, extensions, and externals change only
-  the machine, so they are allowed.
-- The shell is added to `/etc/shells` when the environment permits; `chsh`
-  runs only when a terminal is available, so a non-interactive apply leaves
-  the login shell unchanged.
+Package installation, sudo setup, service definitions and enablement, and the
+file configuration (shell, Git, Vim, tmux, agent instructions) are applied.
+Packages, services, plugins, extensions, and externals change only the
+machine, so they are allowed.
 
 ## No identity
 

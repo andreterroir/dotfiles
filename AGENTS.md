@@ -30,13 +30,12 @@ supported platforms and installation. See
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` runs before
-`run_onchange_set-up-default-shell` (which runs `chsh`). Scripts with an
-`after_` prefix (`run_after_`, `run_once_after_`, `run_onchange_after_`) run
-after all of those, whatever their name, so a script that needs a tool the
-package script installs belongs there.
-Fedora and Ubuntu use the distro Bash, which is already present. Keep this
-ordering in mind when adding `run_*` scripts whose preconditions are
-installed by another script.
+`run_onchange_set-up-gnome-shell-extensions`, which needs the `jq` those
+packages install. Scripts with an `after_` prefix (`run_after_`,
+`run_once_after_`, `run_onchange_after_`) run after all of those, whatever
+their name, so a script that needs a tool the package script installs belongs
+there. Keep this ordering in mind when adding `run_*` scripts whose
+preconditions are installed by another script.
 
 ## File conventions
 

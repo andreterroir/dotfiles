@@ -221,10 +221,10 @@ too.
 
 ## Bash
 
-The login shell is Bash (`run_onchange_set-up-default-shell.sh.tmpl`).
-`dot_bashrc` holds the interactive setup. There is no zsh configuration in
-this repository: no `.zshrc`, no `bindkey`, and nothing configures zsh, so
-there are no zsh bindings to list here.
+`dot_bashrc` holds the interactive setup for Bash, the login shell the Linux
+targets default to. There is no zsh configuration in this repository: no
+`.zshrc`, no `bindkey`, and nothing configures zsh, so there are no zsh
+bindings to list here.
 
 | Key | Action |
 | --- | --- |
