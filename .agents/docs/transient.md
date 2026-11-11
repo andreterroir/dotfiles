@@ -82,5 +82,4 @@ keys, allowlist, and agent units yourself. Keep credentials and secrets out of
 the destination.
 
 The Amp runner service is gated in the transient profile: the runner script
-exits before enabling, starting, or restarting it, so it does not register
-with ampcode.com.
+exits before enabling it, so it does not register with ampcode.com.

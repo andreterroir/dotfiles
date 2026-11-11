@@ -99,6 +99,22 @@ orbs are not targets at all: the set-up refuses to run inside one.
 Run validation before committing to catch template syntax errors and
 unintended changes. Do a fast forward only merge when asked to integrate the changes into main branch.
 
+## Apply writes configuration
+
+An apply writes configuration; it does not have to make it live. A machine is
+not expected to run the newest version of this setup at any point in time, so a
+change taking effect at the next login, boot, or service start is fine.
+
+`run_*` scripts do the work that delivers a change: installing packages and
+plugins, writing files, registering a service with `systemctl enable` or
+`loginctl enable-linger`. They do not follow that with a reload or restart that
+only makes the change live now: no `systemctl daemon-reload`, `systemctl
+start`, `systemctl restart`, `systemctl enable --now`, `launchctl kickstart`,
+or the like. Ending a side effect of the work, such as the tmux server the
+plugin install started, is not a reload.
+
+An exception is a comment next to it that gives the reason.
+
 ## Shipping
 
 Treat a request to ship (or to integrate into `main`) as confirmation to apply:

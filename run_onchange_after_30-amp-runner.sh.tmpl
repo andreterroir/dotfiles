@@ -2,19 +2,13 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Run the Amp runner that serves ~/code on every Linux machine, so
-# threads can be created on it from ampcode.com. Linger starts the user
-# manager, and so the runner, at boot rather than at login.
+# threads can be created on it from ampcode.com. Enabling the unit is
+# the work; the runner starts with the user manager at the next boot or
+# login. Linger starts that manager at boot rather than at login.
 set -euo pipefail
 {{ if .transient }}echo '>transient profile: Amp runner setup is disabled' >&2
 exit 0
 {{ else }}
-# chezmoi re-runs this script only when its content changes. The checksums
-# tie that to the unit and Amp's settings, so editing either restarts an
-# active runner and starts a stopped one.
-#
-# {{ include "private_dot_config/systemd/user/amp-runner.service" | sha256sum }}
-# {{ include "private_dot_config/private_amp/modify_settings.json" | sha256sum }}
-
 amp="$HOME/.local/bin/amp"
 
 if [ ! -x "$amp" ]; then
@@ -24,18 +18,10 @@ fi
 
 loginctl enable-linger "$(id -un)" >/dev/null 2>&1 || true
 
-if ! systemctl --user daemon-reload 2>/dev/null; then
-	echo '>amp-runner: no systemd user manager; enable and start the runner by hand in a session' >&2
+# Enabled, not started: the runner comes up with the next boot or login.
+if ! systemctl --user enable amp-runner.service 2>/dev/null; then
+	echo '>amp-runner: no systemd user manager; enable the runner by hand in a session' >&2
 	exit 0
-fi
-
-systemctl --user enable amp-runner.service
-
-if systemctl --user is-active --quiet amp-runner.service; then
-	echo '>amp-runner: unit or settings changed; restarting' >&2
-	systemctl --user restart amp-runner.service
-else
-	systemctl --user start amp-runner.service
 fi
 {{ end -}}
 {{ end -}}

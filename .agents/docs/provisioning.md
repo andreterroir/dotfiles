@@ -228,21 +228,19 @@ The cost is that whoever controls that Amp account can run code on all of
 them, and, through the VMs' passwordless sudo, as root on the VMs; share a
 runner workspace only with people trusted on the machine.
 
-The script re-runs when the unit, Amp's settings, or the script itself
-changes: header comments checksum the unit file and
-`~/.config/amp/settings.json`, and chezmoi re-runs a `run_onchange_` script
-only when its content changes. On a re-run it restarts the runner if it is
-active and starts it if it is stopped, so changing a runner setting such as
-`amp.runner.env.enabled` restarts the runner once. A restart ends any thread
-running at the time, so apply while the runner is idle.
+Enabling is the script's work: it writes the unit's `default.target.wants` link
+and turns on linger, and systemd starts the runner at the next boot or login.
+No apply step reloads systemd or starts or restarts the runner, as
+[AGENTS.md](../../AGENTS.md#apply-writes-configuration) requires, so an apply
+never ends a thread that is running. A changed unit or setting takes effect the
+next time the runner starts.
 
-An apply that leaves the unit and settings unchanged does not run the script
-at all, which changes two behaviors. Replacing the `amp` binary by hand, such
-as with a reinstall or a manual upgrade, no longer restarts the runner, since
-the runner's auto-update applies new releases itself. And a deliberately
-stopped runner stays stopped unless the unit or settings change or it is
-started by hand, as do a runner disabled with `systemctl --user disable` and
-linger removed by hand.
+The script re-runs only when its own content changes, so an ordinary apply
+leaves the runner alone. A runner someone stopped by hand stays stopped, as
+does one disabled with `systemctl --user disable`, and linger removed by hand
+stays removed, until that script changes or they undo it. Replacing the `amp`
+binary by hand, such as with a reinstall or a manual upgrade, does not restart
+the runner either: the runner's auto-update applies new releases itself.
 
 A run that exits early, because `amp` is missing or no user manager answers,
 still counts as done, so a later apply does not retry it: once the
@@ -252,8 +250,8 @@ precondition holds, enable and start the runner by hand with
 The runner updates itself by default
 (`amp.runner.autoUpdate.enabled` is true): it installs new releases and
 restarts into them once no thread is running, at most once every 12 hours.
-With auto-update disabled, apply supplies a restart only when the unit or
-settings change.
+With auto-update disabled, the runner keeps the release it started with until
+it starts again, at the next boot or by hand.
 
 `private_dot_config/private_amp/modify_settings.json` enables
 `amp.runner.env.enabled`, so runner threads get the Secrets & Env Vars
