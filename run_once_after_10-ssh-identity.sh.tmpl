@@ -10,10 +10,7 @@
 # this once for each version of its rendered content, and a provisioned
 # machine passes without touching anything. A step with work to do fails
 # without a terminal, so the next apply retries it.
-set -euo pipefail{{ if .transient }}
-echo '>transient profile: SSH identity setup is disabled' >&2
-exit 0
-{{ end }}
+set -euo pipefail
 
 GH_ACCOUNT={{ .githubAccount }}
 approved_yubikeys=(

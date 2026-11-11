@@ -6,9 +6,7 @@
 # the work; the runner starts with the user manager at the next boot or
 # login. Linger starts that manager at boot rather than at login.
 set -euo pipefail
-{{ if .transient }}echo '>transient profile: Amp runner setup is disabled' >&2
-exit 0
-{{ else }}
+
 amp="$HOME/.local/bin/amp"
 
 if [ ! -x "$amp" ]; then
@@ -25,5 +23,4 @@ if ! enable_output="$(systemctl --user enable amp-runner.service 2>&1)"; then
 fi
 # systemctl succeeds without enabling when the unit has no [Install] section.
 [ -z "$enable_output" ] || printf '%s\n' "$enable_output" >&2
-{{ end -}}
 {{ end -}}

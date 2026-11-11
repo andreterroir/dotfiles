@@ -46,8 +46,9 @@ chezmoi apply --source=~/code/dotfiles
 
 ## No identity
 
-- No SSH keys are generated or downloaded, and none are registered with
-  GitHub; the identity scripts exit early.
+- The identity and signing-allowlist scripts are not part of this profile, so
+  no SSH keys are generated or downloaded and none are registered with
+  GitHub.
 - No signing allowlist is fetched from GitHub.
 - `~/.gitconfig` omits `commit.gpgsign`, `gpg.*`, and `user.signingKey`, so an
   environment-provided configuration such as Amp's `/etc/gitconfig` keeps
@@ -92,5 +93,5 @@ configured with another profile; start from a fresh home or delete the keys,
 allowlist, and agent units yourself. Keep credentials and secrets out of the
 destination.
 
-The Amp runner service is gated in this profile: the runner script exits
-before enabling it, so it does not register with ampcode.com.
+The Amp runner is not part of this profile, so nothing registers with
+ampcode.com.

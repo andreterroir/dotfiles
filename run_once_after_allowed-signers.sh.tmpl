@@ -5,10 +5,7 @@
 # when a machine registers a signing key, so chezmoi runs this once for each
 # version of its rendered content; re-run it on demand after registering one.
 # A run that cannot reach GitHub fails, so the next apply retries it.
-set -euo pipefail{{ if .transient }}
-echo '>transient profile: signing allowlist setup is disabled' >&2
-exit 0
-{{ end }}
+set -euo pipefail
 
 out="$HOME/.allowed_signers"
 if ! command -v jq >/dev/null 2>&1; then
