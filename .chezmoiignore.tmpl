@@ -17,6 +17,11 @@ icloud
 # the target path, not the dot_bin/ source name
 .bin/swap_ctrl_caps
 {{ end -}}
+{{ if not (and (eq .chezmoi.os "linux") (eq .distro "fedora") .linux.desktop .vm) -}}
+# Ghostty renders through llvmpipe where virgl reports OpenGL 4.1
+.config/systemd/user/app-com.mitchellh.ghostty.service.d
+.bin/ghostty
+{{ end -}}
 {{ if ne .chezmoi.os "darwin" -}}
 Library
 {{ else if not (and .desktop (not .vm)) -}}

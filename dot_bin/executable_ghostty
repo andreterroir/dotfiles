@@ -1,0 +1,4 @@
+#!/bin/sh
+# virgl in a VM reports OpenGL 4.1 and Ghostty requires 4.3. The absolute
+# binary path keeps this wrapper from re-entering itself.
+LIBGL_ALWAYS_SOFTWARE=1 exec /usr/bin/ghostty "$@"

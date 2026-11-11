@@ -17,7 +17,7 @@ key is missing fails apply with "run chezmoi init before apply or update".
 | `desktop` | true on macOS, and on Linux with `gnome-shell` on `PATH` | the desktop profile, and the resident YubiKey key on Linux |
 | `linux.desktop` | `desktop` on Linux | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
 | `server` | `!desktop` | the headless package set, and topgrade on Ubuntu servers via mise |
-| `vm` | `systemd-detect-virt --vm` on Linux, otherwise false; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public-only identities for forwarded keys, and the role's own tooling |
+| `vm` | `systemd-detect-virt --vm` on Linux, otherwise false; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the role's own tooling |
 | `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, the Amp runner, and the macOS `gh` and `jq` install; see [Transient profile](transient.md) |
 
 `desktop`, `linux.desktop`, and `server` are derived and have no switch. `vm`
@@ -49,6 +49,17 @@ mise from mise's own apt repository. Fedora desktops skip Spotify on ARM
 because its Flathub package is x86_64-only. Chezmoi downloads the two
 configured Ghostty themes from a pinned upstream revision because Terra's
 Ghostty package omits bundled themes.
+
+A VM guest whose host OpenGL stops below 4.3 cannot run Ghostty's default
+renderer: virgl exposes the host's ceiling, such as Apple's OpenGL 4.1, and
+Ghostty requires 4.3. Fedora desktop VMs therefore get a drop-in for
+`app-com.mitchellh.ghostty.service` and a `~/.bin/ghostty` wrapper, which
+cover D-Bus and shell launches, setting `LIBGL_ALWAYS_SOFTWARE=1` to render
+through llvmpipe and its OpenGL 4.6. systemd reads a drop-in only when it
+loads the unit, so reload the user manager or log out once after the apply
+that writes it. The gate does not probe the host, so a VM that could render
+in hardware still gets the shims, and processes started from Ghostty inherit
+the variable. Every other desktop keeps the accelerated renderer.
 
 ## Authentication and sudo
 
