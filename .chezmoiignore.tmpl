@@ -38,12 +38,18 @@ allowed-signers.sh
 .tmux.conf
 tmux-plugins.sh
 {{ end -}}
+{{ if .work -}}
+# a work machine runs no Amp runner, which would give the personal Amp
+# account code execution there and root through a VM's passwordless sudo
+amp-runner.sh
+.config/systemd/user/amp-runner.service
+{{ end -}}
 {{ if not $desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
 # the swap script needs GNOME
 .bin/swap_ctrl_caps
 {{ end -}}
-{{ if not (and (eq .distro "fedora") $desktop) -}}
+{{ if not (and (eq .distro "fedora") $desktop (not .vm)) -}}
 .config/autostart/syncthing-start.desktop
 {{ end -}}
 {{ if not (and (eq .distro "fedora") $desktop) -}}

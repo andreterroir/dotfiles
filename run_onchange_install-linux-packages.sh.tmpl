@@ -47,8 +47,8 @@ sudo dnf install -y \
 {{ end }}	make \
 	meld \
 	powertop \
-	syncthing \
-	wl-clipboard \
+{{ if not .vm }}	syncthing \
+{{ end }}	wl-clipboard \
 	yt-dlp \
 	hugo \
 	jetbrains-mono-fonts \
@@ -58,15 +58,17 @@ sudo dnf install -y \
 # Enabled, not started: pcscd comes up at the next boot, then on demand.
 sudo systemctl enable pcscd
 
-# Spotify's Flathub package is x86_64-only. Name the remote, and add
-# Flathub when it is not configured yet, instead of relying on a
-# previous setup.
+{{ if not .vm -}}
+# Personal apps stay off a VM, which needs no chat or media client. Spotify's
+# Flathub package is x86_64-only. Name the remote, and add Flathub when it is
+# not configured yet, instead of relying on a previous setup.
 sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install --system --assumeyes flathub \
 {{ if eq .chezmoi.arch "amd64" }}	com.spotify.Client \
 {{ end }}	org.signal.Signal \
 	org.telegram.desktop \
 	org.zotero.Zotero
+{{ end -}}
 
 {{   end -}}
 {{   else if and (eq .distro "ubuntu") .devserver -}}

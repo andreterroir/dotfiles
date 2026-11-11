@@ -16,8 +16,8 @@ or `work` fails apply with "run chezmoi init before apply or update".
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims on Fedora desktops, and the profile's own tooling |
-| `work` | the `workMachines` list in `.chezmoidata.toml` | nothing but the SSH identity: a work machine registers no keys with the personal GitHub account |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims on Fedora desktops, the profile's own tooling, and keeping Syncthing and the Flathub apps off the machine |
+| `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it deploys the Amp runner |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up in [Supported set-ups](#supported-set-ups) |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
 | `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up; see [Transient profile](transient.md) |
@@ -51,16 +51,17 @@ platform that this repository does not provision.
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
 | desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, `yubikey-manager` and `pcsc-tools`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key and a downloaded YubiKey resident key, both registered on GitHub, signing on; existing sudo policy; `pcscd`; Amp runner |
-| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC and the resident-key download | the desktop configuration | passphrase-less machine key, passwordless sudo; Amp runner |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, the Flathub apps, and the resident-key download | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key, passwordless sudo; Amp runner, except on a `work` machine |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
 
-`work` changes only a row's identity: the machine keeps its profile's
-installs, configuration, and services, creates its machine key, and registers
-nothing with the personal GitHub account (see
-[SSH identity bootstrap](#ssh-identity-bootstrap)). `slate-vm-work` is the only
-one today: it takes the desktop-VM row's set-up, and its machine key stays off
-the personal account.
+`work` changes the identity and the runner, and nothing else: the machine keeps
+its profile's installs, configuration, and services, creates its machine key,
+and registers nothing with the personal GitHub account (see
+[SSH identity bootstrap](#ssh-identity-bootstrap)). It deploys no
+[Amp runner](#amp-runner) either, so the personal Amp account has no standing
+execution there. `slate-vm-work` is the only one today: it takes the
+desktop-VM row's set-up, and its machine key stays off the personal account.
 
 The portable set-up leaves the host's shell, Git, and tmux configuration and
 plugins unmanaged, along with `~/.gitignore`, `~/.bin/git-editor`, `~/.ssh`,
@@ -207,10 +208,11 @@ effect at the next login.
 ## Syncthing
 
 `run_onchange_install-linux-packages.sh.tmpl` installs Syncthing on Fedora
-desktops, and `private_dot_config/autostart/symlink_syncthing-start.desktop`
-registers the packaged launcher with XDG autostart. Devices and folders stay
-unmanaged: each host keeps its own device key and a config Syncthing rewrites
-at runtime, under `~/.local/state/syncthing`.
+desktops that are not VMs, and
+`private_dot_config/autostart/symlink_syncthing-start.desktop` registers the
+packaged launcher with XDG autostart. Devices and folders stay unmanaged: each
+host keeps its own device key and a config Syncthing rewrites at runtime, under
+`~/.local/state/syncthing`.
 
 The `obsidian` device is the standard introducer: mark it as one on every
 desktop, and it shares Sync, Documents, and notes. An introducer adds a
@@ -225,9 +227,9 @@ obsidian's folders: share it from x1 or black, and accept that offer too.
 
 `run_onchange_after_amp-runner.sh.tmpl` enables the systemd user unit
 `~/.config/systemd/user/amp-runner.service` on every machine with a desktop or
-dev-server profile. It runs
-`amp --no-tui` from `~/code`, names the runner after the machine's hostname,
-serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
+dev-server profile, except a `work` machine. It runs `amp --no-tui` from
+`~/code`, names the runner after the machine's hostname, serves
+`~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 `~/code`, so threads can be created on the machine from ampcode.com. Linger
 keeps the runner up without a login. Transient environments skip this setup;
 see [Transient profile](transient.md).
@@ -239,10 +241,21 @@ the Amp account opens them. The Amp apps' own **Allow Portals** switches stay
 manual, so turning portals on for an app's runner remains the user's choice.
 
 Running the runner on every non-transient machine, servers included, is
-deliberate: threads must be able to reach every machine from ampcode.com.
-The cost is that whoever controls that Amp account can run code on all of
-them, and, through the VMs' passwordless sudo, as root on the VMs; share a
+deliberate: threads must be able to reach every machine from ampcode.com. A
+`work` machine is the exception, because the account that controls the runner
+is personal: it stays off a machine whose identity this repository does not
+put on the personal account either. The cost elsewhere is that whoever
+controls that Amp account can run code on all of them, and, through the
+passwordless sudo of the machines that carry it, as root there; share a
 runner workspace only with people trusted on the machine.
+
+A `work` machine is gated rather than torn down: chezmoi stops deploying the
+unit and the enabling script, but a machine that already ran a runner keeps it,
+and its linger, until `systemctl --user disable --now amp-runner.service` and
+`loginctl disable-linger` run there. Dropping a machine from `workMachines`
+restores the unit but does not re-run the script, whose content did not change,
+so enable the runner by hand with
+`systemctl --user enable --now amp-runner.service`.
 
 Enabling is the script's work: it writes the unit's `default.target.wants` link
 and turns linger on, which brings a user manager up at boot, so the runner

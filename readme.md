@@ -48,8 +48,8 @@ overrides, agent setup, verification, and troubleshooting.
 Provisioning
 ------------
 
-The profile flags select the tooling; Linux desktops install KeePassXC, and
-VMs keep their profile's tooling without password-manager apps. See the
+The profile flags select the tooling; Linux desktops install KeePassXC, and VMs
+keep their profile's tooling without Syncthing and the Flathub apps. See the
 [Provisioning model](.agents/docs/provisioning.md) for role detection, VM
 configuration, credentials, sudo, package sources, and background services.
 

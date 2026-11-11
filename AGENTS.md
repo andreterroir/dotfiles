@@ -139,8 +139,9 @@ Every hostname this repository names, whether a `chezmoi.hostname` that
 templates gate on or an SSH destination. The Role column records the profile
 plus the VM class; the desktop profile needs `gnome-shell` on PATH, the dev
 server is the `greenhouse` hostname, and `vm` comes from the `managedVMs` list.
-`work` comes from the `workMachines` list and changes nothing but the keys
-registered with the personal GitHub account.
+`work` comes from the `workMachines` list and decides the keys a machine
+registers with the personal GitHub account and whether it deploys the Amp
+runner.
 The table describes only the machines chezmoi manages (see Boundaries). What a
 profile provides is described in the
 [Provisioning model](.agents/docs/provisioning.md#profile-data);
