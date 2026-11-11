@@ -91,6 +91,17 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 require_terminal 'registering public keys with GitHub'
 
+# gh puts the browser flow's one-time code on the clipboard (--clipboard,
+# gh 2.79+), so the step is a paste rather than a retype. Offer it only
+# when this session has a clipboard gh can use; a headless or remote
+# session keeps printing the code.
+gh_clipboard=()
+if { [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-copy >/dev/null &&
+	command -v wl-paste >/dev/null; } ||
+	command -v xclip >/dev/null || command -v xsel >/dev/null; then
+	gh_clipboard=(--clipboard)
+fi
+
 # gh may hold several accounts (work + personal): make $GH_ACCOUNT
 # active so refresh and add never hit another login.
 if gh auth switch --hostname github.com --user "$GH_ACCOUNT" 2>/dev/null; then
@@ -98,7 +109,8 @@ if gh auth switch --hostname github.com --user "$GH_ACCOUNT" 2>/dev/null; then
 else
 	echo ">logging in to GitHub as ${GH_ACCOUNT} (select this account in the browser)"
 	gh auth login --hostname github.com --git-protocol https --web \
-		--scopes admin:public_key --scopes admin:ssh_signing_key --skip-ssh-key
+		--scopes admin:public_key --scopes admin:ssh_signing_key \
+		--skip-ssh-key "${gh_clipboard[@]}"
 fi
 active="$(gh api user -q .login)"
 if [ "$active" != "$GH_ACCOUNT" ]; then
@@ -114,7 +126,7 @@ if ! grep -qF admin:ssh_signing_key \
 	<<<"$(gh auth status --hostname github.com --active 2>&1)"; then
 	echo '>extending GitHub token scopes'
 	gh auth refresh --hostname github.com \
-		--scopes admin:public_key --scopes admin:ssh_signing_key
+		--scopes admin:public_key --scopes admin:ssh_signing_key "${gh_clipboard[@]}"
 fi
 
 for public_key in "${auth_keys_to_add[@]}"; do
@@ -138,6 +150,6 @@ done
 # fatal: the keys are already on GitHub, and the top-up check above
 # re-extends the scopes on a run that needs registration again.
 if ! gh auth refresh --hostname github.com \
-		--remove-scopes admin:public_key --remove-scopes admin:ssh_signing_key; then
+		--remove-scopes admin:public_key --remove-scopes admin:ssh_signing_key "${gh_clipboard[@]}"; then
 	echo 'warning: could not drop the GitHub admin scopes; run gh auth refresh --hostname github.com --remove-scopes admin:public_key,admin:ssh_signing_key by hand' >&2
 fi

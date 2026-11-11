@@ -135,6 +135,12 @@ skip this section entirely; see [Transient profile](transient.md). Machine keys
 are signing keys; x1's is the only one also registered as a GitHub
 authentication key.
 
+Registration takes two browser confirmations: a login that grants the admin
+scopes for adding keys, and a refresh after the upload that drops them again,
+because GitHub fixes a token's scopes when it issues it. Where the session has
+a clipboard `gh` can write to, it copies each one-time code, so the step is a
+paste; a headless or remote session prints the code to retype.
+
 A `work` machine stops after creating the machine key: no `gh` login, and no
 registration, so nothing about it reaches the personal GitHub account. Its
 commits still sign with that machine key, and they verify only where
