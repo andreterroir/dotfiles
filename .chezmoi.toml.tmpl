@@ -1,9 +1,4 @@
 {{- $vm := false -}}
-{{- if hasKey . "vm" -}}
-    {{- $vm = .vm -}}
-{{- else if eq .chezmoi.os "linux" -}}
-    {{- $vm = eq (output "sh" "-c" "systemd-detect-virt --vm --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
-{{- end -}}
 {{- $container := false -}}
 {{- if eq .chezmoi.os "linux" -}}
     {{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
@@ -19,6 +14,9 @@
     {{- $data := fromToml (include ".chezmoidata.toml") -}}
     {{- if hasKey $data "managedHosts" -}}
         {{- $known = has $host $data.managedHosts -}}
+    {{- end -}}
+    {{- if hasKey $data "managedVMs" -}}
+        {{- $vm = has $host $data.managedVMs -}}
     {{- end -}}
 {{- end -}}
 {{- $transient := or $container (ne (env "AMP_ORB") "") (not $known) -}}

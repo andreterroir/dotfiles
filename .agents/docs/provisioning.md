@@ -16,13 +16,14 @@ fails apply with "run chezmoi init before apply or update".
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | `systemd-detect-virt --vm`; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the profile's own tooling |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the profile's own tooling |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up in [Supported set-ups](#supported-set-ups) |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
 | `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up; see [Transient profile](transient.md) |
 
-Every key is derived and none has a switch; `vm` can be overridden by setting
-it in `~/.config/chezmoi/chezmoi.toml`. `install.sh` passes its arguments to
+Every key is derived and none has a switch. Virtualization is not detected:
+`vm` names the managed VMs, so a container, an orb, or an unlisted VM never
+carries it and cannot reach the VM policy. `install.sh` passes its arguments to
 `chezmoi apply`. Init persists the data, so a later bare `chezmoi apply` or
 `chezmoi update` reuses it; run `chezmoi init` after changing a value or
 upgrading the source, which also drops retired keys from the config.

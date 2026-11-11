@@ -78,8 +78,10 @@ Init derives and persists three exclusive profile flags; this set-up is
   physical machine before its first full apply, otherwise it is transient. If
   the list is missing, every host is transient.
 
-A known VM such as `slate-vm-work` is not transient and keeps the machine-key
-identity policy in [Provisioning model](provisioning.md).
+A managed VM such as `slate-vm-work` is not transient and keeps the machine-key
+identity policy in [Provisioning model](provisioning.md). Virtualization is not
+detected, so an orb, a container, or an unlisted VM never carries `vm`; see
+[Provisioning model](provisioning.md) for the `managedVMs` list.
 
 ## Limits
 
