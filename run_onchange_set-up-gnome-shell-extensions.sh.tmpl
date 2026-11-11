@@ -23,12 +23,8 @@ download_dir="$(mktemp -d)"
 trap 'rm -rf "$download_dir"' EXIT
 
 # ddterm's F12 default is a system-wide grab, and browsers use F12 for DevTools.
-# This sits before the extension fetch, which skips out early without a network.
-if gsettings list-schemas | grep -qx org.gnome.shell.extensions.ddterm; then
-	gsettings set org.gnome.shell.extensions.ddterm ddterm-toggle-hotkey "['<Super>equal']"
-else
-	echo ">ddterm is not installed; skipping its hotkey" >&2
-fi
+# Set it before the extension fetch below, which exits early without a network.
+gsettings set org.gnome.shell.extensions.ddterm ddterm-toggle-hotkey "['<Super>equal']"
 
 # Reinstall whenever this script changes, so a stale or partial install of a
 # build for an older shell does not survive.
