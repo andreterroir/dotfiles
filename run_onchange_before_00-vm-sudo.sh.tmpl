@@ -1,4 +1,4 @@
-{{ if .vm -}}
+{{ if and .vm (not .transient) -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail

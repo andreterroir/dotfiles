@@ -41,13 +41,13 @@ if { [ -f "$MACHINE_KEY" ] && [ ! -f "$MACHINE_KEY.pub" ]; } ||
 	exit 1
 fi
 if [ ! -f "$MACHINE_KEY" ]; then
-{{ if not (or .vm .server) -}}
+{{ if not (or .vm .devserver) -}}
 	require_terminal 'generating the machine key'
 {{ end -}}
 	echo '>generating per-machine ed25519 key'
-	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"{{ if or .vm .server }} -N ''{{ end }}
+	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"{{ if or .vm .devserver }} -N ''{{ end }}
 fi
-{{ if or .vm .server -}}
+{{ if or .vm .devserver -}}
 if ! ssh-keygen -y -P '' -f "$MACHINE_KEY" > /dev/null 2>&1; then
 	echo "error: machine key must have no passphrase for unattended signing; run ssh-keygen -p -f $MACHINE_KEY from a terminal and leave the new passphrase empty" >&2
 	exit 1

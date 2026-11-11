@@ -1,6 +1,3 @@
-{{- if ne .chezmoi.os "linux" -}}
-{{- fail "Only Linux hosts are supported; this set-up does not run elsewhere" -}}
-{{- end -}}
 {{- $vm := false -}}
 {{- if hasKey . "vm" -}}
     {{- $vm = .vm -}}
@@ -16,19 +13,22 @@
 {{- if eq .chezmoi.os "linux" -}}
     {{- $distro = .chezmoi.osRelease.id -}}
 {{- end -}}
+{{- $host := lower (trimSuffix ".local" .chezmoi.hostname) -}}
 {{- $known := false -}}
 {{- if stat (joinPath .chezmoi.sourceDir ".chezmoidata.toml") -}}
     {{- $data := fromToml (include ".chezmoidata.toml") -}}
     {{- if hasKey $data "managedHosts" -}}
-        {{- $known = has (lower (trimSuffix ".local" .chezmoi.hostname)) $data.managedHosts -}}
+        {{- $known = has $host $data.managedHosts -}}
     {{- end -}}
 {{- end -}}
-{{- $transient := false -}}
-{{- $signal := lower (env "CHEZMOI_TRANSIENT") -}}
-{{- if eq $signal "" -}}
-    {{- $transient = or $container (not $known) -}}
-{{- else if not (or (eq $signal "0") (eq $signal "false")) -}}
-    {{- $transient = true -}}
+{{- $transient := or $container (ne (env "AMP_ORB") "") (not $known) -}}
+{{- $profile := "transient" -}}
+{{- if not $transient -}}
+    {{- if eq $host "greenhouse" -}}
+        {{- $profile = "devserver" -}}
+    {{- else if $desktop -}}
+        {{- $profile = "desktop" -}}
+    {{- end -}}
 {{- end -}}
 sourceDir = "{{ .chezmoi.sourceDir }}"
 
@@ -40,7 +40,6 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
 [data]
     distro = "{{ $distro }}"
     vm = {{ $vm }}
-    desktop = {{ $desktop }}
-    linux.desktop = {{ and $desktop (eq .chezmoi.os "linux") }}
-    server = {{ not $desktop }}
-    transient = {{ $transient }}
+    desktop = {{ eq $profile "desktop" }}
+    devserver = {{ eq $profile "devserver" }}
+    transient = {{ eq $profile "transient" }}

@@ -8,36 +8,57 @@ and [Commit signing](signing.md) for signing configuration and agent setup.
 
 Init derives the data keys in `.chezmoi.toml.tmpl` from the machine and
 persists them in `~/.config/chezmoi/chezmoi.toml`. Templates and `run_*`
-scripts gate on these keys, never on a hostname. A config whose `transient`
-key is missing fails apply with "run chezmoi init before apply or update".
+scripts gate on these keys; the only hostname the set-up reads is the
+`greenhouse` dev server. The three profile flags are exclusive by
+construction, because one derivation writes all three; a config that lacks them
+fails apply with "run chezmoi init before apply or update".
 
 | Key | Chosen by | Selects |
 | --- | --- | --- |
-| `distro` | `.chezmoi.osRelease.id` | the distro-specific package sets and gates |
-| `desktop` | true with `gnome-shell` on `PATH` | the desktop profile, and the resident YubiKey key |
-| `linux.desktop` | `desktop` | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
-| `server` | `!desktop` | the headless package set, and topgrade on Ubuntu servers via mise |
-| `vm` | `systemd-detect-virt --vm`; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the role's own tooling |
-| `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, and the Amp runner; see [Transient profile](transient.md) |
+| `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
+| `vm` | `systemd-detect-virt --vm`; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the profile's own tooling |
+| `desktop` | `gnome-shell` on `PATH` | the desktop set-up in [Supported set-ups](#supported-set-ups) |
+| `devserver` | the `greenhouse` hostname | the dev-server set-up |
+| `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up; see [Transient profile](transient.md) |
 
-`desktop`, `linux.desktop`, and `server` are derived and have no switch. `vm`
-and the transient profile do: set `vm` in `~/.config/chezmoi/chezmoi.toml`,
-run `./install.sh --transient`, or set `CHEZMOI_TRANSIENT`. `install.sh`
-passes every other argument to `chezmoi apply`. Init persists the data, so a
-later bare `chezmoi apply` or `chezmoi update` reuses it; run `chezmoi init`
-after changing `vm` or upgrading the source, which also drops retired keys
-from the config.
+Every key is derived and none has a switch; `vm` can be overridden by setting
+it in `~/.config/chezmoi/chezmoi.toml`. `install.sh` passes its arguments to
+`chezmoi apply`. Init persists the data, so a later bare `chezmoi apply` or
+`chezmoi update` reuses it; run `chezmoi init` after changing a value or
+upgrading the source, which also drops retired keys from the config.
 
 A VM whose hostname is not in `managedHosts` is transient (see
 [Transient profile](transient.md)); a managed VM such as `slate-vm-work`
 keeps the machine-key policy below.
 
 Linux desktops install KeePassXC. Templates derive the KeePass policy as
-`desktop && !vm`, so servers and VMs install no password manager. KeePassXC
-user settings are managed at `~/.config/keepassxc/keepassxc.ini`. Apply merges
-the managed keys over the file, so the keys KeePassXC writes at runtime
-survive. KeeShare settings are deliberately omitted and not merged. Neither
-the database nor its synchronization is provisioned here.
+`desktop && !vm`, so dev servers, portable environments, and VMs
+install no password manager. KeePassXC user settings are managed at
+`~/.config/keepassxc/keepassxc.ini`. Apply merges the managed keys over the
+file, so the keys KeePassXC writes at runtime survive. KeeShare settings are
+deliberately omitted and not merged. Neither the database nor its
+synchronization is provisioned here.
+
+## Supported set-ups
+
+A host that fits none of the other rows falls back to the portable set-up, so
+nothing is refused: a managed host that is headless and is not `greenhouse`,
+and any host that is not Linux, get the portable files and no provisioning.
+The fallback is a safety net, not support: macOS remains an unsupported
+platform that this repository does not provision.
+
+| Set-up | Selected by | Installs | Configures | Identity and services |
+| --- | --- | --- | --- | --- |
+| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, `yubikey-manager` and `pcsc-tools`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, KeePassXC settings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key and a downloaded YubiKey resident key, both registered on GitHub, signing on; `pcscd`; Amp runner |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC and the resident-key download | the desktop configuration minus the KeePassXC settings | passphrase-less machine key, passwordless sudo, YubiKey public-only identities; Amp runner |
+| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, SSH configuration without `IdentitiesOnly`, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
+| portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.gitignore`, `~/.bin/git-editor` and `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no packages |
+
+The portable set-up leaves the host's shell, Git, and tmux configuration and
+plugins unmanaged, along with `~/.ssh`, `~/.config/amp`, `~/.config/mise`,
+`~/.config/opencode`, `~/.config/systemd`, `~/.config/topgrade.toml`, and the
+Claude, Codex, and Copilot homes. A harness that owns those files, as an orb
+does, keeps its credential helper, hooks, and environment loading.
 
 ## Package sources
 
@@ -62,12 +83,15 @@ the variable. Every other desktop keeps the accelerated renderer.
 
 VM policy takes precedence over the other columns.
 
-| Aspect | Fedora desktop | Headless server | VM (desktop or headless) |
+| Aspect | Fedora desktop | Dev server | VM (desktop or headless) |
 | --- | --- | --- | --- |
 | Passwords | KeePassXC; the database is not managed here. | No password manager is provisioned. | No password manager is provisioned. |
 | Remote server access | Use a resident key and forward its agent.\* | Use a forwarded resident key for onward access; no machine-key access is provisioned by default. | Use an explicitly installed or forwarded resident key; no machine-key fallback is configured for managed remote servers. |
 | GitHub access | `gh` OAuth and HTTPS.\* | `gh` OAuth and HTTPS. | `gh` OAuth and HTTPS. |
 | Sudo | Existing system policy; no passwordless grant. | Must require a password to prevent unattended system changes and security risks; no passwordless grant. | Passwordless sudo for the provisioning user, because these VMs are snapshotted and disposable. |
+
+The portable set-up gets none of these columns: it establishes no identity,
+installs nothing, and takes no sudo grant.
 
 \* On x1, the attached 5C Nano provides the resident key instead of the
 travelling 5 NFC. Its machine key is also an authentication fallback for the
@@ -184,7 +208,8 @@ obsidian's folders: share it from x1 or black, and accept that offer too.
 ## Amp runner
 
 `run_onchange_after_30-amp-runner.sh.tmpl` enables the systemd user unit
-`~/.config/systemd/user/amp-runner.service` on every machine. It runs
+`~/.config/systemd/user/amp-runner.service` on every machine with a desktop or
+dev-server profile. It runs
 `amp --no-tui` from `~/code`, names the runner after the machine's hostname,
 serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 `~/code`, so threads can be created on the machine from ampcode.com. Linger

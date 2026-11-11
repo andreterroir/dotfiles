@@ -7,10 +7,12 @@ Prerequisites
 - curl
 - git
 
-This repository provisions Fedora and headless Ubuntu; other platforms,
-macOS included, are unsupported, and the set-up refuses to run on them.
-Ubuntu servers get the CLI set only. See the
-[Provisioning model](.agents/docs/provisioning.md) for the exact scope.
+This repository provisions Fedora desktops and one headless Ubuntu dev
+server; containers and Amp orbs get a portable set-up with no packages and no
+identity. macOS stays unsupported and is not provisioned: an apply there is
+not refused, but it falls back to that portable set-up. See the
+[Provisioning model](.agents/docs/provisioning.md#supported-set-ups) for the
+exact scope.
 
 Install
 -------
@@ -18,8 +20,10 @@ Install
     sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --purge-binary --source=~/code/dotfiles andreterroir
 
 This is for managed machines; add a new physical machine to
-`managedHosts` (`.chezmoidata.toml`) before its full install. Elsewhere, run
-`./install.sh --transient` from a clone of this repository; see
+`managedHosts` (`.chezmoidata.toml`) before its full install. Elsewhere,
+`./install.sh` from a clone of this repository applies the portable set-up: a
+container, an orb, or an unlisted host gets Vim and agent instructions, with no
+packages, and keeps its own shell, Git, and tmux configuration. See
 [Transient profile](.agents/docs/transient.md).
 
 A machine's identity set-up needs a human at the keyboard when it has work to
@@ -44,8 +48,8 @@ overrides, agent setup, verification, and troubleshooting.
 Provisioning
 ------------
 
-Desktop/server role selects tooling; Linux desktops install KeePassXC, and VMs
-keep the role's tooling without password-manager apps. See the
+The profile flags select the tooling; Linux desktops install KeePassXC, and
+VMs keep their profile's tooling without password-manager apps. See the
 [Provisioning model](.agents/docs/provisioning.md) for role detection, VM
 configuration, credentials, sudo, package sources, and background services.
 

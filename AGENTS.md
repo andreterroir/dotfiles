@@ -42,9 +42,9 @@ preconditions are installed by another script.
 - `dot_*`            → `~/.<name>` (e.g. `dot_gitconfig.tmpl` → `~/.gitconfig`)
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}` and gate on the
-                       role data variables (`desktop`, `linux.desktop`,
-                       `server`, `vm`, `transient`); derive `desktop && !vm`
-                       for KeePass gating.
+                       profile data (`desktop` | `devserver` | `transient`,
+                       exclusive, plus `distro` and `vm`); derive
+                       `desktop && !vm` for KeePass gating.
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run once per version of their rendered
                        content; a run that cannot finish must fail instead
@@ -75,10 +75,9 @@ instead. When the checkout is a linked worktree, use
 `chezmoi --source "$(git rev-parse --show-toplevel)"` to validate that
 worktree regardless of the configured source.
 
-A transient environment — a container, or a hostname outside
-`managedHosts` — runs `./install.sh --transient`; see
-[Transient profile](.agents/docs/transient.md) for detection. Amp
-orbs are not targets at all: the set-up refuses to run inside one.
+A transient environment — a container, an Amp orb, or a hostname outside
+`managedHosts` — receives the portable set-up only; see
+[Transient profile](.agents/docs/transient.md) for detection.
 
 0. Rebase onto main if the worktree branch is behind.
 1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
@@ -126,15 +125,16 @@ keep pointing at `~/code/dotfiles`.
 
 The full apply is for managed machines only. A transient environment never
 receives shipped changes that way: update its checkout and re-run
-`./install.sh --transient`.
+`./install.sh`.
 
 ## Machines
 
 Every hostname this repository names, whether a `chezmoi.hostname` that
-templates gate on or an SSH destination. Role is derived at bootstrap from
-the machine itself (`gnome-shell` on PATH, `systemd-detect-virt`), not from
-the hostname, and describes only the machines chezmoi manages (see
-Boundaries). What a role provides is described in the
+templates gate on or an SSH destination. The desktop and VM classification is
+derived from the machine itself (`gnome-shell` on PATH,
+`systemd-detect-virt`); the dev server is the `greenhouse` hostname. The table
+describes only the machines chezmoi manages (see Boundaries). What a profile
+provides is described in the
 [Provisioning model](.agents/docs/provisioning.md#roles-and-profile-data);
 the Notes column records only host-specific overrides and hosts that are not
 chezmoi targets.
@@ -144,15 +144,15 @@ chezmoi targets.
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
 | black | Fedora Linux | desktop | the desktop workstation |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed VM |
-| slate-vm-personal | Fedora Linux | server, vm | the personal server VM |
-| greenhouse | Ubuntu Linux | server | headless; planned for decommissioning; older commits call it `netcup` |
+| slate-vm-personal | Fedora Linux | vm | the personal server VM; headless and not the dev server, so it takes the portable set-up until it is selected as one or dropped from `managedHosts` |
+| greenhouse | Ubuntu Linux | devserver | headless; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
 | git.terroir.systems | unrecorded | server | externally managed; an SSH destination, not a chezmoi target |
 
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
-machine still exists. Hostnames are compared lowercase. `server` is not
-greenhouse-specific: personal servers remain first-class targets in that role.
+machine still exists. Hostnames are compared lowercase. `greenhouse` is the
+only dev server, so no other headless host can be fully provisioned.
 
 Fedora desktops upgrade in place between releases; see
 [Fedora upgrades](.agents/docs/upgrades.md).
@@ -163,15 +163,17 @@ Fedora desktops upgrade in place between releases; see
   information that's cannot be freely disclosed. Raise a concern before
   publishing any changes if they are suspected to contain anything sensitive
   information.
-- Linux only. macOS provisioning was dropped and is unsupported: the set-up
-  refuses other operating systems rather than applying a partial profile, and
-  it does not clean up what an earlier apply left on a Mac.
+- The desktop and dev-server set-ups are Linux-only, and macOS stays
+  unsupported: it is not provisioned. A non-Linux host is not refused, but the
+  flags fall back to the portable set-up, so nothing is installed and the
+  set-up does not clean up what an earlier apply left there.
 - Deploy a tool's configuration only where a package script installs the
   tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same OS,
   distro and role data. A gated target is left unmanaged where an earlier
   apply wrote it, not removed.
-- Gate tooling on role data, not hostnames; `vm` is independent of role. The
-  one deliberate hostname gate is x1's machine-key authentication exception.
+- Gate tooling on profile data, not hostnames; `vm` is independent of the
+  profile. The deliberate hostname gates are the `greenhouse` dev-server
+  selection and x1's machine-key authentication exception.
   See [Provisioning model](.agents/docs/provisioning.md) for detection,
   authentication exceptions, and sudo policy; see
   [Commit signing](.agents/docs/signing.md) for signing and agents.

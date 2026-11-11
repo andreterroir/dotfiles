@@ -1,15 +1,15 @@
 [user]
 	name = André Terroir
 	email = {{ .gitEmail }}
-{{- if not .transient }}
+{{- if (not .transient) }}
 	signingKey = "{{ .chezmoi.homeDir }}/.ssh/id_ed25519"
 {{- end }}
 [commit]
-{{- if not .transient }}
+{{- if (not .transient) }}
 	gpgsign = true
 {{- end }}
 	verbose = true
-{{- if not .transient }}
+{{- if (not .transient) }}
 [gpg]
 	format = ssh
 [gpg "ssh"]
@@ -31,11 +31,13 @@
 	keepBackup = false
 [merge]
 	tool = vim
+{{- if (not .transient) }}
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+{{- end }}
 [alias]
 	df = "diff --color-words"
 [credential "https://github.com"]

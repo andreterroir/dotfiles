@@ -3,32 +3,6 @@
 # (no repo, no chezmoi), see readme.md.
 set -eu
 
-if [ -n "${AMP_ORB:-}" ]; then
-	echo "Amp orbs are not a supported target; this set-up does not run inside one." >&2
-	exit 1
-fi
-
-if [ "$(uname -s)" != Linux ]; then
-	echo "Only Linux hosts are supported; this set-up does not run elsewhere." >&2
-	exit 1
-fi
-
-transient=false
-remaining=$#
-while [ "$remaining" -gt 0 ]; do
-	arg=$1
-	shift
-	case $arg in
-		--transient) transient=true ;;
-		*) set -- "$@" "$arg" ;;
-	esac
-	remaining=$((remaining - 1))
-done
-
-if [ "$transient" = true ]; then
-	export CHEZMOI_TRANSIENT=1
-fi
-
 if ! chezmoi="$(command -v chezmoi)"; then
 	bin_dir="${HOME}/.local/bin"
 	chezmoi="${bin_dir}/chezmoi"

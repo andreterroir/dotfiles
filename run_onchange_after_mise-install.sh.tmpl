@@ -1,4 +1,4 @@
-{{ if eq .chezmoi.os "linux" -}}
+{{ if and (eq .chezmoi.os "linux") (not .transient) -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 {{ if lookPath "mise" -}}

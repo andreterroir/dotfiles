@@ -3,8 +3,8 @@
 On managed machines, `~/.gitconfig` sets `commit.gpgsign`, so every commit is
 signed with SSH keys (`gpg.format = ssh`). All machines use their own
 `~/.ssh/id_ed25519` by default, for both interactive and automated commits.
-Desktop/server role, VM classification, terminal presence, and connected
-YubiKeys do not change that choice. A repository can explicitly opt into
+Desktop or dev-server profile, VM classification, terminal presence, and
+connected YubiKeys do not change that choice. A repository can explicitly opt into
 hardware-backed signing.
 
 Machine-key signatures identify the signing key, not a human presence check.
@@ -66,7 +66,7 @@ Desktop machine keys can remain passphrase-protected. Unattended signing
 requires an agent that can unlock or already holds that key; a fresh session
 or an unrelated forwarded agent cannot unlock an encrypted local key by
 itself. Do not remove desktop key passphrases for unattended signing; unlock
-them in the platform agent. For server/VM key requirements, see
+them in the platform agent. For dev-server and VM key requirements, see
 [SSH identity bootstrap](provisioning.md#ssh-identity-bootstrap).
 
 Existing agents remain configured for SSH authentication, encrypted desktop
@@ -92,12 +92,12 @@ makes GNOME ask to allow shortcut inhibition on every signature.
 agent, leaving the YubiKey's blink as the prompt; a touch-only resident key
 never needs the PIN that the agent would otherwise have to ask for.
 
-### Headless servers
+### Dev servers
 
-Nothing on a server runs an agent for the machine key: servers and VMs sign
-with the key file directly, their machine keys have no passphrase, and a
-forwarded agent, when present, serves SSH clients and explicit YubiKey
-signing without holding the server's local machine key.
+Nothing on a dev server runs an agent for the machine key: dev servers and VMs
+sign with the key file directly, their machine keys have no passphrase, and a
+forwarded agent, when present, serves SSH clients and explicit YubiKey signing
+without holding the dev server's local machine key.
 
 ## Verification
 

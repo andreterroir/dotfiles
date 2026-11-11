@@ -1,5 +1,5 @@
 {{ if eq .chezmoi.os "linux" -}}
-{{   if and (eq .distro "fedora") .linux.desktop -}}
+{{   if and (eq .distro "fedora") .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail

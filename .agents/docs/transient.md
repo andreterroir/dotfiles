@@ -1,28 +1,24 @@
 # Transient profile
 
-A transient environment is a machine that may be discarded: a container, or a
-hostname outside `managedHosts` (including an unlisted VM). The profile applies
-the full configuration inside that machine, but establishes no identity and
-changes nothing outside it.
-
-Amp orbs are not targets at all: an orb is neither a standard environment nor
-one this repository controls, so the set-up refuses to run inside one.
-`install.sh` aborts, and an apply fails in `.chezmoiignore.tmpl`, both keyed on
-the orb's `AMP_ORB` variable.
+A transient environment is one that may be discarded: a container, an Amp orb,
+or a hostname outside `managedHosts` (including an unlisted VM). It receives
+the portable set-up only — shell, Git, Vim, tmux, and agent instructions — with
+no packages, no distribution dependencies, no services, and no identity, so
+the same files apply anywhere it runs.
 
 ## Invocation
 
 ```sh
-./install.sh --transient
+./install.sh
 ```
 
-The flag forces the profile. Without it, `chezmoi init` detects the
-environment; `CHEZMOI_TRANSIENT=0` opts out. Run with `HOME` set to the
-throwaway home, because scripts and package installs use `$HOME`; other
-arguments go to `chezmoi apply`. The equivalent commands are:
+There is no flag or variable to force the profile: `chezmoi init` derives it
+from the machine. Run with `HOME` set to the throwaway home, because the apply
+writes into `$HOME`; other arguments go to `chezmoi apply`. The equivalent
+commands are:
 
 ```sh
-CHEZMOI_TRANSIENT=1 chezmoi init --source=~/code/dotfiles
+chezmoi init --source=~/code/dotfiles
 chezmoi apply --source=~/code/dotfiles
 ```
 
@@ -31,10 +27,22 @@ chezmoi apply --source=~/code/dotfiles
 
 ## What runs
 
-Package installation, sudo setup, service definitions and enablement, and the
-file configuration (shell, Git, Vim, tmux, agent instructions) are applied.
-Packages, services, plugins, extensions, and externals change only the
-machine, so they are allowed.
+- The portable file configuration: Vim and its pinned plugins, `~/.gitignore`,
+  the `~/.bin` helpers, and the agent instructions at `~/.agents/AGENTS.md` and
+  `~/.config/AGENTS.md`.
+- Nothing installs packages or writes outside `$HOME`. The package, sudo, and
+  mise scripts render empty, so no package manager, sudoers rule, or
+  `mise install` runs.
+- The host keeps its own shell, Git, and tmux configuration, so `~/.bashrc`,
+  `~/.bash_profile`, `~/.gitconfig`, and `~/.tmux.conf` stay as they are, and
+  the tmux plugin script does not run. A harness that owns those files keeps
+  its credential helper, hooks, and environment loading.
+- `~/.ssh`, `~/.config/amp`, `~/.config/mise`, `~/.config/opencode`,
+  `~/.config/systemd`, and `~/.config/topgrade.toml` are left unmanaged, so a
+  forwarded agent, an existing SSH configuration, and the platform's own tool
+  settings stay untouched.
+- Vim plugins come from their upstream repositories, so a first apply needs
+  network access; the script skips when Vim is absent.
 
 ## No identity
 
@@ -46,19 +54,23 @@ machine, so they are allowed.
   signing. Elsewhere commits are unsigned.
 - SSH agent services are not installed or enabled.
 
-Nothing outside the machine changes. Package managers, plugin and extension
-installers, and externals fetch into the machine; the apply does not modify
-remote state.
+Nothing outside the machine changes. Plugin installers fetch into the machine;
+the apply does not modify remote state.
 
 ## Detection
 
-Init derives and persists the `transient` value:
+Init derives and persists three exclusive profile flags; this set-up is
+`transient = true`.
 
-- `CHEZMOI_TRANSIENT` wins when set. Any value except `0` or `false` enables
-  the profile; `0` or `false` disables it.
-- Otherwise the profile is enabled when Linux reports a container
-  (`systemd-detect-virt --container`) or when `chezmoi.hostname` is not in
-  `managedHosts`. An unlisted VM is transient through its hostname.
+- The profile is selected when Linux reports a container
+  (`systemd-detect-virt --container`), when `AMP_ORB` is set, or when
+  `chezmoi.hostname` is not in `managedHosts`. An unlisted VM is transient
+  through its hostname.
+- A headless host is fully provisioned only when it is `greenhouse`; every
+  other headless host is transient.
+- A host that is not Linux is transient too, so an apply on macOS or any
+  other platform installs the portable files and nothing else. That is a
+  fallback, not support: macOS stays unprovisioned and unsupported.
 - `managedHosts` in `.chezmoidata.toml` lists the chezmoi targets as lowercase
   short hostnames. Matching strips a `.local` suffix and ignores case. Keep it
   in sync with the Machines table in `AGENTS.md`; SSH-only destinations are
@@ -67,19 +79,16 @@ Init derives and persists the `transient` value:
   the list is missing, every host is transient.
 
 A known VM such as `slate-vm-work` is not transient and keeps the machine-key
-identity policy in [Provisioning model](provisioning.md). Force the profile on
-a known host with `CHEZMOI_TRANSIENT=1`.
+identity policy in [Provisioning model](provisioning.md).
 
 ## Limits
 
-The profile is not a sandbox. It installs packages and enables services with
-the privileges the environment provides, so run it only in a machine that may
-be discarded. It creates no SSH keys, starts no identity agent, and registers
-nothing with GitHub; authentication comes from the environment, for example a
-forwarded agent. It does not remove identity material left in a home that was
-previously configured non-transient; start from a fresh home or delete the
-keys, allowlist, and agent units yourself. Keep credentials and secrets out of
-the destination.
+It creates no SSH keys, starts no identity agent, and registers nothing with
+GitHub; authentication comes from the environment, for example a forwarded
+agent. It does not remove identity material left in a home that was previously
+configured with another profile; start from a fresh home or delete the keys,
+allowlist, and agent units yourself. Keep credentials and secrets out of the
+destination.
 
-The Amp runner service is gated in the transient profile: the runner script
-exits before enabling it, so it does not register with ampcode.com.
+The Amp runner service is gated in this profile: the runner script exits
+before enabling it, so it does not register with ampcode.com.

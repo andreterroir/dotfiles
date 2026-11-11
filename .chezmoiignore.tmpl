@@ -1,39 +1,50 @@
-{{- if ne (env "AMP_ORB") "" -}}
-{{- fail "Amp orbs are not a supported target; this set-up does not run inside one" -}}
+{{- if not (and (hasKey . "desktop") (hasKey . "devserver") (hasKey . "transient")) -}}
+{{- fail "Profile flags are missing; run chezmoi init before apply or update" -}}
 {{- end -}}
-{{- if ne .chezmoi.os "linux" -}}
-{{- fail "Only Linux hosts are supported; this set-up does not run elsewhere" -}}
-{{- end -}}
-{{- if not (hasKey . "transient") -}}
-{{- fail "Transient provisioning policy is missing; run chezmoi init before apply or update" -}}
-{{- end -}}
+{{- $desktop := .desktop -}}
+{{- $transient := .transient -}}
 AGENTS.md
 assets
 license
 readme.md
 plug-snapshot.vim
 install.sh
-{{ if not (and (eq .distro "fedora") .linux.desktop .vm) -}}
+{{ if not (and (eq .distro "fedora") $desktop .vm) -}}
 # Ghostty renders through llvmpipe where virgl reports OpenGL 4.1
 .config/systemd/user/app-com.mitchellh.ghostty.service.d
 .bin/ghostty
 {{ end -}}
-{{ if not (and .desktop (not .vm)) -}}
+{{ if not (and $desktop (not .vm)) -}}
 .config/keepassxc
 {{ end -}}
-{{ if .transient -}}
-# identity agents stay out of transient environments
-.config/systemd/user/gcr-ssh-agent.service.d
+{{ if $transient -}}
+# portable files only: no packages, services, or tool-specific homes, and the
+# host keeps its own shell, Git, and tmux configuration and plugins
+.bash_profile
+.bashrc
+.claude
+.codex
+.copilot
+.config/amp
+.config/autostart
+.config/mise
+.config/opencode
+.config/systemd
+.config/topgrade.toml
+.gitconfig
+.ssh
+.tmux.conf
+tmux-plugins.sh
 {{ end -}}
-{{ if not .linux.desktop -}}
+{{ if not $desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
 # the swap script needs GNOME
 .bin/swap_ctrl_caps
 {{ end -}}
-{{ if not (and (eq .distro "fedora") .linux.desktop) -}}
+{{ if not (and (eq .distro "fedora") $desktop) -}}
 .config/autostart/syncthing-start.desktop
 {{ end -}}
-{{ if not (and (eq .distro "fedora") .linux.desktop) -}}
+{{ if not (and (eq .distro "fedora") $desktop) -}}
 .config/ghostty
 {{ end -}}
 .config/opencode/opencode.local.json
