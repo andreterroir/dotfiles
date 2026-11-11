@@ -205,6 +205,12 @@ serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 keeps the runner up without a login. Transient environments skip this setup;
 see [Transient profile](transient.md).
 
+`--remote-control-portals` gives every thread on the runner a Portal tab for
+the dev servers and pages it starts, as orb threads have. A runner's portals
+are not public and have no review button; this runner is not shared, so only
+the Amp account opens them. The Amp apps' own **Allow Portals** switches stay
+manual, so turning portals on for an app's runner remains the user's choice.
+
 Running the runner on every non-transient machine, servers included, is
 deliberate: threads must be able to reach every machine from ampcode.com.
 The cost is that whoever controls that Amp account can run code on all of
