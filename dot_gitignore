@@ -2,9 +2,6 @@
 *~
 *.swp
 *.swo
-# macOS
-.DS_Store
-.swival/
 # Git worktrees
 .wt/
 # Amp

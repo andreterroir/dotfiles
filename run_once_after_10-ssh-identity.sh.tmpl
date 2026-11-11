@@ -3,13 +3,14 @@
 # Put this machine's SSH key on disk and register it with GitHub for signing.
 set -euo pipefail
 
-GH_ACCOUNT={{ .githubAccount }}
+{{ if not (and .work (or .vm .devserver)) -}}
 require_terminal() {
 	if [ ! -t 0 ]; then
 		echo "error: $1 needs a terminal; run chezmoi apply from one" >&2
 		exit 1
 	fi
 }
+{{ end -}}
 
 # Every machine signs commits with its own ed25519 key by default.
 MACHINE_KEY="$HOME/.ssh/id_ed25519"
@@ -33,11 +34,10 @@ fi
 {{ end -}}
 
 {{ if .work -}}
-# Everything below serves registration with the personal GitHub account, which
-# a work machine leaves alone.
+# A work machine keeps its key to itself.
 echo '>work machine: no keys registered with the personal GitHub account'
-exit 0
-{{ end -}}
+{{ else -}}
+GH_ACCOUNT={{ .githubAccount }}
 PUBLIC_KEY="$MACHINE_KEY.pub"
 key_material="$(awk '{print $1, $2}' "$PUBLIC_KEY")"
 
@@ -100,3 +100,4 @@ if ! gh auth refresh --hostname github.com \
 		--remove-scopes admin:public_key --remove-scopes admin:ssh_signing_key "${gh_clipboard[@]}"; then
 	echo 'warning: could not drop the GitHub admin scopes; run gh auth refresh --hostname github.com --remove-scopes admin:public_key,admin:ssh_signing_key by hand' >&2
 fi
+{{ end -}}
