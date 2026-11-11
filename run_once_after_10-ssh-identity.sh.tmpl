@@ -98,7 +98,6 @@ if [ ! -f "$SK_KEY" ]; then
 	mv "${sk_keys[0]}" "$SK_KEY"
 	mv "${sk_keys[0]}.pub" "$SK_KEY.pub"
 	rm -rf "$sk_tmp"
-	ssh-add -K
 fi
 {{ end -}}
 sk_key="$(awk '{print $1, $2}' "$SK_KEY.pub")"

@@ -54,7 +54,7 @@ sudo dnf install -y \
 	yubikey-manager \
 	pcsc-tools
 
-# Enabled, not started: pcscd comes up at the next boot or with its socket.
+# Enabled, not started: pcscd comes up at the next boot, then on demand.
 sudo systemctl enable pcscd
 
 # Spotify's Flathub package is x86_64-only. Name the remote, and add

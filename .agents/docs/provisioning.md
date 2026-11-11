@@ -204,18 +204,21 @@ them, and, through the VMs' passwordless sudo, as root on the VMs; share a
 runner workspace only with people trusted on the machine.
 
 Enabling is the script's work: it writes the unit's `default.target.wants` link
-and turns on linger, and systemd starts the runner at the next boot or login.
-No apply step reloads systemd or starts or restarts the runner, as
+and turns linger on, which brings a user manager up at boot, so the runner
+starts with the next boot or login. No apply step starts or restarts the runner
+or reloads systemd of its own accord — `systemctl --user enable` re-reads the
+unit files as part of enabling, which starts nothing — as
 [AGENTS.md](../../AGENTS.md#apply-writes-configuration) requires, so an apply
 never ends a thread that is running. A changed unit or setting takes effect the
 next time the runner starts.
 
 The script re-runs only when its own content changes, so an ordinary apply
-leaves the runner alone. A runner someone stopped by hand stays stopped, as
-does one disabled with `systemctl --user disable`, and linger removed by hand
-stays removed, until that script changes or they undo it. Replacing the `amp`
-binary by hand, such as with a reinstall or a manual upgrade, does not restart
-the runner either: the runner's auto-update applies new releases itself.
+leaves the runner alone. A runner stopped with `systemctl --user stop` comes
+back when the user manager next starts; `systemctl --user disable` or `mask`
+keeps it down, and linger removed by hand stays removed, until that script
+changes or they undo it. Replacing the `amp` binary by hand, such as with a
+reinstall or a manual upgrade, does not restart the runner either: the runner's
+auto-update applies new releases itself.
 
 A run that exits early, because `amp` is missing or no user manager answers,
 still counts as done, so a later apply does not retry it: once the

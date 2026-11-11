@@ -104,13 +104,16 @@ An apply writes configuration; it does not have to make it live. A machine is
 not expected to run the newest version of this setup at any point in time, so a
 change taking effect at the next login, boot, or service start is fine.
 
-`run_*` scripts do the work that delivers a change: installing packages and
-plugins, writing files, registering a service with `systemctl enable` or
-`loginctl enable-linger`. They do not follow that with a reload or restart that
-only makes the change live now: no `systemctl daemon-reload`, `systemctl
-start`, `systemctl restart`, `systemctl enable --now`, or the like. Ending a
-side effect of the work, such as the tmux server the plugin install started, is
-not a reload.
+No part of an apply — a `run_*` script, a `modify_` script, or `install.sh` —
+follows its work with a command whose only purpose is to make an
+already-written change take effect. Work is installing packages and plugins,
+writing files, and registering a service with `systemctl enable` or
+`loginctl enable-linger`; a refresh is a separate `systemctl daemon-reload`,
+`systemctl start`, `systemctl restart`, `systemctl enable --now`, loading a key
+into a running agent, or the like. Writing a file or a settings key that a
+running program picks up by itself is still writing configuration, and a unit
+or drop-in is read when the manager next loads it. Ending a side effect of the
+work, such as the tmux server the plugin install started, is not a refresh.
 
 An exception is a comment next to it that gives the reason.
 

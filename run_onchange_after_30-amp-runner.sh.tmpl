@@ -19,9 +19,11 @@ fi
 loginctl enable-linger "$(id -un)" >/dev/null 2>&1 || true
 
 # Enabled, not started: the runner comes up with the next boot or login.
-if ! systemctl --user enable amp-runner.service 2>/dev/null; then
+if ! enable_output="$(systemctl --user enable amp-runner.service 2>&1)"; then
 	echo '>amp-runner: no systemd user manager; enable the runner by hand in a session' >&2
 	exit 0
 fi
+# systemctl succeeds without enabling when the unit has no [Install] section.
+[ -z "$enable_output" ] || printf '%s\n' "$enable_output" >&2
 {{ end -}}
 {{ end -}}
