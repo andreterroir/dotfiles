@@ -1,20 +1,14 @@
 [user]
 	name = André Terroir
 	email = {{ .gitEmail }}
-{{- if (not .transient) }}
 	signingKey = "{{ .chezmoi.homeDir }}/.ssh/id_ed25519"
-{{- end }}
-[commit]
-{{- if (not .transient) }}
-	gpgsign = true
-{{- end }}
-	verbose = true
-{{- if (not .transient) }}
 [gpg]
 	format = ssh
 [gpg "ssh"]
 	allowedSignersFile = ~/.allowed_signers
-{{- end }}
+[commit]
+	verbose = true
+	gpgsign = true
 [core]
 	excludesfile = ~/.gitignore
 	# keep the commit message when a commit fails (e.g. a missing signing key)
@@ -31,13 +25,11 @@
 	keepBackup = false
 [merge]
 	tool = vim
-{{- if (not .transient) }}
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
-{{- end }}
 [alias]
 	df = "diff --color-words"
 [credential "https://github.com"]

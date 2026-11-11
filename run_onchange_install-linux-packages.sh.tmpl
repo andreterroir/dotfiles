@@ -138,9 +138,6 @@ if ! command -v chezmoi > /dev/null; then
 fi
 
 {{   end -}}
-{{ end -}}
-
-{{ if and (eq .chezmoi.os "linux") (not .transient) -}}
 {{   if and (eq .distro "ubuntu") .devserver -}}
 # --no-modify-path skips the installer's shell PATH edit. Link the
 # binary into ~/.local/bin, which is already on PATH.
