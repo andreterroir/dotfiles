@@ -28,12 +28,17 @@ This is for managed machines; add a new physical machine, a Mac included, to
 `./install.sh --transient` from a clone of this repository; see
 [Transient profile](.agents/docs/transient.md).
 
-On physical Linux desktops, the first apply cannot finish on its own:
-downloading the YubiKey's resident SSH key, logging in to GitHub, and
-registering a key all need a human at the keyboard, and chezmoi prints what it
-skipped. Run it again from a terminal to finish:
+A machine's identity set-up needs a human at the keyboard when it has work to
+do: creating a passphrase-protected key, downloading the YubiKey's resident SSH
+key, or logging in to GitHub. An apply without a terminal cannot do that, so
+chezmoi reports the identity script as failed rather than skipping it, and
+applying again from a terminal finishes it:
 
     chezmoi apply
+
+That script and the signing allowlist run once; see
+[One-shot set-up scripts](.agents/docs/provisioning.md#one-shot-set-up-scripts)
+to run them again.
 
 Git commit signing
 ------------------

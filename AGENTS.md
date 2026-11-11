@@ -30,9 +30,10 @@ supported platforms and installation. See
 
 `run_*` scripts fire in alphabetical order of their target names, so
 `run_onchange_install-*-packages` runs before
-`run_onchange_set-up-default-shell` (which runs `chsh`). Scripts with a
-`run_after_` prefix run after all of those, whatever their name, so a
-script that needs a tool the package script installs belongs there.
+`run_onchange_set-up-default-shell` (which runs `chsh`). Scripts with an
+`after_` prefix (`run_after_`, `run_once_after_`, `run_onchange_after_`) run
+after all of those, whatever their name, so a script that needs a tool the
+package script installs belongs there.
 Fedora and Ubuntu use the distro Bash, which is already present. Keep this
 ordering in mind when adding `run_*` scripts whose preconditions are
 installed by another script.
@@ -47,7 +48,9 @@ installed by another script.
                        `transient`); derive `desktop && !vm` for KeePass
                        gating
 - `run_onchange_*`   → scripts re-run when their checksum changes
-- `run_once_*`       → scripts run at most once
+- `run_once_*`       → scripts run once per version of their rendered
+                       content; a run that cannot finish must fail instead
+                       of exiting 0, so the next apply retries it
 - `symlink_*`        → emit a symlink whose target is the file's contents
 - `executable_*`     → emitted with the executable bit set
 - `.chezmoiignore.tmpl` / `.chezmoi.toml.tmpl` → chezmoi config; edit deliberately

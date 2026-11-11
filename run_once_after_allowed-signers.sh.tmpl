@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Derive ~/.allowed_signers from the signing keys on GitHub, so every
-# machine verifies every other machine's signature. A machine that is
-# offline keeps the file it already has.
+# machine verifies every other machine's signature. The list only changes
+# when a machine registers a signing key, so chezmoi runs this once for each
+# version of its rendered content; re-run it on demand after registering one.
+# A run that cannot reach GitHub fails, so the next apply retries it.
 set -euo pipefail{{ if .transient }}
 echo '>transient profile: signing allowlist setup is disabled' >&2
 exit 0
@@ -14,8 +16,11 @@ if ! command -v jq >/dev/null 2>&1; then
 	exit 1
 fi
 keys=$(curl -fsS --max-time 10 "https://api.github.com/users/{{ .githubAccount }}/ssh_signing_keys" \
-	| jq -r '.[].key') || { echo '>allowed_signers: offline, keeping current file' >&2; exit 0; }
-[ -n "$keys" ] || exit 0
+	| jq -r '.[].key') || { echo 'error: GitHub API unavailable; cannot derive ~/.allowed_signers; run chezmoi apply when online' >&2; exit 1; }
+if [ -z "$keys" ]; then
+	echo 'error: GitHub returned no signing keys; cannot derive ~/.allowed_signers' >&2
+	exit 1
+fi
 
 tmp="$(mktemp)"
 while IFS= read -r key; do

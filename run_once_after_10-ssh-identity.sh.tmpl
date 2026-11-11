@@ -6,19 +6,14 @@
 # machine key is the only machine key that also authenticates. VMs only
 # register sk keys that already exist.
 # The sk key download needs a YubiKey touch and registration may need a
-# browser login; a non-tty VM/server apply creates only its machine key.
-# Re-runs are idempotent when the keys are already on GitHub.
+# browser login. The identity of a machine does not change, so chezmoi runs
+# this once for each version of its rendered content, and a provisioned
+# machine passes without touching anything. A step with work to do fails
+# without a terminal, so the next apply retries it.
 set -euo pipefail{{ if .transient }}
 echo '>transient profile: SSH identity setup is disabled' >&2
 exit 0
 {{ end }}
-
-{{ if not (or .vm .server) -}}
-if [ ! -t 0 ]; then
-	echo '>ssh identity: run chezmoi apply from a terminal to finish' >&2
-	exit 0
-fi
-{{ end -}}
 
 GH_ACCOUNT={{ .githubAccount }}
 approved_yubikeys=(
@@ -31,19 +26,26 @@ is_approved_yubikey() {
 	done
 	return 1
 }
+require_terminal() {
+	if [ ! -t 0 ]; then
+		echo "error: $1 needs a terminal; run chezmoi apply from one" >&2
+		exit 1
+	fi
+}
 
 # Every machine signs commits with its own ed25519 key by default.
 MACHINE_KEY="$HOME/.ssh/id_ed25519"
-identity_changed=false
 if { [ -f "$MACHINE_KEY" ] && [ ! -f "$MACHINE_KEY.pub" ]; } ||
 	{ [ ! -f "$MACHINE_KEY" ] && [ -f "$MACHINE_KEY.pub" ]; }; then
 	echo "error: incomplete machine key pair at $MACHINE_KEY" >&2
 	exit 1
 fi
 if [ ! -f "$MACHINE_KEY" ]; then
+{{ if not (or .vm .server) -}}
+	require_terminal 'generating the machine key'
+{{ end -}}
 	echo '>generating per-machine ed25519 key'
 	ssh-keygen -t ed25519 -C "$(hostname -s) $(date +%F)" -f "$MACHINE_KEY"{{ if or .vm .server }} -N ''{{ end }}
-	identity_changed=true
 fi
 {{ if or .vm .server -}}
 if ! ssh-keygen -y -P '' -f "$MACHINE_KEY" > /dev/null 2>&1; then
@@ -72,6 +74,7 @@ if { [ -f "$SK_KEY" ] && [ ! -f "$SK_KEY.pub" ]; } ||
 fi
 {{ if not .vm -}}
 if [ ! -f "$SK_KEY" ]; then
+	require_terminal 'downloading the resident key from the YubiKey'
 	echo '>downloading the resident key from the YubiKey (touch it when it blinks)'
 	sk_tmp="$(mktemp -d)"
 	( cd "$sk_tmp" && ssh-keygen -K )
@@ -96,7 +99,6 @@ if [ ! -f "$SK_KEY" ]; then
 	mv "${sk_keys[0]}.pub" "$SK_KEY.pub"
 	rm -rf "$sk_tmp"
 	ssh-add -K
-	identity_changed=true
 fi
 {{ end -}}
 sk_key="$(awk '{print $1, $2}' "$SK_KEY.pub")"
@@ -111,24 +113,14 @@ fi
 {{ end -}}
 {{ end -}}
 
-{{ if or .vm .server -}}
-if [ ! -t 0 ]; then
-	echo '>ssh identity: machine key ready; run chezmoi apply from a terminal for GitHub registration' >&2
-	exit 0
-fi
-{{ end -}}
-
 # Key registrations are public, so check them before touching gh auth:
-# re-runs skip the browser flow when nothing needs uploading. Buffering
-# the JSON avoids curl|grep SIGPIPE false negatives under pipefail.
+# a run with nothing to upload skips the browser flow. Buffering the JSON
+# avoids curl|grep SIGPIPE false negatives under pipefail. An unreachable
+# API leaves the registration unverified, so the run fails and is retried.
 if ! registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")" ||
 	! registered_signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"; then
-	if [ "$identity_changed" = true ]; then
-		echo 'error: GitHub API unavailable; newly provisioned keys require registration' >&2
-		exit 1
-	fi
-	echo '>ssh identity: GitHub API unavailable; skipped key registration' >&2
-	exit 0
+	echo 'error: GitHub API unavailable; cannot verify key registration; run chezmoi apply when online' >&2
+	exit 1
 fi
 
 needs_registration=false
@@ -154,6 +146,7 @@ if ! command -v gh >/dev/null 2>&1; then
 	echo 'error: gh is not installed; cannot register public keys with GitHub; install the GitHub CLI and run chezmoi apply' >&2
 	exit 1
 fi
+require_terminal 'registering public keys with GitHub'
 
 # gh may hold several accounts (work + personal): make $GH_ACCOUNT
 # active so refresh and add never hit another login.

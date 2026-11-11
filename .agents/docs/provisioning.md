@@ -113,22 +113,27 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 
 ## SSH identity bootstrap
 
-`run_after_10-ssh-identity.sh.tmpl` creates missing machine keys and registers
-public keys with GitHub for `andreterroir`. Transient environments skip this
-section entirely; see [Transient profile](transient.md). Machine keys are
-signing keys; x1's is the only one also registered as a GitHub authentication
-key. On non-VM Linux desktops it downloads a missing resident key with
-`ssh-keygen -K` (touch and PIN) and registers it for authentication and
-signing. On VMs it only registers resident keys explicitly installed
-beforehand; non-VM servers skip them by policy, and macOS cannot provision one
-because Apple's OpenSSH has no FIDO provider. A Mac reaches GitHub through `gh`
-over HTTPS and authenticates to `git.terroir.systems` and `chalon` with its
-machine key.
+`run_once_after_10-ssh-identity.sh.tmpl` creates missing machine keys and
+registers public keys with GitHub for `andreterroir`. Transient environments
+skip this section entirely; see [Transient profile](transient.md). Machine keys
+are signing keys; x1's is the only one also registered as a GitHub
+authentication key. On non-VM Linux desktops it downloads a missing resident key
+with `ssh-keygen -K` (touch and PIN) and registers it for authentication and
+signing. On VMs it only registers resident keys explicitly installed beforehand;
+non-VM servers skip them by policy, and macOS cannot provision one because
+Apple's OpenSSH has no FIDO provider. A Mac reaches GitHub through `gh` over
+HTTPS and authenticates to `git.terroir.systems` and `chalon` with its machine
+key.
 
-GitHub registration requires a terminal and account login. API outages are
-tolerated when local keys already exist, but fail apply after creating a
-key because registration is then required. Non-interactive VM/server apply
-creates the machine key and defers registration to a terminal session.
+A machine's identity does not change, so chezmoi runs the script once for each
+version of its rendered content: a first apply, and again only when the script
+or the data it renders changes. A provisioned machine passes without a
+terminal, touching nothing. A step with work to do fails when it cannot be
+done — generating a passphrase-protected key, downloading a resident key, or
+registering keys with GitHub without a terminal, or any step whose GitHub is
+unreachable or whose `gh` is missing — and the next apply retries it. A key
+deleted after that run is therefore not recreated by an ordinary apply; see
+[One-shot set-up scripts](#one-shot-set-up-scripts).
 
 VM/server machine keys have no passphrase, so unattended signing needs no
 agent. Existing encrypted keys are never rewritten: apply stops with
@@ -144,6 +149,22 @@ resident key, or run `ssh-keygen -K` explicitly, save the pair as
 also supplies VM public-only files in `~/.ssh/identities/`, allowing
 forwarded keys through SSH's identity filter without local resident-key
 references.
+
+## One-shot set-up scripts
+
+`run_once_after_10-ssh-identity.sh.tmpl` above and
+`run_once_after_allowed-signers.sh.tmpl` (see
+[Commit signing](signing.md#verification)) are the repository's only `run_once_`
+scripts. Clearing their state and applying re-runs both:
+
+    chezmoi state delete-bucket --bucket=scriptState
+    chezmoi apply
+
+`scriptState` records every script, but `run_onchange_` runs are keyed in
+`entryState`, which this leaves alone, so only these two re-run. Use it to
+retry a failed run, to recreate a deleted machine key, and to refresh
+`~/.allowed_signers` on the other machines after a machine registers a new
+signing key: the file only reflects GitHub at the last completed run.
 
 ## GNOME Shell extensions
 

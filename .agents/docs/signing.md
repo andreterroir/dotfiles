@@ -81,11 +81,11 @@ ed25519-sk` fails with "No FIDO SecurityKeyProvider specified" and
 `ssh-keygen -K` with "Cannot download keys without provider". The Homebrew
 `openssh` formula does provide one, but it is not part of this configuration
 and works only when its binaries are invoked directly.
-`run_after_10-ssh-identity.sh.tmpl` therefore creates the machine key if it is
-missing and registers it on GitHub for signing, which is what `dot_gitconfig.tmpl`
-signs with. GitHub access goes through `gh` over HTTPS, and the machine key is
-what a Mac uses for `git.terroir.systems` and `chalon`; an agent, if wanted,
-is the machine's own concern.
+`run_once_after_10-ssh-identity.sh.tmpl` therefore creates the machine key if it
+is missing and registers it on GitHub for signing, which is what
+`dot_gitconfig.tmpl` signs with. GitHub access goes through `gh` over HTTPS, and
+the machine key is what a Mac uses for `git.terroir.systems` and `chalon`; an
+agent, if wanted, is the machine's own concern.
 First registration needs `gh`,
 and the allowlist below needs `jq`;
 a Mac's apply installs both with Homebrew when they are missing. The `gh`
@@ -121,10 +121,12 @@ signing without holding the server's local machine key.
 
 ## Verification
 
-`run_after_allowed-signers.sh.tmpl` rewrites `~/.allowed_signers` from GitHub's
-`ssh_signing_keys` under the principal `andre@terroir.systems`, so every machine
-verifies every other machine's signature. A machine that is offline keeps the
-file it has.
+`run_once_after_allowed-signers.sh.tmpl` rewrites `~/.allowed_signers` from
+GitHub's `ssh_signing_keys` under the principal `andre@terroir.systems`, so
+every machine verifies every other machine's signature. It runs once, so
+refresh it on demand on the other machines after a machine registers a new
+signing key; a run without GitHub or `jq` fails and leaves the file it has. See
+[One-shot set-up scripts](provisioning.md#one-shot-set-up-scripts).
 
 ```
 git log --show-signature -1
@@ -135,7 +137,7 @@ git verify-commit HEAD
 
 | Message | Cause |
 | --- | --- |
-| Missing or unreadable machine private key | finish SSH identity provisioning; a connected YubiKey does not replace the default key |
+| Missing or unreadable machine private key | finish SSH identity provisioning, which runs again only on demand ([one-shot scripts](provisioning.md#one-shot-set-up-scripts)); a connected YubiKey does not replace the default key |
 | Passphrase prompt or failure in unattended signing | the encrypted machine key must be unlocked in the active agent |
 | `No private key found for ...`, `Couldn't get agent socket?` | the override has neither a usable local private-key reference nor a matching key in the active agent |
 | `agent refused operation` | the agent cannot perform the FIDO2 signature, e.g. the loaded key is not the resident key or the socket points at a dead agent |
