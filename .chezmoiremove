@@ -1,3 +1,0 @@
-# ssh now sends xterm-256color, so the server-side xterm-ghostty entry this
-# repository installed is retired; drop what that script left behind.
-.terminfo/x/xterm-ghostty
