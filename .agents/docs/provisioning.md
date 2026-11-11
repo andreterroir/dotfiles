@@ -11,26 +11,29 @@ persists them in `~/.config/chezmoi/chezmoi.toml`. Templates and `run_*`
 scripts gate on these keys; the only hostname the set-up reads is the
 `greenhouse` dev server. The three profile flags are exclusive by
 construction, because one derivation writes all three; a config that lacks them
-fails apply with "run chezmoi init before apply or update".
+or `work` fails apply with "run chezmoi init before apply or update".
 
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
 | `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims on Fedora desktops, and the profile's own tooling |
+| `work` | the `workMachines` list in `.chezmoidata.toml` | nothing but the SSH identity: a work machine registers no keys with the personal GitHub account |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up in [Supported set-ups](#supported-set-ups) |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
 | `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up; see [Transient profile](transient.md) |
 
 Every key is derived and none has a switch. Virtualization is not detected:
 `vm` names the managed VMs, so a container, an orb, or an unlisted VM never
-carries it and cannot reach the VM policy. `install.sh` passes its arguments to
-`chezmoi apply`. Init persists the data, so a later bare `chezmoi apply` or
-`chezmoi update` reuses it; run `chezmoi init` after changing a value or
-upgrading the source, which also drops retired keys from the config.
+carries it and cannot reach the VM policy. `work` is independent of both the
+profile and the VM class, so a work machine keeps its profile's set-up.
+`install.sh` passes its arguments to `chezmoi apply`. Init persists the data, so
+a later bare `chezmoi apply` or `chezmoi update` reuses it; run `chezmoi init`
+after changing a value or upgrading the source, which also drops retired keys
+from the config.
 
 A VM whose hostname is not in `managedHosts` is transient (see
 [Transient profile](transient.md)); a managed VM such as `slate-vm-work`
-keeps the machine-key policy below.
+keeps the VM's machine-key policy below.
 
 Linux desktops install KeePassXC. Templates derive the KeePass policy as
 `desktop && !vm`, so dev servers, portable environments, and VMs
@@ -51,6 +54,13 @@ platform that this repository does not provision.
 | desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC and the resident-key download | the desktop configuration | passphrase-less machine key, passwordless sudo; Amp runner |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
+
+`work` changes only a row's identity: the machine keeps its profile's
+installs, configuration, and services, creates its machine key, and registers
+nothing with the personal GitHub account (see
+[SSH identity bootstrap](#ssh-identity-bootstrap)). `slate-vm-work` is the only
+one today: it takes the desktop-VM row's set-up, and its machine key stays off
+the personal account.
 
 The portable set-up leaves the host's shell, Git, and tmux configuration and
 plugins unmanaged, along with `~/.gitignore`, `~/.bin/git-editor`, `~/.ssh`,
@@ -131,6 +141,17 @@ authentication key. On non-VM desktops it downloads a missing resident key
 with `ssh-keygen -K` (touch and PIN) and registers it for authentication and
 signing. On VMs it only registers resident keys explicitly installed beforehand;
 non-VM servers skip them by policy.
+
+A `work` machine stops after creating the machine key: no resident key
+download, no `gh` login, and no registration, so nothing about it reaches the
+personal GitHub account. Its commits still sign with that machine key, and they
+verify only where `~/.allowed_signers` lists it; that file is rebuilt from
+GitHub's signing keys, so an entry added by hand lasts until the next refresh,
+and GitHub shows the commits unverified. The flag stops future registration
+only: a machine marked `work` after it was provisioned keeps what it registered
+until it is removed with `gh ssh-key delete`, and its existing `gh` login, which
+Git's credential helper uses, stays. The allowlist script still reads the
+public signing keys from GitHub, which sends nothing about this machine.
 
 A machine's identity does not change, so chezmoi runs the script once for each
 version of its rendered content: a first apply, and again only when the script

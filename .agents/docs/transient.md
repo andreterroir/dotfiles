@@ -81,9 +81,11 @@ Init derives and persists three exclusive profile flags; this set-up is
   the list is missing, every host is transient.
 
 A managed VM such as `slate-vm-work` is not transient and keeps the machine-key
-identity policy in [Provisioning model](provisioning.md). Virtualization is not
-detected, so an orb, a container, or an unlisted VM never carries `vm`; see
-[Provisioning model](provisioning.md) for the `managedVMs` list.
+identity policy in [Provisioning model](provisioning.md), minus registration on
+the personal GitHub account, because it is a `work` machine. Virtualization is
+not detected, so an orb, a container, or an unlisted VM never carries `vm`; see
+[Provisioning model](provisioning.md) for the `managedVMs` and `workMachines`
+lists.
 
 ## Limits
 

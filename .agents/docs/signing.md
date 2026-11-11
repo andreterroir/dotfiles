@@ -103,10 +103,12 @@ without holding the dev server's local machine key.
 
 `run_once_after_allowed-signers.sh.tmpl` rewrites `~/.allowed_signers` from
 GitHub's `ssh_signing_keys` under the principal `andre@terroir.systems`, so
-every machine verifies every other machine's signature. It runs once, so
-refresh it on demand on the other machines after a machine registers a new
-signing key; a run without GitHub or `jq` fails and leaves the file it has. See
-[One-shot set-up scripts](provisioning.md#one-shot-set-up-scripts).
+every machine verifies every other machine's signature. A `work` machine
+registers no key, so its signatures verify nowhere: the file lists GitHub's
+keys, and an entry added by hand is lost at the next refresh. The script runs
+once, so refresh it on demand on the other machines after a machine registers
+a new signing key; a run without GitHub or `jq` fails and leaves the file it
+has. See [One-shot set-up scripts](provisioning.md#one-shot-set-up-scripts).
 
 ```
 git log --show-signature -1

@@ -43,7 +43,7 @@ preconditions are installed by another script.
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}` and gate on the
                        profile data (`desktop` | `devserver` | `transient`,
-                       exclusive, plus `distro` and `vm`); derive
+                       exclusive, plus `distro`, `vm`, and `work`); derive
                        `desktop && !vm` for KeePass gating.
 - `run_onchange_*`   → scripts re-run when their checksum changes; the script
                        name sorts the run order, which is why the identity
@@ -139,6 +139,8 @@ Every hostname this repository names, whether a `chezmoi.hostname` that
 templates gate on or an SSH destination. The Role column records the profile
 plus the VM class; the desktop profile needs `gnome-shell` on PATH, the dev
 server is the `greenhouse` hostname, and `vm` comes from the `managedVMs` list.
+`work` comes from the `workMachines` list and changes nothing but the keys
+registered with the personal GitHub account.
 The table describes only the machines chezmoi manages (see Boundaries). What a
 profile provides is described in the
 [Provisioning model](.agents/docs/provisioning.md#profile-data);
@@ -149,7 +151,7 @@ chezmoi targets.
 | --- | --- | --- | --- |
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only one registered for GitHub authentication |
 | black | Fedora Linux | desktop | the desktop workstation |
-| slate-vm-work | Fedora Linux | desktop, vm | the managed VM |
+| slate-vm-work | Fedora Linux | desktop, vm | the managed work VM; `work`, so it registers no keys with the personal GitHub account |
 | slate-vm-personal | Fedora Linux | vm | the personal server VM; headless and not the dev server, so it takes the portable set-up until it is selected as one or dropped from `managedHosts` |
 | greenhouse | Ubuntu Linux | devserver | headless; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
@@ -177,8 +179,8 @@ Fedora desktops upgrade in place between releases; see
   tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same OS,
   distro and role data. A gated target is left unmanaged where an earlier
   apply wrote it, not removed.
-- Gate tooling on profile data, not hostnames; `vm` is independent of the
-  profile. The deliberate hostname gates are the `greenhouse` dev-server
+- Gate tooling on profile data, not hostnames; `vm` and `work` are independent
+  of the profile. The deliberate hostname gates are the `greenhouse` dev-server
   selection and x1's machine-key authentication exception.
   See [Provisioning model](.agents/docs/provisioning.md) for detection,
   authentication exceptions, and sudo policy; see

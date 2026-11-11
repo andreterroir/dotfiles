@@ -1,4 +1,5 @@
 {{- $vm := false -}}
+{{- $work := false -}}
 {{- $container := false -}}
 {{- if eq .chezmoi.os "linux" -}}
     {{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
@@ -17,6 +18,9 @@
     {{- end -}}
     {{- if hasKey $data "managedVMs" -}}
         {{- $vm = has $host $data.managedVMs -}}
+    {{- end -}}
+    {{- if hasKey $data "workMachines" -}}
+        {{- $work = has $host $data.workMachines -}}
     {{- end -}}
 {{- end -}}
 {{- $transient := or $container (ne (env "AMP_ORB") "") (not $known) -}}
@@ -38,6 +42,7 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
 [data]
     distro = "{{ $distro }}"
     vm = {{ $vm }}
+    work = {{ $work }}
     desktop = {{ eq $profile "desktop" }}
     devserver = {{ eq $profile "devserver" }}
     transient = {{ eq $profile "transient" }}

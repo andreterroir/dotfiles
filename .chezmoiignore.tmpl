@@ -1,5 +1,5 @@
-{{- if not (and (hasKey . "desktop") (hasKey . "devserver") (hasKey . "transient")) -}}
-{{- fail "Profile flags are missing; run chezmoi init before apply or update" -}}
+{{- if not (and (hasKey . "desktop") (hasKey . "devserver") (hasKey . "transient") (hasKey . "work")) -}}
+{{- fail "Profile data is missing; run chezmoi init before apply or update" -}}
 {{- end -}}
 {{- $desktop := .desktop -}}
 {{- $transient := .transient -}}
