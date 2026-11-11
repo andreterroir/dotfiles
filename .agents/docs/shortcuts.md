@@ -269,13 +269,27 @@ plain `git commit` retries with the message intact.
 
 ## Ghostty
 
-`private_dot_config/ghostty/config.tmpl` binds the quick-terminal shortcut and
-fullscreen:
+`private_dot_config/ghostty/config.tmpl` binds fullscreen:
 
 | Key | Action |
 | --- | --- |
-| `Super+=` | toggle the quick terminal (global, works from any app) |
 | `F11` | toggle fullscreen |
+
+Ghostty's quick terminal needs the `wlr-layer-shell` protocol, which GNOME does
+not implement, so the dropdown is ddterm's instead.
+
+## Dropdown terminal
+
+`run_onchange_install-linux-packages.sh.tmpl` installs ddterm on Fedora
+desktops; `run_onchange_set-up-gnome-shell-extensions.sh.tmpl` enables it and
+sets its hotkey:
+
+| Key | Action |
+| --- | --- |
+| `Super+=` | toggle the dropdown terminal (global, works from any app) |
+
+`Super+=` replaces ddterm's `F12` default, which would take F12 away from every
+application, browsers' DevTools included.
 
 ## Keyboard
 
@@ -297,6 +311,7 @@ replaced. Do not add them back without deciding to reintroduce the behavior.
 | `<leader>hi` | inline hunk preview | no inline preview; `<leader>hp` previews in a split |
 | dashboard `n` | new file | startify uses `i` |
 | dashboard `s` | load session | startify uses `o`, and `:Load`/`:Last` remain |
+| `Super+=` | Ghostty's quick terminal | GNOME has no `wlr-layer-shell` protocol, so the window never appeared; ddterm's dropdown uses the key now |
 | `Cmd+=` | Ghostty quick terminal on macOS | macOS is no longer a supported target |
 
 Window centering is goyo on `<leader>tc`, directory listings are dirvish on

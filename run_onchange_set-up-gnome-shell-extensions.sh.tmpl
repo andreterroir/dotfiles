@@ -4,7 +4,7 @@
 # vi: set ft=bash
 set -euo pipefail
 
-# Fedora packages three of the four extensions. Night Theme Switcher is only
+# Fedora packages four of the five extensions. Night Theme Switcher is only
 # published on extensions.gnome.org, where each build targets one shell
 # version, so fetch the one for the running shell. The release below is part
 # of the rendered script, so an upgrade re-runs it and replaces the build for
@@ -12,6 +12,7 @@ set -euo pipefail
 # Fedora {{ .chezmoi.osRelease.versionID }}
 ego_uuid=nightthemeswitcher@romainvigier.fr
 fedora_extensions=(
+	ddterm@amezin.github.com
 	windowsNavigator@gnome-shell-extensions.gcampax.github.com
 	launch-new-instance@gnome-shell-extensions.gcampax.github.com
 	appindicatorsupport@rgcjonas.gmail.com
@@ -20,6 +21,14 @@ fedora_extensions=(
 shell_version="$(gnome-shell --version | awk '{print $3}')"
 download_dir="$(mktemp -d)"
 trap 'rm -rf "$download_dir"' EXIT
+
+# ddterm's F12 default is a system-wide grab, and browsers use F12 for DevTools.
+# This sits before the extension fetch, which skips out early without a network.
+if gsettings list-schemas | grep -qx org.gnome.shell.extensions.ddterm; then
+	gsettings set org.gnome.shell.extensions.ddterm ddterm-toggle-hotkey "['<Super>equal']"
+else
+	echo ">ddterm is not installed; skipping its hotkey" >&2
+fi
 
 # Reinstall whenever this script changes, so a stale or partial install of a
 # build for an older shell does not survive.
