@@ -24,10 +24,3 @@ Host github.com git.terroir.systems chalon
 {{- end }}
 {{- end }}
 {{- end }}
-
-{{ if and .desktop (eq .chezmoi.os "darwin") -}}
-# Macs cannot use a YubiKey resident key; the machine key serves the
-# personal SSH destinations, while GitHub access goes through gh.
-Host git.terroir.systems chalon
-	IdentityFile ~/.ssh/id_ed25519
-{{ end -}}

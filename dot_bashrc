@@ -42,12 +42,6 @@ if [ -n "${BASH_VERSION:-}" ]; then
 	elif [ -f /usr/share/git-core/contrib/completion/git-prompt.sh ]; then
 		# Fedora
 		source /usr/share/git-core/contrib/completion/git-prompt.sh
-	elif [ -f "$(xcode-select -p 2>/dev/null)/usr/share/git-core/git-prompt.sh" ]; then
-		# macOS Xcode or Command Line Tools
-		source "$(xcode-select -p)/usr/share/git-core/git-prompt.sh"
-	elif [ -f /opt/homebrew/etc/bash_completion.d/git-prompt.sh ]; then
-		# Homebrew Git
-		source /opt/homebrew/etc/bash_completion.d/git-prompt.sh
 	fi
 	# Keep the prompt plain rather than erroring when no helper was found
 	command -v __git_ps1 > /dev/null || __git_ps1() { :; }

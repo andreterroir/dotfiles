@@ -60,7 +60,7 @@ auth_keys_to_add=()
 auth_keys_to_add+=("$MACHINE_KEY.pub")
 {{ end -}}
 
-{{ if or (and .desktop (eq .chezmoi.os "linux")) .vm -}}
+{{ if or .desktop .vm -}}
 # FIDO2 resident key on the YubiKey. ssh-keygen -K downloads it from the
 # authenticator into an id_ed25519_sk_rk* pair in the current directory.
 SK_KEY="$HOME/.ssh/id_ed25519_sk"
@@ -124,13 +124,10 @@ if ! registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUN
 fi
 
 needs_registration=false
-# macOS ships Bash 3.2, which fails to expand an empty array under set -u.
-if [ "${#auth_keys_to_add[@]}" -ne 0 ]; then
-	for public_key in "${auth_keys_to_add[@]}"; do
-		key_material="$(awk '{print $1, $2}' "$public_key")"
-		grep -qF "$key_material" <<<"$registered_auth_keys" || needs_registration=true
-	done
-fi
+for public_key in "${auth_keys_to_add[@]}"; do
+	key_material="$(awk '{print $1, $2}' "$public_key")"
+	grep -qF "$key_material" <<<"$registered_auth_keys" || needs_registration=true
+done
 for public_key in "${signing_keys_to_add[@]}"; do
 	key_material="$(awk '{print $1, $2}' "$public_key")"
 	grep -qF "$key_material" <<<"$registered_signing_keys" || needs_registration=true
@@ -174,15 +171,13 @@ if ! grep -qF admin:ssh_signing_key \
 		--scopes admin:public_key --scopes admin:ssh_signing_key
 fi
 
-if [ "${#auth_keys_to_add[@]}" -ne 0 ]; then
-	for public_key in "${auth_keys_to_add[@]}"; do
-		key_material="$(awk '{print $1, $2}' "$public_key")"
-		if ! grep -qF "$key_material" <<<"$registered_auth_keys"; then
-			echo '>registering key on GitHub as an authentication key'
-			gh ssh-key add "$public_key" --title "$(whoami)@$(hostname -s)-$(basename "$public_key" .pub)"
-		fi
-	done
-fi
+for public_key in "${auth_keys_to_add[@]}"; do
+	key_material="$(awk '{print $1, $2}' "$public_key")"
+	if ! grep -qF "$key_material" <<<"$registered_auth_keys"; then
+		echo '>registering key on GitHub as an authentication key'
+		gh ssh-key add "$public_key" --title "$(whoami)@$(hostname -s)-$(basename "$public_key" .pub)"
+	fi
+done
 for public_key in "${signing_keys_to_add[@]}"; do
 	key_material="$(awk '{print $1, $2}' "$public_key")"
 	if ! grep -qF "$key_material" <<<"$registered_signing_keys"; then

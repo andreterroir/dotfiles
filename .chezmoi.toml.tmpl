@@ -1,3 +1,6 @@
+{{- if ne .chezmoi.os "linux" -}}
+{{- fail "Only Linux hosts are supported; this set-up does not run elsewhere" -}}
+{{- end -}}
 {{- $vm := false -}}
 {{- if hasKey . "vm" -}}
     {{- $vm = .vm -}}
@@ -8,12 +11,10 @@
 {{- if eq .chezmoi.os "linux" -}}
     {{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
 {{- end -}}
-{{- $desktop := or (eq .chezmoi.os "darwin") (ne (lookPath "gnome-shell") "") -}}
+{{- $desktop := ne (lookPath "gnome-shell") "" -}}
 {{- $distro := "" -}}
 {{- if eq .chezmoi.os "linux" -}}
     {{- $distro = .chezmoi.osRelease.id -}}
-{{- else if eq .chezmoi.os "darwin" -}}
-    {{- $distro = "darwin" -}}
 {{- end -}}
 {{- $known := false -}}
 {{- if stat (joinPath .chezmoi.sourceDir ".chezmoidata.toml") -}}

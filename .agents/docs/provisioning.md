@@ -13,12 +13,12 @@ key is missing fails apply with "run chezmoi init before apply or update".
 
 | Key | Chosen by | Selects |
 | --- | --- | --- |
-| `distro` | `.chezmoi.osRelease.id` on Linux, `darwin` on macOS, empty elsewhere | the distro-specific package sets and gates |
-| `desktop` | true on macOS, and on Linux with `gnome-shell` on `PATH` | the desktop profile, and the resident YubiKey key on Linux |
-| `linux.desktop` | `desktop` on Linux | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
+| `distro` | `.chezmoi.osRelease.id` | the distro-specific package sets and gates |
+| `desktop` | true with `gnome-shell` on `PATH` | the desktop profile, and the resident YubiKey key |
+| `linux.desktop` | `desktop` | the Linux desktop package set and Flatpaks, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart, tmux clipboard bindings, and the gcr SSH agent socket |
 | `server` | `!desktop` | the headless package set, and topgrade on Ubuntu servers via mise |
-| `vm` | `systemd-detect-virt --vm` on Linux, otherwise false; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the role's own tooling |
-| `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, the Amp runner, and the macOS `gh` and `jq` install; see [Transient profile](transient.md) |
+| `vm` | `systemd-detect-virt --vm`; override by setting `vm` in the chezmoi config | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the role's own tooling |
+| `transient` | `./install.sh --transient`, or `CHEZMOI_TRANSIENT` (`0`/`false` opts out), else detection below | identity agents, machine keys, signing, and the Amp runner; see [Transient profile](transient.md) |
 
 `desktop`, `linux.desktop`, and `server` are derived and have no switch. `vm`
 and the transient profile do: set `vm` in `~/.config/chezmoi/chezmoi.toml`,
@@ -34,13 +34,10 @@ keeps the machine-key policy below.
 
 Linux desktops install KeePassXC. Templates derive the KeePass policy as
 `desktop && !vm`, so servers and VMs install no password manager. KeePassXC
-user settings are
-managed at `~/.config/keepassxc/keepassxc.ini` on Linux and at
-`~/Library/Application Support/KeePassXC/keepassxc.ini` on macOS, where the
-application itself is not provisioned. Apply merges the managed keys over
-the file, so the keys KeePassXC writes at runtime survive. KeeShare
-settings are deliberately omitted and not merged. Neither the database nor
-its synchronization is provisioned here.
+user settings are managed at `~/.config/keepassxc/keepassxc.ini`. Apply merges
+the managed keys over the file, so the keys KeePassXC writes at runtime
+survive. KeeShare settings are deliberately omitted and not merged. Neither
+the database nor its synchronization is provisioned here.
 
 ## Package sources
 
@@ -80,31 +77,12 @@ policy below.
 GitHub access is `gh` OAuth over HTTPS on every machine, x1 included: Git
 reaches GitHub through the `gh` credential helper, so nothing depends on SSH
 to GitHub. Only x1's machine key is registered as a GitHub authentication key;
-no VM, Mac, or other Linux desktop key is. Approved YubiKey resident keys stay
+no VM or other Linux desktop key is. Approved YubiKey resident keys stay
 registered for authentication and signing on GitHub as hardware-backed
 identities, not as a route for unattended access, so interactive SSH to GitHub
 works wherever one is loaded, though no workflow needs it. Registration only
 ever adds: a machine provisioned under an earlier policy keeps its key on the
 account until it is removed by hand with `gh ssh-key delete`.
-
-macOS gets none of the Linux provisioning above: this repository manages no
-Homebrew bundle, SSH agent, or YubiKey resident key there (Apple's OpenSSH
-has no FIDO provider). It manages the shared configuration, the KeePassXC
-settings, and the iCloud notes symlink, and it creates and registers the
-machine key on GitHub for signing only. A Mac reaches GitHub through `gh` over
-HTTPS and uses its machine key for `git.terroir.systems` and `chalon`, where a
-YubiKey resident key cannot work.
-
-`run_onchange_install-macos-tools.sh.tmpl` installs `gh`, for first key
-registration, and `jq`, to derive `~/.allowed_signers`, with the Mac's
-existing Homebrew when either is missing. It also installs the Amp CLI with
-Amp's installer, unless an `amp` is already on PATH, and the `amp-app` cask on
-Apple silicon with macOS 26 or later; those are the only tools a Mac's apply
-installs. Nothing provisions mise, opencode, topgrade or git-lfs there, so
-`.chezmoiignore.tmpl` and the Git configuration leave their settings off macOS
-too. Each signing script still names its own missing tool and fails before the
-remaining scripts run, because registration and the allowlist are part of
-signing.
 
 Managed SSH configuration applies only to `github.com`,
 `git.terroir.systems`, and `chalon`.
@@ -128,13 +106,10 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 registers public keys with GitHub for `andreterroir`. Transient environments
 skip this section entirely; see [Transient profile](transient.md). Machine keys
 are signing keys; x1's is the only one also registered as a GitHub
-authentication key. On non-VM Linux desktops it downloads a missing resident key
+authentication key. On non-VM desktops it downloads a missing resident key
 with `ssh-keygen -K` (touch and PIN) and registers it for authentication and
 signing. On VMs it only registers resident keys explicitly installed beforehand;
-non-VM servers skip them by policy, and macOS cannot provision one because
-Apple's OpenSSH has no FIDO provider. A Mac reaches GitHub through `gh` over
-HTTPS and authenticates to `git.terroir.systems` and `chalon` with its machine
-key.
+non-VM servers skip them by policy.
 
 A machine's identity does not change, so chezmoi runs the script once for each
 version of its rendered content: a first apply, and again only when the script
@@ -209,7 +184,7 @@ obsidian's folders: share it from x1 or black, and accept that offer too.
 ## Amp runner
 
 `run_onchange_after_30-amp-runner.sh.tmpl` enables the systemd user unit
-`~/.config/systemd/user/amp-runner.service` on every Linux machine. It runs
+`~/.config/systemd/user/amp-runner.service` on every machine. It runs
 `amp --no-tui` from `~/code`, names the runner after the machine's hostname,
 serves `~/code/dotfiles` explicitly, and discovers the other checkouts beneath
 `~/code`, so threads can be created on the machine from ampcode.com. Linger

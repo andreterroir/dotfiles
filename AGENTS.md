@@ -11,8 +11,8 @@ installed globally; do not duplicate them here.
   conventions, etc.), deployed by chezmoi to
   `~/.agents/AGENTS.md` and symlinked from `dot_claude/`,
   `dot_codex/`, `dot_copilot/`, `private_dot_config/opencode/`, and
-  `private_dot_config/` (as `~/.config/AGENTS.md` for Amp). The opencode
-  link is Linux-only, like opencode. Edit there, not here.
+  `private_dot_config/` (as `~/.config/AGENTS.md` for Amp). Edit there,
+  not here.
 - `~/.config/amp/AGENTS.md` is not managed by chezmoi. Amp reads it
   alongside `~/.config/AGENTS.md`, so instructions that platforms such
   as an orb write there survive applies instead of being replaced. A
@@ -41,11 +41,10 @@ preconditions are installed by another script.
 
 - `dot_*`            → `~/.<name>` (e.g. `dot_gitconfig.tmpl` → `~/.gitconfig`)
 - `private_*`        → target with restricted (`0700`) permissions
-- `*.tmpl`           → chezmoi templates; use `{{ }}`, gate on
-                       `.chezmoi.os` ("linux"/"darwin") and the role data
-                       variables (`desktop`, `linux.desktop`, `server`, `vm`,
-                       `transient`); derive `desktop && !vm` for KeePass
-                       gating
+- `*.tmpl`           → chezmoi templates; use `{{ }}` and gate on the
+                       role data variables (`desktop`, `linux.desktop`,
+                       `server`, `vm`, `transient`); derive `desktop && !vm`
+                       for KeePass gating.
 - `run_onchange_*`   → scripts re-run when their checksum changes
 - `run_once_*`       → scripts run once per version of their rendered
                        content; a run that cannot finish must fail instead
@@ -109,9 +108,9 @@ change taking effect at the next login, boot, or service start is fine.
 plugins, writing files, registering a service with `systemctl enable` or
 `loginctl enable-linger`. They do not follow that with a reload or restart that
 only makes the change live now: no `systemctl daemon-reload`, `systemctl
-start`, `systemctl restart`, `systemctl enable --now`, `launchctl kickstart`,
-or the like. Ending a side effect of the work, such as the tmux server the
-plugin install started, is not a reload.
+start`, `systemctl restart`, `systemctl enable --now`, or the like. Ending a
+side effect of the work, such as the tmux server the plugin install started, is
+not a reload.
 
 An exception is a comment next to it that gives the reason.
 
@@ -141,8 +140,6 @@ chezmoi targets.
 | --- | --- | --- | --- |
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
 | black | Fedora Linux | desktop | the desktop workstation |
-| slate | macOS | desktop | configuration only, as for every Mac |
-| Chloes-MBP | macOS | desktop | configuration only, like slate |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed VM |
 | slate-vm-personal | Fedora Linux | server, vm | the personal server VM |
 | greenhouse | Ubuntu Linux | server | headless; planned for decommissioning; older commits call it `netcup` |
@@ -151,8 +148,7 @@ chezmoi targets.
 
 `github.com` is a service, not a machine. `xps13` appears in older commits
 but is retired: a hostname found in the history is not evidence that the
-machine still exists. Hostnames are compared lowercase, so the table's
-`Chloes-MBP` is `chloes-mbp` in `managedHosts`. `server` is not
+machine still exists. Hostnames are compared lowercase. `server` is not
 greenhouse-specific: personal servers remain first-class targets in that role.
 
 Fedora desktops upgrade in place between releases; see
@@ -164,11 +160,13 @@ Fedora desktops upgrade in place between releases; see
   information that's cannot be freely disclosed. Raise a concern before
   publishing any changes if they are suspected to contain anything sensitive
   information.
+- Linux only. macOS provisioning was dropped and is unsupported: the set-up
+  refuses other operating systems rather than applying a partial profile, and
+  it does not clean up what an earlier apply left on a Mac.
 - Deploy a tool's configuration only where a package script installs the
   tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same OS,
   distro and role data. A gated target is left unmanaged where an earlier
-  apply wrote it, not removed. The macOS non-developer configuration below is
-  the deliberate exception.
+  apply wrote it, not removed.
 - Gate tooling on role data, not hostnames; `vm` is independent of role. The
   one deliberate hostname gate is x1's machine-key authentication exception.
   See [Provisioning model](.agents/docs/provisioning.md) for detection,
@@ -177,19 +175,8 @@ Fedora desktops upgrade in place between releases; see
 - GitHub access is `gh` over HTTPS on every machine; only x1's machine key is
   registered for GitHub authentication. Preserve explicit repository signing
   overrides without silent fallback.
-- macOS is managed for configuration only. Its developer environment is out
-  of scope: do not reintroduce the Homebrew bundle or bootstrap, the launchd
-  SSH agent, the Homebrew shell environment, or PATH shims. The apply may use
-  the Mac's existing Homebrew to install `gh` and `jq`, the only tools its
-  signing scripts call, and the Amp app; the Amp CLI comes from Amp's
-  installer, as on Linux. Non-developer macOS configuration (KeePassXC settings,
-  the iCloud notes symlink, terminal and appearance settings) belongs in the
-  tree. Every macOS target is in `managedHosts`, so a Mac gets the full
-  profile, not the transient one.
-- Gate on the persisted `distro` key (`fedora`, `ubuntu`, `darwin`), not on
-  `.chezmoi.osRelease`, which is empty off Linux: `text/template` evaluates
-  both sides of `and`, so a combined condition still looks up the missing
-  `id` key there.
+- Gate on the persisted `distro` key (`fedora`, `ubuntu`), not on
+  `.chezmoi.osRelease`.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
   running scripts) rather than `chezmoi source-path`: a nested
   `chezmoi` invocation deadlocks on the parent `chezmoi apply`'s

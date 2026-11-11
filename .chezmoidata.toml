@@ -9,8 +9,6 @@ gitEmail = "andre@terroir.systems"
 managedHosts = [
     "x1",
     "black",
-    "slate",
-    "chloes-mbp",
     "slate-vm-work",
     "slate-vm-personal",
     "greenhouse",

@@ -1,6 +1,9 @@
 {{- if ne (env "AMP_ORB") "" -}}
 {{- fail "Amp orbs are not a supported target; this set-up does not run inside one" -}}
 {{- end -}}
+{{- if ne .chezmoi.os "linux" -}}
+{{- fail "Only Linux hosts are supported; this set-up does not run elsewhere" -}}
+{{- end -}}
 {{- if not (hasKey . "transient") -}}
 {{- fail "Transient provisioning policy is missing; run chezmoi init before apply or update" -}}
 {{- end -}}
@@ -10,48 +13,27 @@ license
 readme.md
 plug-snapshot.vim
 install.sh
-{{ if eq .chezmoi.os "linux" -}}
-icloud
-{{ end -}}
-{{ if eq .chezmoi.os "darwin" -}}
-# the target path, not the dot_bin/ source name
-.bin/swap_ctrl_caps
-{{ end -}}
-{{ if not (and (eq .chezmoi.os "linux") (eq .distro "fedora") .linux.desktop .vm) -}}
+{{ if not (and (eq .distro "fedora") .linux.desktop .vm) -}}
 # Ghostty renders through llvmpipe where virgl reports OpenGL 4.1
 .config/systemd/user/app-com.mitchellh.ghostty.service.d
 .bin/ghostty
 {{ end -}}
-{{ if ne .chezmoi.os "darwin" -}}
-Library
-{{ else if not (and .desktop (not .vm)) -}}
-Library/Application Support/KeePassXC
-{{ end -}}
-{{ if or (ne .chezmoi.os "linux") (not (and .desktop (not .vm))) -}}
+{{ if not (and .desktop (not .vm)) -}}
 .config/keepassxc
 {{ end -}}
 {{ if .transient -}}
 # identity agents stay out of transient environments
 .config/systemd/user/gcr-ssh-agent.service.d
 {{ end -}}
-{{ if eq .chezmoi.os "linux" -}}
-{{   if not .linux.desktop -}}
+{{ if not .linux.desktop -}}
 .config/systemd/user/gcr-ssh-agent.service.d
 # the swap script needs GNOME
 .bin/swap_ctrl_caps
-{{   end -}}
-{{   if not (and (eq .distro "fedora") .linux.desktop) -}}
+{{ end -}}
+{{ if not (and (eq .distro "fedora") .linux.desktop) -}}
 .config/autostart/syncthing-start.desktop
-{{   end -}}
-{{   if not (and (eq .distro "fedora") .linux.desktop) -}}
+{{ end -}}
+{{ if not (and (eq .distro "fedora") .linux.desktop) -}}
 .config/ghostty
-{{   end -}}
-{{ else -}}
-.config/systemd
-.config/autostart/syncthing-start.desktop
-# developer tools only the Linux package scripts install
-.config/mise
-.config/opencode
-.config/topgrade.toml
 {{ end -}}
 .config/opencode/opencode.local.json

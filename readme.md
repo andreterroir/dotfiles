@@ -6,24 +6,18 @@ Prerequisites
 
 - curl
 - git
-- Homebrew on macOS
 
-On a Mac, the apply installs `gh` and `jq` with Homebrew when they are missing,
-and adds the Amp CLI and the Amp app; the app needs Apple silicon and macOS 26.
-
-This repository manages macOS configuration plus Fedora and headless Ubuntu
-provisioning; other distros are unsupported. A Mac gets the shared
-configuration and none of the Linux developer tooling; the Mac's apply
-installs only `gh`, `jq`, and the Amp CLI and app. See the
+This repository provisions Fedora and headless Ubuntu; other platforms,
+macOS included, are unsupported, and the set-up refuses to run on them.
+Ubuntu servers get the CLI set only. See the
 [Provisioning model](.agents/docs/provisioning.md) for the exact scope.
-Ubuntu servers get the CLI set only.
 
 Install
 -------
 
     sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --purge-binary --source=~/code/dotfiles andreterroir
 
-This is for managed machines; add a new physical machine, a Mac included, to
+This is for managed machines; add a new physical machine to
 `managedHosts` (`.chezmoidata.toml`) before its full install. Elsewhere, run
 `./install.sh --transient` from a clone of this repository; see
 [Transient profile](.agents/docs/transient.md).

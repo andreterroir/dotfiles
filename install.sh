@@ -8,6 +8,11 @@ if [ -n "${AMP_ORB:-}" ]; then
 	exit 1
 fi
 
+if [ "$(uname -s)" != Linux ]; then
+	echo "Only Linux hosts are supported; this set-up does not run elsewhere." >&2
+	exit 1
+fi
+
 transient=false
 remaining=$#
 while [ "$remaining" -gt 0 ]; do

@@ -188,7 +188,7 @@ uses vi keys.
 | `<prefix>C-\` | send `C-\` to the pane |
 
 `<prefix>*` and `<prefix>+` read the selection with `wl-paste` on Linux
-desktops and `pbpaste` on macOS; no other target gets them. `C-l` and `C-\`
+desktops; no other target gets them. `C-l` and `C-\`
 are sent through because vim-tmux-navigator takes the unprefixed keys.
 
 tmux's own bindings are unchanged around these: `<prefix>"` and `<prefix>%`
@@ -274,15 +274,16 @@ fullscreen:
 
 | Key | Action |
 | --- | --- |
-| `Super+=` on Linux, `Cmd+=` on macOS | toggle the quick terminal (global, works from any app) |
+| `Super+=` | toggle the quick terminal (global, works from any app) |
 | `F11` | toggle fullscreen |
 
 ## Keyboard
 
 `~/.bin/swap_ctrl_caps` toggles the `ctrl:swapcaps` xkb option while preserving
-the other options. It is a GNOME tool, installed on Linux only (`.chezmoiignore`
-drops it on macOS), and it changes the layout rather than binding a key: after a
-swap, every `C-` shortcut above moves to the physical Caps Lock position.
+the other options. It is a GNOME tool, managed only on GNOME desktops
+(`.chezmoiignore` drops it otherwise), and it changes the layout rather than
+binding a key: after a swap, every `C-` shortcut above moves to the physical
+Caps Lock position.
 
 ## Deliberately dropped
 
@@ -296,6 +297,7 @@ replaced. Do not add them back without deciding to reintroduce the behavior.
 | `<leader>hi` | inline hunk preview | no inline preview; `<leader>hp` previews in a split |
 | dashboard `n` | new file | startify uses `i` |
 | dashboard `s` | load session | startify uses `o`, and `:Load`/`:Last` remain |
+| `Cmd+=` | Ghostty quick terminal on macOS | macOS is no longer a supported target |
 
 Window centering is goyo on `<leader>tc`, directory listings are dirvish on
 `-`, and sessions are `:Load`/`:Last`; the plugins that did those jobs before
