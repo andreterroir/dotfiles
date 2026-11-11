@@ -2,9 +2,9 @@
 
 A transient environment is one that may be discarded: a container, an Amp orb,
 or a hostname outside `managedHosts` (including an unlisted VM). It receives
-the portable set-up only — shell, Git, Vim, tmux, and agent instructions — with
-no packages, no distribution dependencies, no services, and no identity, so
-the same files apply anywhere it runs.
+the portable set-up only — Vim with its pinned plugins and the agent
+instructions — with no packages, no distribution dependencies, no services,
+and no identity, so the same files apply anywhere it runs.
 
 ## Invocation
 
