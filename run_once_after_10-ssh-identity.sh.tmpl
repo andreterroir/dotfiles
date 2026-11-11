@@ -1,29 +1,17 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Finish this machine's SSH identity: put its key on disk and make sure
-# GitHub holds its machine key for signing and its YubiKey for signing and
-# authentication, except on a work machine, which creates only its machine key
-# and registers nothing. Every machine reaches GitHub through gh over HTTPS;
-# x1's machine key is the only machine key that also authenticates. A VM
-# downloads its resident key at set-up, like a desktop.
-# The sk key download needs a YubiKey touch and registration may need a
-# browser login. The identity of a machine does not change, so chezmoi runs
-# this once for each version of its rendered content, and a provisioned
-# machine passes without touching anything. A step with work to do fails
-# without a terminal, so the next apply retries it.
+# GitHub holds it for signing, except on a work machine, which creates only
+# its machine key and registers nothing. Every machine reaches GitHub through
+# gh over HTTPS; x1's machine key is the only one that also authenticates
+# there, and machine keys are the identity remote servers authorize.
+# Registration may need a browser login. The identity of a machine does not
+# change, so chezmoi runs this once for each version of its rendered content,
+# and a provisioned machine passes without touching anything. A step with work
+# to do fails without a terminal, so the next apply retries it.
 set -euo pipefail
 
 GH_ACCOUNT={{ .githubAccount }}
-approved_yubikeys=(
-{{ range .approvedYubiKeys }}	'{{ . }}'
-{{ end }})
-is_approved_yubikey() {
-	local key="$1" approved_yubikey
-	for approved_yubikey in "${approved_yubikeys[@]}"; do
-		[ "$key" != "$approved_yubikey" ] || return 0
-	done
-	return 1
-}
 require_terminal() {
 	if [ ! -t 0 ]; then
 		echo "error: $1 needs a terminal; run chezmoi apply from one" >&2
@@ -64,62 +52,19 @@ auth_keys_to_add=()
 auth_keys_to_add+=("$MACHINE_KEY.pub")
 {{ end -}}
 
-{{ if or .desktop .vm -}}
-# FIDO2 resident key on the YubiKey. ssh-keygen -K downloads it from the
-# authenticator into an id_ed25519_sk_rk* pair in the current directory.
-SK_KEY="$HOME/.ssh/id_ed25519_sk"
-if { [ -f "$SK_KEY" ] && [ ! -f "$SK_KEY.pub" ]; } ||
-	{ [ ! -f "$SK_KEY" ] && [ -f "$SK_KEY.pub" ]; }; then
-	echo "error: incomplete resident key pair at $SK_KEY" >&2
-	exit 1
-fi
-if [ ! -f "$SK_KEY" ]; then
-	require_terminal 'downloading the resident key from the YubiKey'
-	echo '>downloading the resident key from the YubiKey (touch it when it blinks)'
-	sk_tmp="$(mktemp -d)"
-	sk_keys=()
-	if ( cd "$sk_tmp" && ssh-keygen -K ); then
-		for candidate in "$sk_tmp"/id_ed25519_sk_rk*; do
-			[ -f "$candidate" ] || continue
-			[[ "$candidate" == *.pub ]] && continue
-			[ -f "$candidate.pub" ] && sk_keys+=("$candidate")
-		done
-	fi
-	if [ "${#sk_keys[@]}" -gt 1 ]; then
-		echo "error: expected one resident key pair in $sk_tmp, found ${#sk_keys[@]}" >&2
-		rm -rf "$sk_tmp"
-		exit 1
-	fi
-	if [ "${#sk_keys[@]}" -eq 0 ]; then
-		rm -rf "$sk_tmp"
-		echo 'error: no resident key downloaded from the YubiKey' >&2
-		exit 1
-	fi
-	downloaded_key="$(awk '{print $1, $2}' "${sk_keys[0]}.pub")"
-	if ! is_approved_yubikey "$downloaded_key"; then
-		echo 'error: downloaded resident key is not one of the approved YubiKeys' >&2
-		rm -rf "$sk_tmp"
-		exit 1
-	fi
-	mv "${sk_keys[0]}" "$SK_KEY"
-	mv "${sk_keys[0]}.pub" "$SK_KEY.pub"
-	rm -rf "$sk_tmp"
-fi
-sk_key="$(awk '{print $1, $2}' "$SK_KEY.pub")"
-if ! is_approved_yubikey "$sk_key"; then
-	echo 'error: resident key is not one of the approved YubiKeys' >&2
-	exit 1
-fi
-signing_keys_to_add+=("$SK_KEY.pub")
-auth_keys_to_add+=("$SK_KEY.pub")
-{{ end -}}
-
 # Key registrations are public, so check them before touching gh auth:
 # a run with nothing to upload skips the browser flow. Buffering the JSON
 # avoids curl|grep SIGPIPE false negatives under pipefail. An unreachable
 # API leaves the registration unverified, so the run fails and is retried.
-if ! registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")" ||
-	! registered_signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"; then
+# Only x1 registers an authentication key, so no other machine asks for
+# the authentication-key endpoint.
+registered_auth_keys=''
+fetched=true
+if [ "${#auth_keys_to_add[@]}" -gt 0 ]; then
+	registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")" || fetched=false
+fi
+registered_signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")" || fetched=false
+if [ "$fetched" = false ]; then
 	echo 'error: GitHub API unavailable; cannot verify key registration; run chezmoi apply when online' >&2
 	exit 1
 fi

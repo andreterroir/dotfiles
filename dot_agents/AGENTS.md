@@ -34,9 +34,9 @@ session. Bundle multi-step work into one script so they approve a single dialog.
 ## Git Signing
 
 All commits use the machine-local SSH key by default, including interactive
-and automated commits. Respect repository-level signing overrides: a
-repository may explicitly require a YubiKey, in which case signing must fail
-if that key is unavailable rather than falling back to the machine key.
+and automated commits. Respect repository-level signing overrides: sign with
+the key a repository requires, and fail rather than fall back to the machine
+key when it is unavailable.
 
 ## After Making Changes
 

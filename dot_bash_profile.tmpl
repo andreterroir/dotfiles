@@ -36,7 +36,6 @@ if [ -f "$HOME/.config/opencode/opencode.local.json" ]; then
 	export OPENCODE_CONFIG="$HOME/.config/opencode/opencode.local.json"
 fi
 
-# Agents support SSH authentication, encrypted keys, and opt-in YubiKey signing.
 {{ if .desktop -}}
 # GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not; gcr
 # advertises every ~/.ssh public key and loads one on demand.

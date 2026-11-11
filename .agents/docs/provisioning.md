@@ -50,9 +50,9 @@ platform that this repository does not provision.
 
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
-| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, `yubikey-manager` and `pcsc-tools`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key and a downloaded YubiKey resident key, both registered on GitHub, signing on; existing sudo policy; `pcscd`; Amp runner |
-| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing and the Flathub apps | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key and a downloaded YubiKey resident key, passwordless sudo; a `work` machine registers neither and runs no Amp runner |
-| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
+| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing, and on x1 for authentication; existing sudo policy; Amp runner |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; Amp runner, except on a `work` machine |
+| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
 
 `work` changes the identity and the runner, and nothing else: the machine keeps
@@ -94,33 +94,28 @@ the variable. Every other desktop keeps the accelerated renderer.
 Credentials and sudo follow the set-up in the table above: KeePassXC and the
 machine's own sudo policy on a desktop, no password manager and no passwordless
 grant on a dev server, passwordless sudo on a VM, which is snapshotted and
-disposable, and nothing at all in the portable set-up. A dev server takes remote
-access through a forwarded resident key and has no machine-key access by
-default. Every managed machine offers its default keys and whatever keys its
-agent holds; registration decides what a server accepts.
-
-x1 is the one exception: its attached 5C Nano provides the resident key instead
-of the travelling 5 NFC, and its machine key is also registered for
-authentication, including GitHub SSH access.
+disposable, and nothing at all in the portable set-up. Remote servers
+authenticate a machine's own key: every managed machine offers
+`~/.ssh/id_ed25519`, and a server accepts it once that public key is in the
+remote account's `~/.ssh/authorized_keys`.
 
 GitHub access is `gh` OAuth over HTTPS on every machine, x1 included: Git
 reaches GitHub through the `gh` credential helper, so nothing depends on SSH
 to GitHub. Only x1's machine key is registered as a GitHub authentication key;
-no VM or other Linux desktop key is. Approved YubiKey resident keys stay
-registered for authentication and signing on GitHub as hardware-backed
-identities, not as a route for unattended access, so interactive SSH to GitHub
-works wherever one is loaded, though no workflow needs it. Registration only
-ever adds: a machine provisioned under an earlier policy keeps its key on the
-account until it is removed by hand with `gh ssh-key delete`.
+no VM or other desktop machine key is. Registration only ever adds: a machine
+provisioned under an earlier policy keeps its key on the account until it is
+removed by hand with `gh ssh-key delete`.
 
 The managed SSH configuration offers this machine's identities to every host;
 whether a key is authorized is the remote server's decision, so a machine key
-authenticates wherever provisioning registered it. Aliases and forwarding rules
-belong in `~/.ssh/local_config`. Chezmoi manages neither `git.terroir.systems`
-nor `chalon`; both are SSH destinations only. A forwarded agent can hold more
-keys than a server tries before it gives up (six attempts by default), so pin
-an intended identity with `IdentityFile` and `IdentitiesOnly` in
-`~/.ssh/local_config` for such a host.
+authenticates wherever its public key is enrolled. Enrolling one is a manual
+step: this repository does not manage `~/.ssh/authorized_keys` on any host, and
+`git.terroir.systems` and `chalon` are SSH destinations it does not manage at
+all, so a machine's public key is added by hand and again when the machine is
+rebuilt or its key is replaced. Aliases and forwarding rules belong in
+`~/.ssh/local_config`. A forwarded agent can hold more keys than a server tries
+before it gives up (six attempts by default), so pin an intended identity with
+`IdentityFile` and `IdentitiesOnly` in `~/.ssh/local_config` for such a host.
 
 ### VM sudo
 
@@ -138,15 +133,12 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 registers public keys with GitHub for `andreterroir`. Transient environments
 skip this section entirely; see [Transient profile](transient.md). Machine keys
 are signing keys; x1's is the only one also registered as a GitHub
-authentication key. Every non-work desktop or VM downloads a missing resident
-key with `ssh-keygen -K` (touch and PIN) and registers it for authentication
-and signing, so installing one needs the YubiKey in place; non-VM servers skip
-resident keys by policy.
+authentication key.
 
-A `work` machine stops after creating the machine key: no resident key
-download, no `gh` login, and no registration, so nothing about it reaches the
-personal GitHub account. Its commits still sign with that machine key, and they
-verify only where `~/.allowed_signers` lists it; that file is rebuilt from
+A `work` machine stops after creating the machine key: no `gh` login, and no
+registration, so nothing about it reaches the personal GitHub account. Its
+commits still sign with that machine key, and they verify only where
+`~/.allowed_signers` lists it; that file is rebuilt from
 GitHub's signing keys, so an entry added by hand lasts until the next refresh,
 and GitHub shows the commits unverified. The flag stops future registration
 only: a machine marked `work` after it was provisioned keeps what it registered
@@ -158,9 +150,9 @@ A machine's identity does not change, so chezmoi runs the script once for each
 version of its rendered content: a first apply, and again only when the script
 or the data it renders changes. A provisioned machine passes without a
 terminal, touching nothing. A step with work to do fails when it cannot be
-done — generating a passphrase-protected key, downloading a resident key, or
-registering keys with GitHub without a terminal, or any step whose GitHub is
-unreachable or whose `gh` is missing — and the next apply retries it. A key
+done — generating a passphrase-protected key or registering keys with GitHub
+without a terminal, or any step whose GitHub is unreachable or whose `gh` is
+missing — and the next apply retries it. A key
 deleted after that run is therefore not recreated by an ordinary apply; see
 [One-shot set-up scripts](#one-shot-set-up-scripts).
 
@@ -171,11 +163,12 @@ instructions to run
 This preserves the key and registrations. Desktop keys retain their
 passphrase policy; see [Unlocking and agents](signing.md#unlocking-and-agents).
 
-A VM needs its YubiKey only at set-up: afterwards it signs with its machine key
-alone, so an unattended apply never needs one. Forwarding an agent, or running
-`ssh-keygen -K` by hand, saving the pair as `~/.ssh/id_ed25519_sk` and
-`~/.ssh/id_ed25519_sk.pub`, and loading it with `ssh-add ~/.ssh/id_ed25519_sk`,
-also works.
+An existing machine keeps what an earlier apply set up: resident-key files in
+`~/.ssh`, `yubikey-manager`, `pcsc-tools` and an enabled `pcscd`, the
+`~/.config/systemd/user/gcr-ssh-agent.service.d/no-ssh-askpass.conf` drop-in,
+and any YubiKey keys already on GitHub, which stay in `~/.allowed_signers` and
+anywhere a server still authorizes them. This set-up no longer manages that
+part and deliberately removes none of it.
 
 ## One-shot set-up scripts
 

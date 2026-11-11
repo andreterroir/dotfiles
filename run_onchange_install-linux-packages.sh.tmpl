@@ -51,12 +51,7 @@ sudo dnf install -y \
 {{ end }}	wl-clipboard \
 	yt-dlp \
 	hugo \
-	jetbrains-mono-fonts \
-	yubikey-manager \
-	pcsc-tools
-
-# Enabled, not started: pcscd comes up at the next boot, then on demand.
-sudo systemctl enable pcscd
+	jetbrains-mono-fonts
 
 {{ if not .vm -}}
 # Personal apps stay off a VM, which needs no chat or media client. Spotify's

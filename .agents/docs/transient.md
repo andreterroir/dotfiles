@@ -48,8 +48,7 @@ chezmoi apply --source=~/code/dotfiles
 ## No identity
 
 - The identity and signing-allowlist scripts are not part of this profile, so
-  no SSH keys are generated or downloaded and none are registered with
-  GitHub.
+  no SSH keys are generated and none are registered with GitHub.
 - No signing allowlist is fetched from GitHub.
 - `~/.gitconfig` omits `commit.gpgsign`, `gpg.*`, and `user.signingKey`, so an
   environment-provided configuration such as Amp's `/etc/gitconfig` keeps

@@ -27,10 +27,9 @@ packages, and keeps its own shell, Git, and tmux configuration. See
 [Transient profile](.agents/docs/transient.md).
 
 A machine's identity set-up needs a human at the keyboard when it has work to
-do: creating a passphrase-protected key, downloading the YubiKey's resident SSH
-key, or logging in to GitHub. An apply without a terminal cannot do that, so
-chezmoi reports the identity script as failed rather than skipping it, and
-applying again from a terminal finishes it:
+do: creating a passphrase-protected key or logging in to GitHub. An apply
+without a terminal cannot do that, so chezmoi reports the identity script as
+failed rather than skipping it, and applying again from a terminal finishes it:
 
     chezmoi apply
 
@@ -42,8 +41,8 @@ Git commit signing
 ------------------
 
 Commits use the machine-local SSH key by default. See
-[Commit signing](.agents/docs/signing.md) for repository-level YubiKey
-overrides, agent setup, verification, and troubleshooting.
+[Commit signing](.agents/docs/signing.md) for agent setup, verification, and
+troubleshooting.
 
 Provisioning
 ------------
