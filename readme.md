@@ -60,7 +60,8 @@ procedure.
 Shortcuts
 ---------
 
-Every key the configuration binds or overrides — Vim, tmux, Bash, git and
-Ghostty — is catalogued in [Shortcuts](.agents/docs/shortcuts.md).
+Every key the configuration binds or overrides — Vim, tmux, Bash, git, Ghostty
+and the GNOME window-management keys — is catalogued in
+[Shortcuts](.agents/docs/shortcuts.md).
 
 See [chezmoi](https://www.chezmoi.io/).

@@ -291,6 +291,58 @@ sets its hotkey:
 `Super+=` replaces ddterm's `F12` default, which would take F12 away from every
 application, browsers' DevTools included.
 
+## Window management
+
+`run_onchange_set-up-gnome-window-shortcuts.sh.tmpl` mirrors the Rectangle
+setup on macOS, which binds Control+Command plus a home-row letter. Command
+maps to Super, so the letter alone carries the muscle memory over, and GNOME's
+own `Super+arrow` tiling stays bound alongside:
+
+| Key | Action |
+| --- | --- |
+| `Ctrl+Super+H` | left half; press again to untile |
+| `Ctrl+Super+L` | right half; press again to untile |
+| `Ctrl+Super+J`, `Ctrl+Super+M` | center, at the window's current size |
+| `Ctrl+Super+K` | maximize |
+| `Ctrl+Super+U` | restore a maximized or tiled window to its previous geometry |
+| `Super+H` | minimize; GNOME's own key, left as it ships |
+| `Ctrl+Super+F` | toggle fullscreen |
+| `Super+Left`, `Super+Right`, `Super+Up`, `Super+Down` | GNOME's own halves, maximize and restore |
+
+`Ctrl+Super+F` is macOS's fullscreen chord rather than a Rectangle binding, so
+it toggles fullscreen rather than maximizing, keeping the mac's meaning. Mutter
+applies the state itself, so the app's own fullscreen support does not matter,
+though it declines dialogs and fixed-size windows, where the key does nothing.
+Maximize stays on `Ctrl+Super+K`.
+
+Closing and quitting stay where they were. `Cmd+W` would be the bare `Super+W`
+here, not the `Ctrl+Super` cluster the Rectangle chords use, so close remains
+`Alt+F4`; and `Cmd+Q` has no counterpart at all, because the window manager can
+ask one window to close but cannot quit an application, and no GNOME schema
+exposes a quit action.
+
+`Cmd+M` reaches GNOME's own `Super+H`, because `<Super>M` is not free:
+`org.gnome.shell.keybindings toggle-message-tray` already holds `<Super>V` and
+`<Super>M`. A duplicated accelerator has no clean precedence in GNOME — either
+the tray stops opening or both actions fire — so `minimize` is left alone and
+`Super+M` still opens the tray. Freeing M would mean trimming the tray to
+`<Super>V` first, which is a change to a built-in binding rather than an
+addition.
+
+macOS's `Cmd+H` hides a whole application, which GNOME cannot do, and
+`Ctrl+Super+H` stays left half, the chord Rectangle gives that action.
+
+Rectangle's Center Half (`Cmd+Ctrl+M`) centers on the same action as
+`Ctrl+Super+J`, but the size differs: Rectangle also resizes to half the screen,
+while no GNOME action centers a window at a fraction — the halves resize but
+anchor to an edge, and `move-to-center` keeps the current size. Matching the size
+would need a grid-tiling extension such as gTile, with its own grab layer and
+shell-version coupling.
+
+Everything else in the Rectangle set that is not a window position — todo-list
+toggles, snap areas, arrow defaults it clears — has no keybinding counterpart
+here.
+
 ## Keyboard
 
 `~/.bin/swap_ctrl_caps` toggles the `ctrl:swapcaps` xkb option while preserving

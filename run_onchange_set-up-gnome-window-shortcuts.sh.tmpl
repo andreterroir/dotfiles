@@ -1,0 +1,46 @@
+{{ if eq .chezmoi.os "linux" -}}
+{{   if and (eq .distro "fedora") .desktop -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+wm=org.gnome.desktop.wm.keybindings
+mk=org.gnome.mutter.keybindings
+
+# Appends chords to what a key already holds rather than replacing the list, so
+# an apply adds Rectangle's keys without dropping GNOME's defaults or anything
+# bound here later.
+add_chords() {
+	local schema="$1" key="$2"
+	shift 2
+	python3 - "$schema" "$key" "$@" <<'PY'
+import ast
+import subprocess
+import sys
+
+schema, key, wanted = sys.argv[1], sys.argv[2], sys.argv[3:]
+current = subprocess.run(
+    ["gsettings", "get", schema, key],
+    check=True,
+    capture_output=True,
+    text=True,
+).stdout.strip()
+value = ast.literal_eval(current.removeprefix("@as "))
+value += [chord for chord in wanted if chord not in value]
+subprocess.run(
+    ["gsettings", "set", schema, key, "[" + ", ".join(f"'{c}'" for c in value) + "]"],
+    check=True,
+)
+PY
+}
+
+# Rectangle on macOS binds Control+Command plus a home-row letter; Command maps
+# to Super, so the same letter keeps the muscle memory.
+add_chords "$mk" toggle-tiled-left '<Control><Super>h'
+add_chords "$mk" toggle-tiled-right '<Control><Super>l'
+add_chords "$wm" move-to-center '<Control><Super>j' '<Control><Super>m'
+add_chords "$wm" maximize '<Control><Super>k'
+add_chords "$wm" unmaximize '<Control><Super>u'
+add_chords "$wm" toggle-fullscreen '<Control><Super>f'
+{{   end -}}
+{{ end -}}
