@@ -7,18 +7,18 @@ set -euo pipefail
 wm=org.gnome.desktop.wm.keybindings
 mk=org.gnome.mutter.keybindings
 
-# Appends chords to what a key already holds rather than replacing the list, so
-# an apply adds Rectangle's keys without dropping GNOME's defaults or anything
-# bound here later.
-add_chords() {
-	local schema="$1" key="$2"
-	shift 2
-	python3 - "$schema" "$key" "$@" <<'PY'
+# Edits a key's chord list in place: add appends what is missing, drop removes
+# what is listed, and everything else in the list survives, so an apply never
+# discards GNOME's defaults or anything bound here later.
+chords() {
+	local op="$1" schema="$2" key="$3"
+	shift 3
+	python3 - "$op" "$schema" "$key" "$@" <<'PY'
 import ast
 import subprocess
 import sys
 
-schema, key, wanted = sys.argv[1], sys.argv[2], sys.argv[3:]
+op, schema, key, wanted = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
 current = subprocess.run(
     ["gsettings", "get", schema, key],
     check=True,
@@ -26,7 +26,10 @@ current = subprocess.run(
     text=True,
 ).stdout.strip()
 value = ast.literal_eval(current.removeprefix("@as "))
-value += [chord for chord in wanted if chord not in value]
+if op == "add":
+    value += [chord for chord in wanted if chord not in value]
+else:
+    value = [chord for chord in value if chord not in wanted]
 subprocess.run(
     ["gsettings", "set", schema, key, "[" + ", ".join(f"'{c}'" for c in value) + "]"],
     check=True,
@@ -36,11 +39,17 @@ PY
 
 # Rectangle on macOS binds Control+Command plus a home-row letter; Command maps
 # to Super, so the same letter keeps the muscle memory.
-add_chords "$mk" toggle-tiled-left '<Control><Super>h'
-add_chords "$mk" toggle-tiled-right '<Control><Super>l'
-add_chords "$wm" move-to-center '<Control><Super>j' '<Control><Super>m'
-add_chords "$wm" maximize '<Control><Super>k'
-add_chords "$wm" unmaximize '<Control><Super>u'
-add_chords "$wm" toggle-fullscreen '<Control><Super>f'
+chords add "$mk" toggle-tiled-left '<Control><Super>h'
+chords add "$mk" toggle-tiled-right '<Control><Super>l'
+chords add "$wm" move-to-center '<Control><Super>j' '<Control><Super>m'
+chords add "$wm" maximize '<Control><Super>k'
+chords add "$wm" unmaximize '<Control><Super>u'
+
+# Cmd+M minimizes. Super+M is the message tray's second chord, so the tray keeps
+# Super+V and hands M over rather than both keys claiming it.
+chords drop org.gnome.shell.keybindings toggle-message-tray '<Super>m'
+chords add "$wm" minimize '<Super>m'
+
+chords add "$wm" toggle-fullscreen '<Control><Super>f'
 {{   end -}}
 {{ end -}}

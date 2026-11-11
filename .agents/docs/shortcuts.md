@@ -305,7 +305,7 @@ own `Super+arrow` tiling stays bound alongside:
 | `Ctrl+Super+J`, `Ctrl+Super+M` | center, at the window's current size |
 | `Ctrl+Super+K` | maximize |
 | `Ctrl+Super+U` | restore a maximized or tiled window to its previous geometry |
-| `Super+H` | minimize; GNOME's own key, left as it ships |
+| `Super+M`, `Super+H` | minimize; `Super+M` moves off the message tray |
 | `Ctrl+Super+F` | toggle fullscreen |
 | `Super+Left`, `Super+Right`, `Super+Up`, `Super+Down` | GNOME's own halves, maximize and restore |
 
@@ -321,13 +321,11 @@ here, not the `Ctrl+Super` cluster the Rectangle chords use, so close remains
 ask one window to close but cannot quit an application, and no GNOME schema
 exposes a quit action.
 
-`Cmd+M` reaches GNOME's own `Super+H`, because `<Super>M` is not free:
-`org.gnome.shell.keybindings toggle-message-tray` already holds `<Super>V` and
-`<Super>M`. A duplicated accelerator has no clean precedence in GNOME — either
-the tray stops opening or both actions fire — so `minimize` is left alone and
-`Super+M` still opens the tray. Freeing M would mean trimming the tray to
-`<Super>V` first, which is a change to a built-in binding rather than an
-addition.
+`Cmd+M` binds `Super+M`, which the message tray held as its second chord
+alongside `Super+V`. A duplicated accelerator has no clean precedence in GNOME —
+either the tray stops opening or both actions fire — so the tray gives M up and
+keeps `Super+V`, which still opens it. `Super+H` minimises too, as GNOME ships
+it.
 
 macOS's `Cmd+H` hides a whole application, which GNOME cannot do, and
 `Ctrl+Super+H` stays left half, the chord Rectangle gives that action.
