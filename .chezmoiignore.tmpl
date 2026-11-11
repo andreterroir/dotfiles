@@ -19,10 +19,10 @@ icloud
 {{ end -}}
 {{ if ne .chezmoi.os "darwin" -}}
 Library
-{{ else if and .desktop (not .vm) -}}
+{{ else if not (and .desktop (not .vm)) -}}
 Library/Application Support/KeePassXC
 {{ end -}}
-{{ if or (ne .chezmoi.os "linux") (and .desktop (not .vm)) -}}
+{{ if or (ne .chezmoi.os "linux") (not (and .desktop (not .vm))) -}}
 .config/keepassxc
 {{ end -}}
 {{ if .transient -}}
