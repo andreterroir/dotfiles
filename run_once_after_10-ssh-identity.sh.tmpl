@@ -2,9 +2,8 @@
 # vi: set ft=bash
 # Finish this machine's SSH identity: put its key on disk and make sure
 # GitHub holds it for signing, except on a work machine, which creates only
-# its machine key and registers nothing. Every machine reaches GitHub through
-# gh over HTTPS; x1's machine key is the only one that also authenticates
-# there, and machine keys are the identity remote servers authorize.
+# its machine key and registers nothing. GitHub access is gh over HTTPS, and
+# machine keys are the identity remote servers authorize.
 # Registration may need a browser login. The identity of a machine does not
 # change, so chezmoi runs this once for each version of its rendered content,
 # and a provisioned machine passes without touching anything. A step with work
@@ -46,40 +45,20 @@ fi
 echo '>work machine: no keys registered with the personal GitHub account'
 exit 0
 {{ end -}}
-signing_keys_to_add=("$MACHINE_KEY.pub")
-auth_keys_to_add=()
-{{ if and .desktop (eq .chezmoi.hostname "x1") -}}
-auth_keys_to_add+=("$MACHINE_KEY.pub")
-{{ end -}}
+PUBLIC_KEY="$MACHINE_KEY.pub"
+key_material="$(awk '{print $1, $2}' "$PUBLIC_KEY")"
 
 # Key registrations are public, so check them before touching gh auth:
 # a run with nothing to upload skips the browser flow. Buffering the JSON
 # avoids curl|grep SIGPIPE false negatives under pipefail. An unreachable
 # API leaves the registration unverified, so the run fails and is retried.
-# Only x1 registers an authentication key, so no other machine asks for
-# the authentication-key endpoint.
-registered_auth_keys=''
-fetched=true
-if [ "${#auth_keys_to_add[@]}" -gt 0 ]; then
-	registered_auth_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/keys")" || fetched=false
-fi
-registered_signing_keys="$(curl -fsS "https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")" || fetched=false
-if [ "$fetched" = false ]; then
+if ! registered_signing_keys="$(curl -fsS \
+	"https://api.github.com/users/${GH_ACCOUNT}/ssh_signing_keys")"; then
 	echo 'error: GitHub API unavailable; cannot verify key registration; run chezmoi apply when online' >&2
 	exit 1
 fi
-
-needs_registration=false
-for public_key in "${auth_keys_to_add[@]}"; do
-	key_material="$(awk '{print $1, $2}' "$public_key")"
-	grep -qF "$key_material" <<<"$registered_auth_keys" || needs_registration=true
-done
-for public_key in "${signing_keys_to_add[@]}"; do
-	key_material="$(awk '{print $1, $2}' "$public_key")"
-	grep -qF "$key_material" <<<"$registered_signing_keys" || needs_registration=true
-done
-if [ "$needs_registration" = false ]; then
-	echo '>public keys already on GitHub'
+if grep -qF "$key_material" <<<"$registered_signing_keys"; then
+	echo '>public key already on GitHub'
 	exit 0
 fi
 
@@ -109,8 +88,7 @@ if gh auth switch --hostname github.com --user "$GH_ACCOUNT" 2>/dev/null; then
 else
 	echo ">logging in to GitHub as ${GH_ACCOUNT} (select this account in the browser)"
 	gh auth login --hostname github.com --git-protocol https --web \
-		--scopes admin:public_key --scopes admin:ssh_signing_key \
-		--skip-ssh-key "${gh_clipboard[@]}"
+		--scopes admin:ssh_signing_key --skip-ssh-key "${gh_clipboard[@]}"
 fi
 active="$(gh api user -q .login)"
 if [ "$active" != "$GH_ACCOUNT" ]; then
@@ -118,37 +96,25 @@ if [ "$active" != "$GH_ACCOUNT" ]; then
 	exit 1
 fi
 
-# Login requests both scopes, so a token this script created has
-# public_key iff it has the signing scope; tokens whose scopes this
-# script dropped after a past registration, and only those, need
-# topping up again.
+# A token whose scope this script dropped after a past registration, and
+# only such a token, needs topping up again.
 if ! grep -qF admin:ssh_signing_key \
 	<<<"$(gh auth status --hostname github.com --active 2>&1)"; then
 	echo '>extending GitHub token scopes'
 	gh auth refresh --hostname github.com \
-		--scopes admin:public_key --scopes admin:ssh_signing_key "${gh_clipboard[@]}"
+		--scopes admin:ssh_signing_key "${gh_clipboard[@]}"
 fi
 
-for public_key in "${auth_keys_to_add[@]}"; do
-	key_material="$(awk '{print $1, $2}' "$public_key")"
-	if ! grep -qF "$key_material" <<<"$registered_auth_keys"; then
-		echo '>registering key on GitHub as an authentication key'
-		gh ssh-key add "$public_key" --title "$(whoami)@$(hostname -s)-$(basename "$public_key" .pub)"
-	fi
-done
-for public_key in "${signing_keys_to_add[@]}"; do
-	key_material="$(awk '{print $1, $2}' "$public_key")"
-	if ! grep -qF "$key_material" <<<"$registered_signing_keys"; then
-		echo '>registering key on GitHub as a signing key'
-		gh ssh-key add "$public_key" --title "$(whoami)@$(hostname -s)-$(basename "$public_key" .pub)" --type signing
-	fi
-done
+echo '>registering key on GitHub as a signing key'
+gh ssh-key add "$PUBLIC_KEY" \
+	--title "$(whoami)@$(hostname -s)-$(basename "$PUBLIC_KEY" .pub)" --type signing
 
-# The admin scopes exist to register the keys; a token that keeps them
-# lets any process running as this user add SSH keys to the account.
-# Dropping scopes needs a browser confirmation, like login does. Not
-# fatal: the keys are already on GitHub, and the top-up check above
-# re-extends the scopes on a run that needs registration again.
+# The admin scope exists to register the key; a token that keeps it lets any
+# process running as this user add SSH keys to the account. Dropping it needs
+# a browser confirmation, like login does, and takes an admin:public_key left
+# by an earlier policy with it. Not fatal: the key is already on GitHub, and
+# the top-up check above re-extends the signing scope on a run that needs
+# registration again.
 if ! gh auth refresh --hostname github.com \
 		--remove-scopes admin:public_key --remove-scopes admin:ssh_signing_key "${gh_clipboard[@]}"; then
 	echo 'warning: could not drop the GitHub admin scopes; run gh auth refresh --hostname github.com --remove-scopes admin:public_key,admin:ssh_signing_key by hand' >&2

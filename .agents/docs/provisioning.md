@@ -50,7 +50,7 @@ platform that this repository does not provision.
 
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
-| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing, and on x1 for authentication; existing sudo policy; Amp runner |
+| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
 | desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; Amp runner, except on a `work` machine |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
@@ -99,12 +99,14 @@ authenticate a machine's own key: every managed machine offers
 `~/.ssh/id_ed25519`, and a server accepts it once that public key is in the
 remote account's `~/.ssh/authorized_keys`.
 
-GitHub access is `gh` OAuth over HTTPS on every machine, x1 included: Git
-reaches GitHub through the `gh` credential helper, so nothing depends on SSH
-to GitHub. Only x1's machine key is registered as a GitHub authentication key;
-no VM or other desktop machine key is. Registration only ever adds: a machine
-provisioned under an earlier policy keeps its key on the account until it is
-removed by hand with `gh ssh-key delete`.
+GitHub access is `gh` OAuth over HTTPS on every machine: Git reaches GitHub
+through the `gh` credential helper, so nothing depends on SSH to GitHub. An
+apply registers a machine key for signing only. Which keys GitHub also holds
+for authentication, as it does x1's, is a convention rather than something
+the set-up maintains: changing one by hand needs the `admin:public_key` scope
+for the duration, and a rebuilt machine needs its key added again.
+Registration only ever adds: a machine keeps what it registered until that
+key is deleted by hand.
 
 The managed SSH configuration offers this machine's identities to every host;
 whether a key is authorized is the remote server's decision, so a machine key
@@ -132,11 +134,11 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 `run_once_after_10-ssh-identity.sh.tmpl` creates missing machine keys and
 registers public keys with GitHub for `andreterroir`. Transient environments
 skip this section entirely; see [Transient profile](transient.md). Machine keys
-are signing keys; x1's is the only one also registered as a GitHub
-authentication key.
+are signing keys; a key GitHub also holds for authentication, as with x1's, is
+a convention outside the set-up.
 
 Registration takes two browser confirmations: a login that grants the admin
-scopes for adding keys, and a refresh after the upload that drops them again,
+scope for adding the key, and a refresh after the upload that drops it again,
 because GitHub fixes a token's scopes when it issues it. Where the session has
 a clipboard `gh` can write to, it copies each one-time code, so the step is a
 paste; a headless or remote session prints the code to retype.

@@ -150,7 +150,7 @@ chezmoi targets.
 
 | Hostname | OS | Role | Notes |
 | --- | --- | --- | --- |
-| x1 | Fedora Linux | desktop | the workstation laptop; its machine key is the only one registered for GitHub authentication |
+| x1 | Fedora Linux | desktop | the workstation laptop; GitHub holds its machine key for authentication by convention, outside the set-up |
 | black | Fedora Linux | desktop | the desktop workstation |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed work VM; `work`, so it registers no keys with the personal GitHub account |
 | slate-vm-personal | Fedora Linux | desktop, vm | the personal desktop VM |
@@ -181,14 +181,16 @@ Fedora desktops upgrade in place between releases; see
   distro and role data. A gated target is left unmanaged where an earlier
   apply wrote it, not removed.
 - Gate tooling on profile data, not hostnames; `vm` and `work` are independent
-  of the profile. The deliberate hostname gates are the `greenhouse` dev-server
-  selection and x1's machine-key authentication exception.
+  of the profile. The only hostname gate is the `greenhouse` dev-server
+  selection.
   See [Provisioning model](.agents/docs/provisioning.md) for detection,
-  authentication exceptions, and sudo policy; see
+  authentication, and sudo policy; see
   [Commit signing](.agents/docs/signing.md) for signing and agents.
-- GitHub access is `gh` over HTTPS on every machine; only x1's machine key is
-  registered for GitHub authentication. Preserve explicit repository signing
-  overrides without silent fallback.
+- GitHub access is `gh` over HTTPS on every machine, and an apply registers a
+  machine key only for signing. Which keys GitHub also holds for
+  authentication is a convention, as with x1's key, not something the set-up
+  maintains. Preserve explicit repository signing overrides without silent
+  fallback.
 - Gate on the persisted `distro` key (`fedora`, `ubuntu`), not on
   `.chezmoi.osRelease`.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
