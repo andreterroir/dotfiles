@@ -4,7 +4,7 @@ Chezmoi manages the shared configuration; machine-local overrides remain
 untracked. See [AGENTS.md](../../AGENTS.md#machines) for the machine inventory
 and [Commit signing](signing.md) for signing configuration and agent setup.
 
-## Roles and profile data
+## Profile data
 
 Init derives the data keys in `.chezmoi.toml.tmpl` from the machine and
 persists them in `~/.config/chezmoi/chezmoi.toml`. Templates and `run_*`
@@ -50,16 +50,17 @@ platform that this repository does not provision.
 
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
-| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, `yubikey-manager` and `pcsc-tools`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, KeePassXC settings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key and a downloaded YubiKey resident key, both registered on GitHub, signing on; `pcscd`; Amp runner |
+| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, `yubikey-manager` and `pcsc-tools`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, KeePassXC settings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key and a downloaded YubiKey resident key, both registered on GitHub, signing on; existing sudo policy; `pcscd`; Amp runner |
 | desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC and the resident-key download | the desktop configuration minus the KeePassXC settings | passphrase-less machine key, passwordless sudo, YubiKey public-only identities; Amp runner |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, SSH configuration without `IdentitiesOnly`, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
-| portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.gitignore`, `~/.bin/git-editor` and `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no packages |
+| portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
 
 The portable set-up leaves the host's shell, Git, and tmux configuration and
-plugins unmanaged, along with `~/.ssh`, `~/.config/amp`, `~/.config/mise`,
-`~/.config/opencode`, `~/.config/systemd`, `~/.config/topgrade.toml`, and the
-Claude, Codex, and Copilot homes. A harness that owns those files, as an orb
-does, keeps its credential helper, hooks, and environment loading.
+plugins unmanaged, along with `~/.gitignore`, `~/.bin/git-editor`, `~/.ssh`,
+`~/.config/amp`, `~/.config/mise`, `~/.config/opencode`, `~/.config/systemd`,
+`~/.config/topgrade.toml`, and the Claude, Codex, and Copilot homes. A harness
+that owns those files, as an orb does, keeps its credential helper, hooks, and
+environment loading.
 
 ## Package sources
 
@@ -82,22 +83,17 @@ the variable. Every other desktop keeps the accelerated renderer.
 
 ## Authentication and sudo
 
-VM policy takes precedence over the other columns.
+Credentials and sudo follow the set-up in the table above: KeePassXC and the
+machine's own sudo policy on a desktop, no password manager and no passwordless
+grant on a dev server, passwordless sudo and public-only YubiKey identities on
+a VM, which is snapshotted and disposable, and nothing at all in the portable
+set-up. A dev server takes remote access through a forwarded resident key and
+has no machine-key access by default; a VM takes an explicitly installed or
+forwarded resident key with no machine-key fallback.
 
-| Aspect | Fedora desktop | Dev server | VM (desktop or headless) |
-| --- | --- | --- | --- |
-| Passwords | KeePassXC; the database is not managed here. | No password manager is provisioned. | No password manager is provisioned. |
-| Remote server access | Use a resident key and forward its agent.\* | Use a forwarded resident key for onward access; no machine-key access is provisioned by default. | Use an explicitly installed or forwarded resident key; no machine-key fallback is configured for managed remote servers. |
-| GitHub access | `gh` OAuth and HTTPS.\* | `gh` OAuth and HTTPS. | `gh` OAuth and HTTPS. |
-| Sudo | Existing system policy; no passwordless grant. | Must require a password to prevent unattended system changes and security risks; no passwordless grant. | Passwordless sudo for the provisioning user, because these VMs are snapshotted and disposable. |
-
-The portable set-up gets none of these columns: it establishes no identity,
-installs nothing, and takes no sudo grant.
-
-\* On x1, the attached 5C Nano provides the resident key instead of the
-travelling 5 NFC. Its machine key is also an authentication fallback for the
-managed SSH destinations and GitHub SSH access, the one exception to the
-policy below.
+x1 is the one exception: its attached 5C Nano provides the resident key instead
+of the travelling 5 NFC, and its machine key is also an authentication fallback
+for the managed SSH destinations and GitHub SSH access.
 
 GitHub access is `gh` OAuth over HTTPS on every machine, x1 included: Git
 reaches GitHub through the `gh` credential helper, so nothing depends on SSH
@@ -208,7 +204,7 @@ obsidian's folders: share it from x1 or black, and accept that offer too.
 
 ## Amp runner
 
-`run_onchange_after_30-amp-runner.sh.tmpl` enables the systemd user unit
+`run_onchange_after_amp-runner.sh.tmpl` enables the systemd user unit
 `~/.config/systemd/user/amp-runner.service` on every machine with a desktop or
 dev-server profile. It runs
 `amp --no-tui` from `~/code`, names the runner after the machine's hostname,

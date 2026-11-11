@@ -27,16 +27,17 @@ chezmoi apply --source=~/code/dotfiles
 
 ## What runs
 
-- The portable file configuration: Vim and its pinned plugins, `~/.gitignore`,
-  the `~/.bin` helpers, and the agent instructions at `~/.agents/AGENTS.md` and
-  `~/.config/AGENTS.md`.
+- The portable file configuration: Vim and its pinned plugins, the
+  `~/.bin/git-cleanup` helper, and the agent instructions at
+  `~/.agents/AGENTS.md` and `~/.config/AGENTS.md`.
 - Nothing installs packages or writes outside `$HOME`. The package, sudo, and
   mise scripts render empty, so no package manager, sudoers rule, or
   `mise install` runs.
 - The host keeps its own shell, Git, and tmux configuration, so `~/.bashrc`,
-  `~/.bash_profile`, `~/.gitconfig`, and `~/.tmux.conf` stay as they are, and
-  the tmux plugin script does not run. A harness that owns those files keeps
-  its credential helper, hooks, and environment loading.
+  `~/.bash_profile`, `~/.gitconfig`, `~/.tmux.conf`, `~/.gitignore`, and
+  `~/.bin/git-editor` stay as they are, and the tmux plugin script does not
+  run. A harness that owns those files keeps its credential helper, hooks, and
+  environment loading.
 - `~/.ssh`, `~/.config/amp`, `~/.config/mise`, `~/.config/opencode`,
   `~/.config/systemd`, and `~/.config/topgrade.toml` are left unmanaged, so a
   forwarded agent, an existing SSH configuration, and the platform's own tool

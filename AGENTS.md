@@ -45,11 +45,15 @@ preconditions are installed by another script.
                        profile data (`desktop` | `devserver` | `transient`,
                        exclusive, plus `distro` and `vm`); derive
                        `desktop && !vm` for KeePass gating.
-- `run_onchange_*`   → scripts re-run when their checksum changes
+- `run_onchange_*`   → scripts re-run when their checksum changes; the script
+                       name sorts the run order, which is why the identity
+                       script's `10-` prefix puts it before the allowlist
 - `run_once_*`       → scripts run once per version of their rendered
                        content; a run that cannot finish must fail instead
                        of exiting 0, so the next apply retries it
 - `symlink_*`        → emit a symlink whose target is the file's contents
+- `.chezmoitemplates/*` → snippets shared by templates, included by name, such
+                       as the tmux plugin list the plugin script checksums
 - `executable_*`     → emitted with the executable bit set
 - `.chezmoiignore.tmpl` / `.chezmoi.toml.tmpl` → chezmoi config; edit deliberately
 - `.chezmoiremove`   → when present, glob patterns (relative to `$HOME`)
@@ -130,12 +134,12 @@ receives shipped changes that way: update its checkout and re-run
 ## Machines
 
 Every hostname this repository names, whether a `chezmoi.hostname` that
-templates gate on or an SSH destination. The desktop and VM classification is
-derived from the machine itself (`gnome-shell` on PATH,
-`systemd-detect-virt`); the dev server is the `greenhouse` hostname. The table
-describes only the machines chezmoi manages (see Boundaries). What a profile
-provides is described in the
-[Provisioning model](.agents/docs/provisioning.md#roles-and-profile-data);
+templates gate on or an SSH destination. The Role column records the profile
+plus the VM class; the desktop profile needs `gnome-shell` on PATH, the dev
+server is the `greenhouse` hostname, and `vm` comes from the `managedVMs` list.
+The table describes only the machines chezmoi manages (see Boundaries). What a
+profile provides is described in the
+[Provisioning model](.agents/docs/provisioning.md#profile-data);
 the Notes column records only host-specific overrides and hosts that are not
 chezmoi targets.
 
