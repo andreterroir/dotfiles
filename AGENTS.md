@@ -145,7 +145,7 @@ chezmoi targets.
 
 | Hostname | OS | Role | Notes |
 | --- | --- | --- | --- |
-| x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only general authentication fallback |
+| x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only one registered for GitHub authentication |
 | black | Fedora Linux | desktop | the desktop workstation |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed VM |
 | slate-vm-personal | Fedora Linux | vm | the personal server VM; headless and not the dev server, so it takes the portable set-up until it is selected as one or dropped from `managedHosts` |

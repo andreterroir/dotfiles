@@ -16,7 +16,7 @@ fails apply with "run chezmoi init before apply or update".
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, YubiKey public-only identities for forwarded keys, Ghostty's software-GL shims on Fedora desktops, and the profile's own tooling |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims on Fedora desktops, and the profile's own tooling |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up in [Supported set-ups](#supported-set-ups) |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
 | `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up; see [Transient profile](transient.md) |
@@ -48,8 +48,8 @@ platform that this repository does not provision.
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
 | desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, `yubikey-manager` and `pcsc-tools`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key and a downloaded YubiKey resident key, both registered on GitHub, signing on; existing sudo policy; `pcscd`; Amp runner |
-| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC and the resident-key download | the desktop configuration | passphrase-less machine key, passwordless sudo, YubiKey public-only identities; Amp runner |
-| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, SSH configuration without `IdentitiesOnly`, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC and the resident-key download | the desktop configuration | passphrase-less machine key, passwordless sudo; Amp runner |
+| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
 
 The portable set-up leaves the host's shell, Git, and tmux configuration and
@@ -82,15 +82,15 @@ the variable. Every other desktop keeps the accelerated renderer.
 
 Credentials and sudo follow the set-up in the table above: KeePassXC and the
 machine's own sudo policy on a desktop, no password manager and no passwordless
-grant on a dev server, passwordless sudo and public-only YubiKey identities on
-a VM, which is snapshotted and disposable, and nothing at all in the portable
-set-up. A dev server takes remote access through a forwarded resident key and
-has no machine-key access by default; a VM takes an explicitly installed or
-forwarded resident key with no machine-key fallback.
+grant on a dev server, passwordless sudo on a VM, which is snapshotted and
+disposable, and nothing at all in the portable set-up. A dev server takes remote
+access through a forwarded resident key and has no machine-key access by
+default. Every managed machine offers its default keys and whatever keys its
+agent holds; registration decides what a server accepts.
 
 x1 is the one exception: its attached 5C Nano provides the resident key instead
-of the travelling 5 NFC, and its machine key is also an authentication fallback
-for the managed SSH destinations and GitHub SSH access.
+of the travelling 5 NFC, and its machine key is also registered for
+authentication, including GitHub SSH access.
 
 GitHub access is `gh` OAuth over HTTPS on every machine, x1 included: Git
 reaches GitHub through the `gh` credential helper, so nothing depends on SSH
@@ -102,11 +102,14 @@ works wherever one is loaded, though no workflow needs it. Registration only
 ever adds: a machine provisioned under an earlier policy keeps its key on the
 account until it is removed by hand with `gh ssh-key delete`.
 
-Managed SSH configuration applies only to `github.com`,
-`git.terroir.systems`, and `chalon`.
-Chezmoi manages neither `git.terroir.systems` nor `chalon`; both are SSH
-destinations only. Other hosts, aliases, and forwarding rules belong in
-`~/.ssh/local_config`.
+The managed SSH configuration offers this machine's identities to every host;
+whether a key is authorized is the remote server's decision, so a machine key
+authenticates wherever provisioning registered it. Aliases and forwarding rules
+belong in `~/.ssh/local_config`. Chezmoi manages neither `git.terroir.systems`
+nor `chalon`; both are SSH destinations only. A forwarded agent can hold more
+keys than a server tries before it gives up (six attempts by default), so pin
+an intended identity with `IdentityFile` and `IdentitiesOnly` in
+`~/.ssh/local_config` for such a host.
 
 ### VM sudo
 
@@ -146,13 +149,9 @@ instructions to run
 This preserves the key and registrations. Desktop keys retain their
 passphrase policy; see [Unlocking and agents](signing.md#unlocking-and-agents).
 
-YubiKeys are optional on VMs: forward an agent containing an approved
-resident key, or run `ssh-keygen -K` explicitly, save the pair as
-`~/.ssh/id_ed25519_sk` and `~/.ssh/id_ed25519_sk.pub`, and load it with
-`ssh-add ~/.ssh/id_ed25519_sk`. The approved list in `.chezmoidata.toml`
-also supplies VM public-only files in `~/.ssh/identities/`, allowing
-forwarded keys through SSH's identity filter without local resident-key
-references.
+YubiKeys are optional on VMs: forward an agent, or run `ssh-keygen -K`
+explicitly, save the pair as `~/.ssh/id_ed25519_sk` and
+`~/.ssh/id_ed25519_sk.pub`, and load it with `ssh-add ~/.ssh/id_ed25519_sk`.
 
 ## One-shot set-up scripts
 

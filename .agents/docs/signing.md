@@ -44,12 +44,11 @@ git config --local user.signingKey "$HOME/.ssh/id_ed25519_sk.pub"
 ```
 
 OpenSSH can use the matching resident key in the active agent or its local
-private-key reference; both require the YubiKey. For forwarded keys on a VM,
-use one of the managed public-only files `~/.ssh/identities/yubikey-{1,2}`
-instead. On another host, provide a public-key file for the intended
-forwarded identity. Public-only identities need a matching key in the agent.
-The signer must support FIDO and reach the YubiKey; current resident keys
-require touch.
+private-key reference; both require the YubiKey. On another host, provide a
+public-key file for the intended forwarded identity; the agent must hold the
+matching key, for example with
+`ssh-add -L | grep '^sk-ssh-ed25519' > ~/.ssh/yubikey.pub`. The signer must
+support FIDO and reach the YubiKey; current resident keys require touch.
 If the key is unavailable or signing is refused, the commit fails rather
 than falling back to the machine key. Merely listing the key with
 `ssh-add -L` does not prove the hardware is present.
@@ -78,11 +77,12 @@ GNOME 46 moved SSH support out of `gnome-keyring-daemon` into gcr's
 `gcr-ssh-agent`: a socket-activated systemd user socket at
 `$XDG_RUNTIME_DIR/gcr/ssh`. It relays to an OpenSSH agent and, on a signature
 request, runs `ssh-add` for the matching private key in `~/.ssh` itself, so
-both the machine key and the resident key file are used without preloading.
-`dot_bash_profile.tmpl` only exports the socket if the session has not:
-preloading with its own `ssh-add` would prompt for the machine key's passphrase
-in every login shell, because `ssh-add` decrypts the key file itself instead of
-asking gcr for the passphrase it has stored.
+both the machine key and the resident key file are usable without preloading.
+`dot_bash_profile.tmpl` exports the socket if the session has not, then loads
+`~/.ssh/id_ed25519` into it for Git signing and remote authentication. It adds
+only a key that `ssh-keygen -y -P ''` reads without a passphrase: an encrypted
+key is left to gcr, which loads it with the passphrase it stores when something
+first signs with it, because a login-shell `ssh-add` would prompt every time.
 
 The agent runs without a terminal, so OpenSSH would render its "Confirm user
 presence" notice for a touch through `$SSH_ASKPASS` — Fedora's

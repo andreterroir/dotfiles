@@ -4,23 +4,4 @@ Host *
 	AddKeysToAgent yes
 {{- end }}
 	HashKnownHosts no
-	IdentityFile none
-
-{{ if .vm -}}
-Host github.com git.terroir.systems chalon
-	IdentityFile ~/.ssh/id_ed25519_sk
-	IdentityFile ~/.ssh/identities/yubikey-1
-	IdentityFile ~/.ssh/identities/yubikey-2
-	IdentitiesOnly yes
-{{ else -}}
-Host github.com git.terroir.systems chalon
-	IdentityFile ~/.ssh/id_ed25519_sk
-
-{{- if .desktop }}
-	IdentitiesOnly yes
-{{- if eq .chezmoi.hostname "x1" }}
-	# x1's machine key is the one intentional authentication fallback.
-	IdentityFile ~/.ssh/id_ed25519
-{{- end }}
-{{- end }}
-{{- end }}
+	# Identities are OpenSSH's defaults plus whatever the agent holds.

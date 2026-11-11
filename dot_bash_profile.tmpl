@@ -38,12 +38,19 @@ fi
 
 # Agents support SSH authentication, encrypted keys, and opt-in YubiKey signing.
 {{ if .desktop -}}
-# GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not.
-# gcr advertises every ~/.ssh public key and loads it on demand, so
-# preloading here would only make ssh-add prompt for the machine key's
-# passphrase in every login shell.
+# GNOME 46+ runs gcr-ssh-agent. Export its socket if the session has not; gcr
+# advertises every ~/.ssh public key and loads one on demand.
 if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]; then
 	export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
+fi
+{{ end -}}
+{{ if and .desktop (not .vm) -}}
+# Load a passphrase-less machine key into the agent for Git signing and remote
+# authentication. An encrypted key is left to gcr, which holds its passphrase;
+# ssh-add would prompt for it in every login shell.
+if [ -S "${SSH_AUTH_SOCK:-}" ] && [ -f "$HOME/.ssh/id_ed25519" ] &&
+	ssh-keygen -y -P '' -f "$HOME/.ssh/id_ed25519" >/dev/null 2>&1; then
+	ssh-add -q "$HOME/.ssh/id_ed25519" </dev/null 2>/dev/null || true
 fi
 {{ end -}}
 
