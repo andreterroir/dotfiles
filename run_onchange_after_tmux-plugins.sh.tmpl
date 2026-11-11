@@ -2,7 +2,7 @@
 # vi: set ft=bash
 set -euo pipefail
 
-# {{ include "dot_tmux.conf.tmpl" | sha256sum }}
+# {{ include ".chezmoitemplates/tmux-plugins" | sha256sum }}
 
 if ! command -v tmux >/dev/null 2>&1; then
 	echo '>tmux-plugins: tmux is not installed; skipping' >&2

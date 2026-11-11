@@ -45,11 +45,7 @@ set -g @resurrect-pane-contents-area 'visible'
 set -g @resurrect-default-processes 'vi vim view nvim emacs man less more'
 set -g @continuum-restore 'on'
 
-set-option -g @plugin 'tmux-plugins/tpm'
-set-option -g @plugin 'christoomey/vim-tmux-navigator'
-set -g @plugin 'tmux-plugins/tmux-open'
-set -g @plugin 'tmux-plugins/tmux-resurrect'
-set -g @plugin 'tmux-plugins/tmux-continuum'
+{{ include ".chezmoitemplates/tmux-plugins" -}}
 run '~/.tmux/plugins/tpm/tpm'
 # Styles stick to the default and 16-colour palette, so the Ghostty theme
 # (light/dark) applies directly without per-tool appearance switching.
