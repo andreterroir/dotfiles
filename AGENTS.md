@@ -153,7 +153,7 @@ chezmoi targets.
 | x1 | Fedora Linux | desktop | the workstation laptop; the YubiKey 5C Nano stays in it, and its machine key is the only one registered for GitHub authentication |
 | black | Fedora Linux | desktop | the desktop workstation |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed work VM; `work`, so it registers no keys with the personal GitHub account |
-| slate-vm-personal | Fedora Linux | vm | the personal server VM; headless and not the dev server, so it takes the portable set-up until it is selected as one or dropped from `managedHosts` |
+| slate-vm-personal | Fedora Linux | desktop, vm | the personal desktop VM |
 | greenhouse | Ubuntu Linux | devserver | headless; planned for decommissioning; older commits call it `netcup` |
 | chalon | Raspberry Pi OS Lite | server | a Tailscale VPN gateway; an SSH destination, not a chezmoi target |
 | git.terroir.systems | unrecorded | server | externally managed; an SSH destination, not a chezmoi target |

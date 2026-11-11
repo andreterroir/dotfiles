@@ -37,7 +37,7 @@ with `git config --show-origin --get user.signingKey`.
 
 ## Opt into YubiKey signing
 
-On a desktop with its resident key downloaded, run inside the repository:
+On a machine with its resident key downloaded, run inside the repository:
 
 ```sh
 git config --local user.signingKey "$HOME/.ssh/id_ed25519_sk.pub"

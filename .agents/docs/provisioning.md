@@ -51,7 +51,7 @@ platform that this repository does not provision.
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
 | desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, `yubikey-manager` and `pcsc-tools`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its two themes, tmux clipboard bindings, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key and a downloaded YubiKey resident key, both registered on GitHub, signing on; existing sudo policy; `pcscd`; Amp runner |
-| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, the Flathub apps, and the resident-key download | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key, passwordless sudo; Amp runner, except on a `work` machine |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing and the Flathub apps | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key and a downloaded YubiKey resident key, passwordless sudo; a `work` machine registers neither and runs no Amp runner |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh` from GitHub's apt repository, chezmoi from its installer, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no resident key, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, any host that is not Linux, or a managed headless host that is not `greenhouse` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, `~/.agents/AGENTS.md`, `~/.config/AGENTS.md`; Vim plugins fetch from upstream | none: no keys, no allowlist, no runner, no sudo, no password manager, no packages |
 
@@ -138,10 +138,10 @@ If reclassifying a VM as a non-VM, remove its sudoers rule manually first.
 registers public keys with GitHub for `andreterroir`. Transient environments
 skip this section entirely; see [Transient profile](transient.md). Machine keys
 are signing keys; x1's is the only one also registered as a GitHub
-authentication key. On non-VM desktops it downloads a missing resident key
-with `ssh-keygen -K` (touch and PIN) and registers it for authentication and
-signing. On VMs it only registers resident keys explicitly installed beforehand;
-non-VM servers skip them by policy.
+authentication key. Every non-work desktop or VM downloads a missing resident
+key with `ssh-keygen -K` (touch and PIN) and registers it for authentication
+and signing, so installing one needs the YubiKey in place; non-VM servers skip
+resident keys by policy.
 
 A `work` machine stops after creating the machine key: no resident key
 download, no `gh` login, and no registration, so nothing about it reaches the
@@ -171,9 +171,11 @@ instructions to run
 This preserves the key and registrations. Desktop keys retain their
 passphrase policy; see [Unlocking and agents](signing.md#unlocking-and-agents).
 
-YubiKeys are optional on VMs: forward an agent, or run `ssh-keygen -K`
-explicitly, save the pair as `~/.ssh/id_ed25519_sk` and
-`~/.ssh/id_ed25519_sk.pub`, and load it with `ssh-add ~/.ssh/id_ed25519_sk`.
+A VM needs its YubiKey only at set-up: afterwards it signs with its machine key
+alone, so an unattended apply never needs one. Forwarding an agent, or running
+`ssh-keygen -K` by hand, saving the pair as `~/.ssh/id_ed25519_sk` and
+`~/.ssh/id_ed25519_sk.pub`, and loading it with `ssh-add ~/.ssh/id_ed25519_sk`,
+also works.
 
 ## One-shot set-up scripts
 

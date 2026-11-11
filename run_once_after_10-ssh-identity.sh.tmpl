@@ -4,8 +4,8 @@
 # GitHub holds its machine key for signing and its YubiKey for signing and
 # authentication, except on a work machine, which creates only its machine key
 # and registers nothing. Every machine reaches GitHub through gh over HTTPS;
-# x1's machine key is the only machine key that also authenticates. VMs only
-# register sk keys that already exist.
+# x1's machine key is the only machine key that also authenticates. A VM
+# downloads its resident key at set-up, like a desktop.
 # The sk key download needs a YubiKey touch and registration may need a
 # browser login. The identity of a machine does not change, so chezmoi runs
 # this once for each version of its rendered content, and a provisioned
@@ -68,29 +68,31 @@ auth_keys_to_add+=("$MACHINE_KEY.pub")
 # FIDO2 resident key on the YubiKey. ssh-keygen -K downloads it from the
 # authenticator into an id_ed25519_sk_rk* pair in the current directory.
 SK_KEY="$HOME/.ssh/id_ed25519_sk"
-{{ if .vm -}}
-if [ -f "$SK_KEY" ] || [ -f "$SK_KEY.pub" ]; then
-{{ end -}}
 if { [ -f "$SK_KEY" ] && [ ! -f "$SK_KEY.pub" ]; } ||
 	{ [ ! -f "$SK_KEY" ] && [ -f "$SK_KEY.pub" ]; }; then
 	echo "error: incomplete resident key pair at $SK_KEY" >&2
 	exit 1
 fi
-{{ if not .vm -}}
 if [ ! -f "$SK_KEY" ]; then
 	require_terminal 'downloading the resident key from the YubiKey'
 	echo '>downloading the resident key from the YubiKey (touch it when it blinks)'
 	sk_tmp="$(mktemp -d)"
-	( cd "$sk_tmp" && ssh-keygen -K )
 	sk_keys=()
-	for candidate in "$sk_tmp"/id_ed25519_sk_rk*; do
-		[ -f "$candidate" ] || continue
-		[[ "$candidate" == *.pub ]] && continue
-		[ -f "$candidate.pub" ] && sk_keys+=("$candidate")
-	done
-	if [ "${#sk_keys[@]}" -ne 1 ]; then
+	if ( cd "$sk_tmp" && ssh-keygen -K ); then
+		for candidate in "$sk_tmp"/id_ed25519_sk_rk*; do
+			[ -f "$candidate" ] || continue
+			[[ "$candidate" == *.pub ]] && continue
+			[ -f "$candidate.pub" ] && sk_keys+=("$candidate")
+		done
+	fi
+	if [ "${#sk_keys[@]}" -gt 1 ]; then
 		echo "error: expected one resident key pair in $sk_tmp, found ${#sk_keys[@]}" >&2
 		rm -rf "$sk_tmp"
+		exit 1
+	fi
+	if [ "${#sk_keys[@]}" -eq 0 ]; then
+		rm -rf "$sk_tmp"
+		echo 'error: no resident key downloaded from the YubiKey' >&2
 		exit 1
 	fi
 	downloaded_key="$(awk '{print $1, $2}' "${sk_keys[0]}.pub")"
@@ -103,7 +105,6 @@ if [ ! -f "$SK_KEY" ]; then
 	mv "${sk_keys[0]}.pub" "$SK_KEY.pub"
 	rm -rf "$sk_tmp"
 fi
-{{ end -}}
 sk_key="$(awk '{print $1, $2}' "$SK_KEY.pub")"
 if ! is_approved_yubikey "$sk_key"; then
 	echo 'error: resident key is not one of the approved YubiKeys' >&2
@@ -111,9 +112,6 @@ if ! is_approved_yubikey "$sk_key"; then
 fi
 signing_keys_to_add+=("$SK_KEY.pub")
 auth_keys_to_add+=("$SK_KEY.pub")
-{{ if .vm -}}
-fi
-{{ end -}}
 {{ end -}}
 
 # Key registrations are public, so check them before touching gh auth:
