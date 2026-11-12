@@ -220,8 +220,8 @@ not implement, so the dropdown is ddterm's.
 ## Dropdown terminal
 
 `run_onchange_install-linux-packages.sh.tmpl` installs ddterm on Fedora
-desktops; `run_onchange_set-up-gnome-shell-extensions.sh.tmpl` enables it and
-sets its hotkey:
+desktops and `run_onchange_set-up-gnome-shell-extensions.sh.tmpl` enables it;
+`run_onchange_set-up-gnome-shortcuts.sh.tmpl` sets its hotkey:
 
 | Key | Action |
 | --- | --- |
@@ -232,7 +232,7 @@ application, browsers' DevTools included.
 
 ## Window management
 
-`run_onchange_set-up-gnome-window-shortcuts.sh.tmpl` mirrors the Rectangle
+`run_onchange_set-up-gnome-shortcuts.sh.tmpl` mirrors the Rectangle
 layout, whose chords are Control+Command plus a home-row letter; Command maps
 to Super, so the letter carries the muscle memory over. GNOME's own
 `Super+arrow` tiling stays bound alongside.

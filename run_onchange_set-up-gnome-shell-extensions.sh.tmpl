@@ -18,9 +18,6 @@ shell_version="$(gnome-shell --version | awk '{print $3}')"
 download_dir="$(mktemp -d)"
 trap 'rm -rf "$download_dir"' EXIT
 
-# ddterm's F12 default is a system-wide grab, and browsers use F12 for DevTools.
-gsettings set org.gnome.shell.extensions.ddterm ddterm-toggle-hotkey "['<Super>backslash']"
-
 # Reinstall on every change, so no build for an older shell survives.
 if ! info="$(curl -fsSL \
 	"https://extensions.gnome.org/extension-info/?uuid=$ego_uuid&shell_version=$shell_version")"; then

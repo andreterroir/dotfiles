@@ -170,10 +170,8 @@ once after the apply that writes it.
 `run_onchange_set-up-gnome-shell-extensions.sh.tmpl` runs on Fedora desktops
 and enables ddterm (the dropdown terminal), Window Navigator, Launch New
 Instance, Night Theme Switcher, and AppIndicator support. Fedora packages all
-but Night Theme Switcher, so `dnf` updates those. ddterm's `F12` default would
-grab a key browsers use for DevTools, so the script sets its hotkey to
-`Super+\`, which GNOME leaves unbound. Night Theme Switcher comes from
-extensions.gnome.org, where each build targets one shell version: it is
+but Night Theme Switcher, so `dnf` updates those. Night Theme Switcher comes
+from extensions.gnome.org, where each build targets one shell version: it is
 fetched for the running shell and reinstalled whenever the script changes,
 which includes a Fedora release upgrade. Enabling writes the `org.gnome.shell`
 key the Shell watches, so a fresh install takes effect at the next login.

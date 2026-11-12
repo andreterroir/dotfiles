@@ -56,7 +56,7 @@ Every key the configuration binds or overrides is catalogued in
 rebinds a key updates that document in the same change: the maps and plugin
 globals in `dot_vimrc`, the bindings in `dot_tmux.conf.tmpl`, the readline and
 fzf keys in `dot_bashrc`, the git aliases and mergetool, the Ghostty keybinds,
-and the window-management keys in `run_onchange_set-up-gnome-window-shortcuts.sh.tmpl`.
+and the GNOME keybindings in `run_onchange_set-up-gnome-shortcuts.sh.tmpl`.
 Record a deliberate removal under the section that lists dropped keys, with its
 reason, so the key is not reintroduced by accident.
 

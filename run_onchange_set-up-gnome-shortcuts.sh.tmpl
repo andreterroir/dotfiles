@@ -49,5 +49,9 @@ chords drop org.gnome.shell.keybindings toggle-message-tray '<Super>m'
 chords add "$wm" minimize '<Super>m'
 
 chords add "$wm" toggle-fullscreen '<Control><Super>f'
+
+# ddterm's F12 default is a system-wide grab, and browsers use F12 for DevTools.
+# The toggle replaces ddterm's default instead of adding to it.
+gsettings set org.gnome.shell.extensions.ddterm ddterm-toggle-hotkey "['<Super>backslash']"
 {{   end -}}
 {{ end -}}
