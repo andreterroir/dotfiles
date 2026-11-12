@@ -14,7 +14,7 @@ apply with "run chezmoi init before apply or update", and no key has a switch.
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, the `spice-vdagent` restart override, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
 | `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it deploys the Amp runner |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
@@ -164,6 +164,16 @@ D-Bus and shell launches, with `LIBGL_ALWAYS_SOFTWARE=1` rendering through
 llvmpipe and its OpenGL 4.6. The gate does not probe the host. systemd reads a
 drop-in only when it loads the unit, so reload the user manager or log out
 once after the apply that writes it.
+
+Clipboard sharing with a SPICE host needs the guest's user-session
+`spice-vdagent`, and that agent exits when a display resize fails: the X screen
+under XWayland has to follow the compositor's outputs, so the size the host asks
+for comes back as `BadMatch` rather than a memory shortage. The package ships
+the unit with `Restart=no`, so one failed resize leaves the clipboard dead until
+the next login. Fedora VMs therefore get a drop-in for `spice-vdagent.service`
+that restarts it on failure and disables the start limit, which would otherwise
+end the restart budget of a resize burst in `failed`. Reload the user manager
+once after the apply, as for Ghostty.
 
 ## GNOME Shell extensions
 
