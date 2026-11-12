@@ -80,8 +80,14 @@ endif
 " -- options --
 " -------------
 
-" blinking block cursor for insert, replace and command modes
-set guicursor=i-r-c-ci-cr:block-blinkwait300-blinkoff150-blinkon150
+" block cursor in every mode, blinking only in insert mode
+" ('guicursor' only reaches a GUI, a terminal follows the DECSCUSR sequences)
+let &t_SI = "\e[1 q"
+let &t_SR = "\e[2 q"
+let &t_EI = "\e[2 q"
+" start on the steady block, and give the prompt its blinking one back on exit
+let &t_ti ..= "\e[2 q"
+let &t_te ..= "\e[1 q"
 
 " render in the terminal theme's own colours: no colorscheme, no true colour
 syntax off
