@@ -129,8 +129,8 @@ set number
 " highlight the line number for the current line
 set cursorline
 set cursorlineopt=number
-" always display the line info column to avoid jumping
-set signcolumn=yes
+" show signs in the number column, with no separate gutter
+set signcolumn=number
 " open folds by default
 set foldlevelstart=99
 
