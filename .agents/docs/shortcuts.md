@@ -37,7 +37,7 @@ sets the global that defines the floaterm toggle.
 | `<leader>fh` | n | help tags (`:Helptags`) |
 | `<leader>fk` | n | key mappings (`:Maps`) |
 | `<leader>fr` | n | recent files (`:History`) |
-| `<leader>fs` | n | grep the WORD under the cursor (`:Rg <C-r><C-a>`) |
+| `<leader>fs` | n | grep the word under the cursor (`:Rg <C-r><C-w>`) |
 | `<leader>hs` | n, v | stage hunk |
 | `<leader>hr` | n, v | undo hunk |
 | `<leader>hS` | n | stage the whole buffer (`:Git add %`) |
