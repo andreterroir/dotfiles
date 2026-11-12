@@ -100,6 +100,8 @@ set formatoptions=tcqj
 set nostartofline
 set shortmess=ltToOCF
 set wildoptions=pum,tagfile
+" always show the status line, so a single window still names its file
+set laststatus=2
 
 " tabs are 4 spaces, except where a file type says otherwise
 set tabstop=4
