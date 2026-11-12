@@ -80,14 +80,35 @@ endif
 " -- options --
 " -------------
 
-" block cursor in every mode, blinking only in insert mode
-" ('guicursor' only reaches a GUI, a terminal follows the DECSCUSR sequences)
-let &t_SI = "\e[1 q"
-let &t_SR = "\e[2 q"
-let &t_EI = "\e[2 q"
-" start on the steady block, and give the prompt its blinking one back on exit
+" a block cursor in every mode, blinking in those that take typed text
 let &t_ti ..= "\e[2 q"
+" and a blinking one back at the prompt on exit
 let &t_te ..= "\e[1 q"
+
+function! s:Cursor(seq) abort
+  if empty(a:seq)
+    return
+  endif
+  try
+    call writefile([a:seq], '/dev/tty', 'b')
+  catch
+  endtry
+endfunction
+
+" a terminal job passes on the shape of the program inside it
+function! s:Shape(mode) abort
+  if a:mode ==# 't'
+    return ''
+  elseif a:mode =~# "^[iRscS\x13]"
+    return "\e[1 q"
+  endif
+  return "\e[2 q"
+endfunction
+
+augroup cursor_blink
+  autocmd!
+  autocmd ModeChanged * call s:Cursor(s:Shape(v:event.new_mode))
+augroup END
 
 " render in the terminal theme's own colours: no colorscheme, no true colour
 syntax off
