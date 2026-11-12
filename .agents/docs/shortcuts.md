@@ -270,7 +270,6 @@ Do not add these back without deciding to reintroduce the behaviour.
 | `<leader>f<space>` | fzf-lua's picker resume | fzf.vim has no resume |
 | `<leader>tb` | toggle inline line blame | the annotation is gone; `<leader>hb` opens a blame window |
 | `<leader>hi` | inline hunk preview | `<leader>hp` previews in a split |
-| `Super+=` | Ghostty's quick terminal | GNOME has no `wlr-layer-shell`, so the window never appeared; ddterm's dropdown moved to `Super+\` |
 
 Window centering is goyo on `<leader>tc`, directory listings are dirvish on
 `-`, and sessions are `:Load`/`:Last`; the plugins that did those jobs before
