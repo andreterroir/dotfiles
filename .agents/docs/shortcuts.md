@@ -173,9 +173,9 @@ targets default to. There is no zsh configuration in this repository.
 The fzf keys come from `fzf --bash`, or from the packaged scripts on older
 packages; `dot_bashrc` sources them but does not change them.
 
-Aliases are command shortcuts rather than keys:
+Aliases and functions are command shortcuts rather than keys:
 
-| Alias | Expands to |
+| Shortcut | Expands to / does |
 | --- | --- |
 | `ls` | `ls --classify --color=auto` |
 | `grep` | `grep --color=auto` |
@@ -185,6 +185,11 @@ Aliases are command shortcuts rather than keys:
 | `v`, `vi` | `vim` |
 | `t` | `tmux attach` or `tmux new` |
 | `fd` | `fdfind`, where that is the packaged name |
+| `bytes` | bytes `[START, END)` of stdin, counting from 0, so `bytes 4 10` is bytes 4 to 9 |
+
+`bytes` is a function rather than an alias: it checks the two numbers itself and
+answers a bad range with a usage line instead of `head`'s. It counts bytes
+across the whole stream, unlike `cut -b`, which restarts the range on every line.
 
 ## git
 
