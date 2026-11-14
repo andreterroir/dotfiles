@@ -48,6 +48,10 @@ let $FZF_DEFAULT_COMMAND = 'git -c core.quotePath=false ls-files'
       \ . ' --cached --others --exclude-standard 2>/dev/null'
       \ . ' || find . -type f -not -path ''*/.git/*'''
 
+" a CtrlP-style split: picker at the bottom, prompt on top, no preview
+let g:fzf_layout = {'down': '~40%'}
+let g:fzf_vim = {'preview_window': [], 'options': '--layout=reverse'}
+
 " vim-plug hides uninstalled plugins, so configure them only once installed
 let s:missing = filter(copy(g:plugs), '!isdirectory(v:val.dir)')
 
