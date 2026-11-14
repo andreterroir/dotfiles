@@ -88,12 +88,18 @@ APIs, so breakage shows up here rather than in startup:
 | vim-gitgutter | map keys off, then `]c`, `[c`, stage, undo, preview, blame and the `ih` text object |
 | vim-dirvish | `-` to open the parent directory |
 | goyo.vim | `g:goyo_width = 80`, `<leader>tc` |
+| fzf | `$FZF_DEFAULT_COMMAND` to source `:Files` |
 | fzf.vim | `:Files`, `:Rg`, `:Maps`, `:History`, `:Helptags` |
 | vim-fugitive | `:Git add`, `:Git restore`, `:Git blame`, `:Gdiffsplit` |
 
 fzf.vim requires fzf 0.63 or newer. Fedora and Ubuntu 26.04 ship a newer
 release; on Ubuntu 24.04, whose package is 0.44, the first picker offers to
 download a binary into the plugin directory instead.
+
+`:Files` runs `$FZF_DEFAULT_COMMAND` when it is set. `dot_vimrc` points it at
+`git ls-files`, because fzf's own walker lists ignored files. The picker
+therefore offers what Git does not ignore, tracked or untracked, and outside a
+repository every file under the working directory except those under `.git`.
 
 ## Regenerating the pin
 

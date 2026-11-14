@@ -45,6 +45,11 @@ let g:goyo_width = 80
 let g:floaterm_keymap_toggle = '<A-;>'
 " gitgutter maps are global; dot_vimrc defines the ones it wants
 let g:gitgutter_map_keys = 0
+" :Files lists what Git does not ignore, tracked or untracked; outside a
+" repository it falls back to every file under the working directory, minus .git
+let $FZF_DEFAULT_COMMAND = 'git -c core.quotePath=false ls-files'
+      \ . ' --cached --others --exclude-standard 2>/dev/null'
+      \ . ' || find . -type f -not -path ''*/.git/*'''
 
 " vim-plug hides uninstalled plugins, so configure them only once installed
 let s:missing = filter(copy(g:plugs), '!isdirectory(v:val.dir)')
