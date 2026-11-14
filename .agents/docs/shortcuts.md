@@ -22,6 +22,7 @@ operator-pending). It also maps `<leader>` itself to the which-key popup.
 
 | Key | Mode | Action |
 | --- | --- | --- |
+| `<C-w>c` | n | close the window, ending centering first |
 | `<C-w>go` | n | close every other tab (`:tabonly`) |
 | `]c` | n | next git hunk; inside a diff buffer, the built-in change jump |
 | `]q` | n | next quickfix entry |
@@ -48,7 +49,7 @@ operator-pending). It also maps `<leader>` itself to the which-key popup.
 | `<leader>hD` | n | diff against HEAD (`:Gdiffsplit HEAD`) |
 | `ih` | o, v | hunk text object |
 | `<leader>q` | n, v, o | quit all windows and Vim, with confirmation |
-| `<leader>tc` | n, v, o | toggle centering (goyo, 80 columns, in a new tab) |
+| `<leader>tc` | n, v, o | toggle centering (venter, 80 columns, in the current tab) |
 | `<leader>th` | n, v, o | toggle search highlighting |
 | `<leader>tl` | n, v, o | toggle list chars |
 | `<leader>ts` | n, v, o | toggle spellchecking |
@@ -267,6 +268,6 @@ Do not add these back without deciding to reintroduce the behaviour.
 | `<leader>hi` | inline hunk preview | `<leader>hp` previews in a split |
 | `<A-;>` | floaterm toggle | vim-floaterm dropped; use a tmux pane or shell instead |
 
-Window centering is goyo on `<leader>tc`, directory listings are dirvish on
+Window centering is venter on `<leader>tc`, directory listings are dirvish on
 `-`, and sessions are `:Load`/`:Last`; the plugins that did those jobs before
 are gone, not their keys.

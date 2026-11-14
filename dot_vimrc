@@ -16,7 +16,7 @@ let mapleader = ' '
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'junegunn/goyo.vim' " center the focused buffer
+Plug 'JMcKiern/vim-venter' " center the buffer
 Plug 'ypcrts/securemodelines' " restrict modeline options
 Plug 'tpope/vim-rsi' " readline editing keys
 Plug 'tpope/vim-repeat' " repeat plugin commands with dot
@@ -40,7 +40,6 @@ function! s:Map(mode, lhs, rhs) abort
   execute a:mode . 'noremap ' . a:lhs . ' ' . a:rhs
 endfunction
 
-let g:goyo_width = 80
 " gitgutter maps are global; dot_vimrc defines the ones it wants
 let g:gitgutter_map_keys = 0
 " :Files lists what Git does not ignore, tracked or untracked; outside a
@@ -141,6 +140,9 @@ set noexpandtab
 
 " use a space as the vertical split character
 let &fillchars = 'vert: '
+" the space carries the VertSplit attributes, which reverse it by default, and
+" Vim draws | when the group has none; keep an invisible one
+highlight VertSplit ctermfg=NONE ctermbg=NONE cterm=bold gui=bold
 " show trailing characters, tabs and non-breakable spaces
 set list
 let &listchars = 'tab:  ,trail:·,nbsp:⍽,extends:»,precedes:«'
@@ -198,12 +200,31 @@ let &backupskip = &backupskip . ',' . expand('~/.ssh') . '/*,/tmp/*'
 " -- keymap --
 " ------------
 
+" venter sizes its pads from a variable, so keep the buffer at 80 columns
+function! s:CentreWidth() abort
+  let g:venter_width = max([1, (&columns - 80 - 2) / 2])
+endfunction
+call s:CentreWidth()
+
+" venter cannot clean up while Vim is closing a window, so close its pads first
+" when quitting or closing the centred window
+augroup centre
+  autocmd!
+  autocmd VimResized * call s:CentreWidth() | silent! VenterResize
+  autocmd QuitPre * silent! VenterClose
+augroup END
+
+function! s:CentreClose() abort
+  silent! VenterClose
+  close
+endfunction
+
 " toggles
 call s:Map('', '<leader>th', '<cmd>set hlsearch!<CR>')
 call s:Map('', '<leader>ts', '<cmd>set spell!<CR>')
 call s:Map('', '<leader>tl', '<cmd>set list!<CR>')
 call s:Map('', '<leader>tw', '<cmd>let &wrap = !&wrap<Bar>let &linebreak = &wrap<CR>')
-call s:Map('', '<leader>tc', '<cmd>Goyo<CR>')
+call s:Map('', '<leader>tc', '<cmd>VenterToggle<CR>')
 call s:Map('', '<leader>tu', '<cmd>UndotreeToggle<CR>')
 
 " save the pinky
@@ -212,6 +233,7 @@ call s:Map('', '<leader>;', ':')
 " window splits
 call s:Map('', '<leader>-', '<cmd>split<CR>')
 call s:Map('', '<leader><Bslash>', '<cmd>vsplit<CR>')
+call s:Map('n', '<C-w>c', '<cmd>call <SID>CentreClose()<CR>')
 
 " without +clipboard the terminal's own copy and paste is the only path
 if has('clipboard')

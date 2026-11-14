@@ -12,8 +12,8 @@ before `:PlugInstall` ran.
 
 The configuration is legacy Vim script and uses no Lua or Neovim API calls.
 Plugins configure themselves through VimL globals: startify's command list,
-which-key's description dictionary, gitgutter's maps
-(disabled in favour of the explicit ones in `dot_vimrc`) and goyo's width.
+which-key's description dictionary, gitgutter's maps (disabled in favour of
+the explicit ones in `dot_vimrc`) and venter's width.
 Per-machine overrides load from `~/.vim/init.local.vim`.
 
 Backups and editor state stay outside the working tree: `~/.cache/vim/backup`
@@ -62,7 +62,7 @@ A clean start proves the plugins load and the configuration applies. Check the
 reports, not just the exit status: the options from `dot_vimrc`, the commands
 each plugin adds, and the commands the keymaps call.
 
-    HOME=$H vim -Nu "$H/.vimrc" -es -c 'call writefile([&backupdir, exists(":Goyo"), exists(":GitGutterNextHunk"), exists(":Startify"), exists(":Dirvish"), exists(":Load")], "/tmp/report")' -c 'qa!'
+    HOME=$H vim -Nu "$H/.vimrc" -es -c 'call writefile([&backupdir, exists(":VenterToggle"), exists(":GitGutterNextHunk"), exists(":Startify"), exists(":Dirvish"), exists(":Load")], "/tmp/report")' -c 'qa!'
 
 Also require `:messages` to be free of `vim: plugin setup failed` and of
 `vim-plug: plugin(s) missing`.
@@ -70,7 +70,8 @@ Also require `:messages` to be free of `vim: plugin setup failed` and of
 Ex mode does not exercise windows. Run a real session in a terminal and check
 that the buffer renders in the terminal theme's colours, startify draws its
 commands, recent files and footer, gitgutter draws signs and `]c`/`[c` move
-between hunks, `-` opens dirvish, `:Goyo` centers at 80 columns,
+between hunks, `-` opens dirvish, `<leader>tc` centers at 80 columns and holds
+that width when the terminal is resized,
 `<leader>` opens which-key, and `:Load`/`:Last` restore a session.
 
 Then read what changed. For each moved plugin, `git log <old>..<new>` in its
@@ -85,7 +86,7 @@ APIs, so breakage shows up here rather than in startup:
 | lexima.vim | default pair rules |
 | vim-gitgutter | map keys off, then `]c`, `[c`, stage, undo, preview, blame and the `ih` text object |
 | vim-dirvish | `-` to open the parent directory |
-| goyo.vim | `g:goyo_width = 80`, `<leader>tc` |
+| vim-venter | `g:venter_width`, sized so the buffer keeps its 80 columns, `<leader>tc` |
 | fzf | `$FZF_DEFAULT_COMMAND` to source `:Files` |
 | fzf.vim | `:Files`, `:Rg`, `:Maps`, `:History`, `:Helptags` |
 | vim-fugitive | `:Git add`, `:Git restore`, `:Git blame`, `:Gdiffsplit` |
