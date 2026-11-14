@@ -29,7 +29,6 @@ Plug 'christoomey/vim-tmux-navigator' " window navigation
 Plug 'junegunn/fzf' " search
 Plug 'junegunn/fzf.vim' " search commands
 Plug 'mhinz/vim-startify' " startup screen
-Plug 'voldikss/vim-floaterm' " floating terminal
 Plug 'tpope/vim-fugitive' " Git interface
 Plug 'airblade/vim-gitgutter' " inline Git hunks
 Plug 'justinmk/vim-dirvish' " file manager
@@ -42,7 +41,6 @@ function! s:Map(mode, lhs, rhs) abort
 endfunction
 
 let g:goyo_width = 80
-let g:floaterm_keymap_toggle = '<A-;>'
 " gitgutter maps are global; dot_vimrc defines the ones it wants
 let g:gitgutter_map_keys = 0
 " :Files lists what Git does not ignore, tracked or untracked; outside a

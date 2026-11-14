@@ -18,8 +18,7 @@ which tool sees a key.
 
 `dot_vimrc` (`~/.vimrc`) holds every global map, built with one `s:Map` helper
 so that an empty mode string maps like `:map` (normal, visual, select and
-operator-pending). It also maps `<leader>` itself to the which-key popup and
-sets the global that defines the floaterm toggle.
+operator-pending). It also maps `<leader>` itself to the which-key popup.
 
 | Key | Mode | Action |
 | --- | --- | --- |
@@ -98,11 +97,7 @@ the labels come from `g:which_key_map` in `dot_vimrc`:
 
 A new leader map without an entry here appears unlabelled in the popup.
 
-`<A-;>` comes from vim-floaterm: `dot_vimrc` assigns
-`g:floaterm_keymap_toggle`, and the plugin maps it in normal and terminal mode,
-so it also toggles from inside the floating shell. It needs a terminal that
-sends Alt+; (Ghostty does). Gitgutter's own maps are switched off with
-`g:gitgutter_map_keys = 0`.
+Gitgutter's own maps are switched off with `g:gitgutter_map_keys = 0`.
 
 Other keys come from their plugins: `-` opens the parent directory as a
 vim-dirvish listing (`:help dirvish`), startify's screen maps files, recent
@@ -270,6 +265,7 @@ Do not add these back without deciding to reintroduce the behaviour.
 | `<leader>f<space>` | fzf-lua's picker resume | fzf.vim has no resume |
 | `<leader>tb` | toggle inline line blame | the annotation is gone; `<leader>hb` opens a blame window |
 | `<leader>hi` | inline hunk preview | `<leader>hp` previews in a split |
+| `<A-;>` | floaterm toggle | vim-floaterm dropped; use a tmux pane or shell instead |
 
 Window centering is goyo on `<leader>tc`, directory listings are dirvish on
 `-`, and sessions are `:Load`/`:Last`; the plugins that did those jobs before

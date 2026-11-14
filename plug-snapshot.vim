@@ -10,7 +10,6 @@ silent! let g:plugs['lexima.vim'].commit = '9f6942c5e1f0f6fe63bdcdac515f34c484b9
 silent! let g:plugs['securemodelines'].commit = '53227da8bb2e286501969d3e6180c2b5b21b27e0'
 silent! let g:plugs['undotree'].commit = '6fa6b57cda8459e1e4b2ca34df702f55242f4e4d'
 silent! let g:plugs['vim-dirvish'].commit = '4cbf39ce024c57f700c4d5502cc172ea91d69360'
-silent! let g:plugs['vim-floaterm'].commit = '7712701c5d20a0f9c935fbc2a6334083ce89b558'
 silent! let g:plugs['vim-fugitive'].commit = '3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0'
 silent! let g:plugs['vim-gitgutter'].commit = '90b75207bd9b55d8ac4af15f72b4e935462014d0'
 silent! let g:plugs['vim-matchup'].commit = '0106b1afd4a2f7e1098037b5ceb161bab7471088'
