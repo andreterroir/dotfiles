@@ -141,10 +141,13 @@ before applying again.
 
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra, whose main
 repository is enough: do not enable `terra-release-extras`, `-mesa`, or
-`-multimedia`. Ubuntu takes mise from mise's own apt repository, and `gh` from
-GitHub's, because Ubuntu's package is stale. Chezmoi's installer writes its
-binary into `~/.local/bin`; opencode's installer cannot change `PATH`, so the
-script links its binary there too. Ubuntu's `fd-find` package provides
+`-multimedia`. Fedora desktops also install the pinned official OpenCode
+Desktop RPM for their architecture, verified against OpenCode's published
+SHA-256 checksum. Ubuntu takes
+mise from mise's own apt repository, and `gh` from GitHub's, because Ubuntu's
+package is stale. Chezmoi's installer writes its binary into `~/.local/bin`;
+opencode's installer cannot change `PATH`, so the script links its binary there
+too. Ubuntu's `fd-find` package provides
 `fdfind`, so the script links that name as `fd`. Chezmoi downloads the two
 configured Ghostty themes from a pinned upstream revision, because Terra's
 Ghostty package omits bundled themes. Fedora desktops skip Spotify on ARM,

@@ -52,6 +52,25 @@ sudo dnf install -y \
 	hugo \
 	jetbrains-mono-fonts
 
+case "{{ .chezmoi.arch }}" in
+	amd64)
+		opencode_arch=x86_64
+		opencode_sha256=ae7a3122d7f3a430f1cdb0d7f26b6b8fafb9cf260e2fdbb5c80303d3b4d0d3ba
+		;;
+	arm64)
+		opencode_arch=aarch64
+		opencode_sha256=8ecffaaaa963ffa530442a3c1ffc24aa86fccfcd33aa028afd3c8a06cce08b3b
+		;;
+	*) echo "unsupported OpenCode Desktop architecture: {{ .chezmoi.arch }}" >&2; exit 1 ;;
+esac
+opencode_rpm="$(mktemp --suffix=.rpm)"
+trap 'rm -f "$opencode_rpm"' EXIT
+curl --fail --location --show-error \
+	--output "$opencode_rpm" \
+	"https://opencode.ai/files/bin/2.3.2/opencode-desktop-linux-${opencode_arch}.rpm"
+echo "${opencode_sha256}  ${opencode_rpm}" | sha256sum --check --status
+sudo dnf install -y "$opencode_rpm"
+
 {{ if not .vm -}}
 # Personal apps stay off a VM; Spotify's Flathub build is x86_64-only
 sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
