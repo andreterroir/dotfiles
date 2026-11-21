@@ -33,8 +33,14 @@ sudo dnf install -y \
 	wget2-wget
 
 {{ if .desktop -}}
+# Amp's own dnf repository; amp-desktop updates with the rest of the system.
+sudo curl --fail --location --show-error \
+	--output /etc/yum.repos.d/amp.repo \
+	https://static.ampcode.com/linux/amp.repo
+
 sudo dnf install -y \
 	ImageMagick \
+	amp-desktop \
 	ghostty \
 	gnome-extensions-app \
 	gnome-shell-extension-appindicator \

@@ -141,7 +141,9 @@ before applying again.
 
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra, whose main
 repository is enough: do not enable `terra-release-extras`, `-mesa`, or
-`-multimedia`. Fedora desktops also install the pinned official OpenCode
+`-multimedia`. Fedora desktops take Amp Desktop from Amp's own dnf
+repository, installing `amp-desktop` alongside the rest of the system.
+They also install the pinned official OpenCode
 Desktop RPM for their architecture, verified against OpenCode's published
 SHA-256 checksum. Ubuntu takes
 mise from mise's own apt repository, and `gh` from GitHub's, because Ubuntu's
