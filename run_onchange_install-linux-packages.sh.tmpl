@@ -58,6 +58,7 @@ sudo dnf install -y \
 	hugo \
 	jetbrains-mono-fonts
 
+# shellcheck disable=SC2194 # chezmoi renders .chezmoi.arch before linting
 case "{{ .chezmoi.arch }}" in
 	amd64)
 		opencode_arch=x86_64
