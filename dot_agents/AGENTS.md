@@ -28,8 +28,11 @@ it down. Extended context belongs in commit messages, not in comments.
 `sudo` cannot prompt in an agent shell, so it fails once the credential cache
 is cold; desktops follow their normal password policy and have no passwordless
 grant. When a command needs root, say what it will do, wait for the user to
-confirm, then run it with `pkexec`, which raises a polkit dialog in their
-session. Bundle multi-step work into one script so they approve a single dialog.
+confirm, then run it yourself with `pkexec`, which raises a polkit dialog in
+their session. An instruction to run, apply, or execute is that confirmation:
+execute via `pkexec` rather than handing the user a command to run, since
+approving the polkit dialog is the privilege approval.
+Bundle multi-step work into one script so they approve a single dialog.
 
 ## Git Signing
 
