@@ -68,9 +68,13 @@ if [ -r /etc/profile.d/bash_completion.sh ]; then
 elif [ -r /usr/share/bash-completion/bash_completion ]; then
 	source /usr/share/bash-completion/bash_completion
 fi
+# shellcheck source=/dev/null
 command -v chezmoi > /dev/null && source <(chezmoi completion bash)
+# shellcheck source=/dev/null
 command -v rustup > /dev/null && source <(rustup completions bash cargo)
+# shellcheck source=/dev/null
 command -v rustup > /dev/null && source <(rustup completions bash rustup)
+# shellcheck source=/dev/null
 command -v amp > /dev/null && source <(amp completions bash)
 
 # fzf key bindings (Ctrl-T, Ctrl-R, Alt-C) and ** completion. `fzf --bash`
@@ -85,6 +89,7 @@ if command -v fzf > /dev/null; then
 			/usr/share/doc/fzf/examples/key-bindings.bash
 		do
 			if [ -r "$_fzf_bindings" ]; then
+				# shellcheck source=/dev/null
 				source "$_fzf_bindings"
 				break
 			fi
@@ -95,6 +100,7 @@ if command -v fzf > /dev/null; then
 			/usr/share/bash-completion/completions/fzf
 		do
 			if [ -r "$_fzf_completion" ]; then
+				# shellcheck source=/dev/null
 				source "$_fzf_completion"
 				break
 			fi
@@ -105,6 +111,7 @@ if command -v fzf > /dev/null; then
 fi
 
 # Load machine-specific configuration
+# shellcheck source=/dev/null
 [ -f ~/.bashrc.local ] && source ~/.bashrc.local
 
 # mise-managed tools (zig, exercism, rust, topgrade)
