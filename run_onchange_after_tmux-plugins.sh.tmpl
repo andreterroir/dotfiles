@@ -28,7 +28,12 @@ fi
 # Reads @plugin from the applied tmux config and clones whatever is missing.
 "$tpm/bin/install_plugins"
 
-# install_plugins starts a server when none was running, which can trigger a restore.
+# Uninstall the dropped persistence plugins and their snapshots.
+rm -rf "$HOME/.tmux/plugins/tmux-resurrect" "$HOME/.tmux/plugins/tmux-continuum"
+rm -rf "$HOME/.tmux/resurrect"
+
+# install_plugins starts a server when none was running; stop one it started
+# so no stray server is left behind.
 if [ "$had_server" = 0 ]; then
 	tmux kill-server 2>/dev/null || true
 fi

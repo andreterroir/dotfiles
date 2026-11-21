@@ -36,18 +36,9 @@ bind-key -T prefix * run "wl-paste --primary | tmux load-buffer - ; tmux paste-b
 bind-key -T prefix + run "wl-paste | tmux load-buffer - ; tmux paste-buffer"
 {{- end }}
 
-# Restore layout and pane text after a reboot. This fixes resurrect's snapshot
-# directory, which then stays out of other users' reach.
-run-shell 'install -d -m 700 ~/.tmux/resurrect'
-set -g @resurrect-capture-pane-contents 'on'
-set -g @resurrect-pane-contents-area 'visible'
-set -g @resurrect-default-processes 'vi vim view nvim emacs man less more'
-set -g @continuum-restore 'on'
-
 {{ include ".chezmoitemplates/tmux-plugins" -}}
 run '~/.tmux/plugins/tpm/tpm'
 # Styles use the default 16-colour palette, so the Ghostty theme applies as is.
-# Continuum prepends its autosave hook to status-right, which this replaces.
 set -g status-style bg=default,fg=default
 set -g status-left '#[bold] #S '
 set -g status-left-length 20
@@ -62,4 +53,4 @@ set -g message-command-style bg=default,fg=default
 set -g copy-mode-match-style bg=colour8
 set -g copy-mode-current-match-style fg=black,bg=blue
 set -g status-right-length 60
-set -g status-right "#(~/.tmux/plugins/tmux-continuum/scripts/continuum_save.sh)#[fg=colour8] #{b:pane_current_path} #[bold] %H:%M %a %d %b "
+set -g status-right "#[fg=colour8] #{b:pane_current_path} #[bold] %H:%M %a %d %b "

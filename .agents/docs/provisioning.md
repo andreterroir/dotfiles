@@ -216,7 +216,7 @@ checksums it, so adding a plugin re-runs the installer. The script installs
 TPM when it is missing, then clones whatever `@plugin` lines are missing. A
 server started before TPM loaded has no `TMUX_PLUGIN_MANAGER_PATH`, which the
 installer needs, so the script sets it, and it stops a server it started,
-because loading the configuration can restore a session.
+so no stray server is left behind.
 
 ## Amp runner
 
