@@ -127,7 +127,7 @@ state re-runs both:
 recreate a deleted machine key, and to refresh `~/.allowed_signers` after a
 machine registers a new signing key.
 
-## VM sudo
+## Sudo policy
 
 `run_onchange_before_00-vm-sudo.sh.tmpl` installs a VM-only, root-owned `0440`
 rule at `/etc/sudoers.d/99-chezmoi-<uid>` before package installation. It
@@ -136,6 +136,12 @@ sudo without a cached credential, so the first apply needs a terminal and the
 user's existing sudo password. No sudo grant is installed on remote servers;
 remove any pre-existing grant there, or on a VM reclassified as a non-VM,
 before applying again.
+
+`run_onchange_before_01-sudo-timeout.sh.tmpl` installs a non-VM,
+root-owned `0440` rule at `/etc/sudoers.d/99-chezmoi-timestamp` before
+package installation, raising sudo's credential timeout to 90 minutes
+(upstream default 5) where password sudo stays. It follows the same
+validate-then-rename install as the VM rule.
 
 ## Packages and sources
 
