@@ -161,13 +161,15 @@ targets default to. There is no zsh configuration in this repository.
 | --- | --- |
 | `C-s` | forward history search; `stty -ixon` disables the terminal's stop-output so readline receives it |
 | `Tab` | completion, from bash-completion plus chezmoi, cargo, rustup and Amp completions |
-| `C-t` | fzf: paste the selected path onto the command line |
+| `C-t` | transpose characters before the cursor (readline built-in) |
+| `M-s` | fzf: paste the selected path onto the command line |
 | `C-r` | fzf: search history |
 | `M-c` | fzf: change directory |
 | `**<Tab>` | fzf: completion trigger |
 
 The fzf keys come from `fzf --bash`, or from the packaged scripts on older
-packages; `dot_bashrc` sources them but does not change them.
+packages; `dot_bashrc` sources them, then moves the file widget from `C-t`
+to `M-s` and restores `transpose-chars` on `C-t`.
 
 Aliases and functions are command shortcuts rather than keys:
 
