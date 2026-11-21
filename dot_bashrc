@@ -16,16 +16,16 @@ if ! command -v fd > /dev/null && command -v fdfind > /dev/null ; then
 	alias fd='fdfind'
 fi
 
-# Bytes [START, END) of stdin, counting from 0: `bytes 4 10` is bytes 4 to 9.
+# Bytes [START, START+COUNT) of stdin, counting from 0: `bytes 4 6` is bytes 4 to 9.
 # A function rather than an alias because it guards the arguments.
 bytes() {
-	if (($# != 2)) || [[ ! $1 =~ ^[0-9]+$ || ! $2 =~ ^[0-9]+$ ]] ||
-		(( 10#$2 < 10#$1 )); then
-		printf 'usage: bytes START END, counting from 0 and excluding END\n' >&2
+	if (($# != 2)) || [[ ! $1 =~ ^[0-9]+$ || ! $2 =~ ^[0-9]+$ ]]; then
+		printf 'usage: bytes START COUNT\n' >&2
 		return 2
 	fi
 	# head first so that nothing in here dies of SIGPIPE under `set -o pipefail`
-	head -c "$2" | tail -c "+$((10#$1 + 1))"
+	# 10# forces base 10, so leading zeros are not read as octal
+	head -c "$((10#$1 + 10#$2))" | tail -c "+$((10#$1 + 1))"
 }
 
 # ssh passes TERM to the remote, which needs a terminfo entry for it.

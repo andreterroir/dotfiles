@@ -181,10 +181,10 @@ Aliases and functions are command shortcuts rather than keys:
 | `v`, `vi` | `vim` |
 | `t` | `tmux attach` or `tmux new` |
 | `fd` | `fdfind`, where that is the packaged name |
-| `bytes` | bytes `[START, END)` of stdin, counting from 0, so `bytes 4 10` is bytes 4 to 9 |
+| `bytes` | bytes `[START, START+COUNT)` of stdin, counting from 0, so `bytes 4 6` is bytes 4 to 9 |
 
 `bytes` is a function rather than an alias: it checks the two numbers itself and
-answers a bad range with a usage line instead of `head`'s. It counts bytes
+answers a bad call with a usage line instead of `head`'s. It counts bytes
 across the whole stream, unlike `cut -b`, which restarts the range on every line.
 
 ## git
