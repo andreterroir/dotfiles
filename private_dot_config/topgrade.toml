@@ -2,7 +2,11 @@
 no_self_update = true
 disable = [
     "vim",
+    "mise",
 ]
 assume_yes = true
+
+[commands]
+"mise" = "mise plugins update && mise upgrade --yes"
 
 # vim: ft=toml
