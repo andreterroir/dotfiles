@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Keep Virtual-1 at 200% scale across SPICE dynamic display resizes.
+set -euo pipefail
+
+ensure_scale() {
+	local out
+	out="$(gdctl show 2>/dev/null)" || return 0
+	if grep -q 'Monitor Virtual-1 ' <<< "$out" &&
+	   ! grep -qE 'Scale: 2(\.0+)?$' <<< "$out"; then
+		gdctl set -L -M Virtual-1 -s 2 -p >/dev/null 2>&1 || true
+	fi
+}
+
+ensure_scale
+
+gdbus monitor --session \
+	--dest org.gnome.Mutter.DisplayConfig \
+	--object-path /org/gnome/Mutter/DisplayConfig |
+while IFS= read -r line; do
+	case "$line" in
+		*MonitorsChanged*)
+			ensure_scale
+			;;
+	esac
+done

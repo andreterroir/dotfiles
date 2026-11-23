@@ -18,6 +18,11 @@ install.sh
 # the SPICE guest session agent only exists in VMs
 .config/systemd/user/spice-vdagent.service.d
 {{ end -}}
+{{ if not (and $desktop .vm) -}}
+# lock Virtual-1 scale at 200% on desktop VMs
+.bin/vm-display-scale
+.config/systemd/user/vm-display-scale.service
+{{ end -}}
 {{ if $transient -}}
 # portable files only
 10-ssh-identity.sh

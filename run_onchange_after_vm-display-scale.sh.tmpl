@@ -1,0 +1,13 @@
+{{ if and (eq .chezmoi.os "linux") .desktop .vm (not .transient) -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+# Enable vm-display-scale; it starts with the next graphical session.
+set -euo pipefail
+
+if ! enable_output="$(systemctl --user enable vm-display-scale.service 2>&1)"; then
+	echo '>vm-display-scale: no systemd user manager; enable by hand in a session' >&2
+	exit 0
+fi
+# systemctl succeeds without enabling when the unit has no [Install] section.
+[ -z "$enable_output" ] || printf '%s\n' "$enable_output" >&2
+{{ end -}}
