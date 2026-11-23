@@ -62,26 +62,17 @@ reason, so the key is not reintroduced by accident.
 
 ## Workflow
 
-The default installation uses `~/code/dotfiles` as chezmoi's `sourceDir`.
-Initializing with `--source` pointing to a worktree persists that path
-instead. When the checkout is a linked worktree, use
-`chezmoi --source "$(git rev-parse --show-toplevel)"` to validate that
-worktree regardless of the configured source.
-
-0. Rebase onto main if the worktree branch is behind.
-1. Start from a clean chezmoi state. Run `chezmoi --source "$(git rev-parse --show-toplevel)" status` first.
+1. Start from a clean chezmoi state. Run `chezmoi status` first.
 2. Ignore pending scripts that always run (`run_*` without `once_` or
    `onchange_`), which appear on every status check. If any other changes
-   remain, inspect `chezmoi --source "$(git rev-parse --show-toplevel)" diff`
-   and ask the user how to proceed (apply, discard, or stash) before making
-   changes.
-3. Preview any change before applying with
-   `chezmoi --source "$(git rev-parse --show-toplevel)" diff` or
-   `chezmoi --source "$(git rev-parse --show-toplevel)" apply --dry-run`.
-4. Test templates with
-   `chezmoi --source "$(git rev-parse --show-toplevel)" execute-template < file.tmpl`.
-5. Apply with `chezmoi --source "$(git rev-parse --show-toplevel)" apply`
-   only once the user has confirmed.
+   remain, inspect `chezmoi diff` and ask the user how to proceed (apply,
+   discard, or stash) before making changes.
+3. Preview any change before applying with `chezmoi diff` or
+   `chezmoi apply --dry-run`.
+4. Test templates with `chezmoi execute-template < file.tmpl`.
+5. If the local machine is an intended target of the changes, apply with
+   `chezmoi apply` and test the applied result before presenting the work to
+   the user.
 
 Run validation before committing to catch template syntax errors and
 unintended changes. Do a fast forward only merge when asked to integrate the
@@ -105,9 +96,8 @@ gives the reason.
 ## Shipping
 
 Treat a request to ship (or to integrate into `main`) as confirmation to apply:
-fast-forward `main`, push, then apply from the main checkout and report what
-changed. Apply from the main checkout, not from a linked worktree, so symlinks
-keep pointing at `~/code/dotfiles`.
+fast-forward `main`, push, then apply (if not already applied) and report what
+changed.
 
 When pushing changes, if `gh` is authenticated as another account, switch to
 `andreterroir` (`gh auth switch --user andreterroir`) without asking, push,
