@@ -109,6 +109,10 @@ fast-forward `main`, push, then apply from the main checkout and report what
 changed. Apply from the main checkout, not from a linked worktree, so symlinks
 keep pointing at `~/code/dotfiles`.
 
+When pushing changes, if `gh` is authenticated as another account, switch to
+`andreterroir` (`gh auth switch --user andreterroir`) without asking, push,
+and switch back to the previous account afterwards.
+
 The full apply is for managed machines only. A transient environment never
 receives shipped changes that way: update its checkout and re-run
 `./install.sh`.
