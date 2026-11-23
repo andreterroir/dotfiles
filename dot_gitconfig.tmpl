@@ -38,8 +38,10 @@
 [credential "https://gist.github.com"]
 	helper =
 	helper = !gh auth git-credential
+{{- if not .work }}
 [credential "https://ampcode.com/"]
 	helper =
 	helper = !amp git-credential-helper
+{{- end }}
 [include]
 	path = ~/.gitconfig.local

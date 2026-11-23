@@ -15,7 +15,7 @@ apply with "run chezmoi init before apply or update", and no key has a switch.
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
 | `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, the `spice-vdagent` restart override, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
-| `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it deploys the Amp runner |
+| `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it installs Amp and deploys the Amp runner |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
 | `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up |
@@ -37,14 +37,15 @@ refused, and what an earlier apply left there stays.
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
 | desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
-| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; Amp runner, except on a `work` machine |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps (and Amp on a `work` machine) | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; Amp runner, except on a `work` machine |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh`, chezmoi, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, or a host that is not Linux | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, the agent instructions | none: no keys, no allowlist, no runner, no sudo, no packages |
 
-`work` changes the identity and the runner, and nothing else: the machine
-keeps its profile's installs, configuration, and services, creates its machine
-key, registers nothing with the personal GitHub account, and deploys no
-[Amp runner](#amp-runner). `slate-vm-work` is the only one today.
+`work` changes the identity and Amp: the machine keeps its profile's other
+installs, configuration, and services, creates its machine key, registers
+nothing with the personal GitHub account, and skips Amp (CLI, Desktop,
+settings, credential helper, and [Amp runner](#amp-runner)). `slate-vm-work` is
+the only one today.
 
 ## Portable set-up
 
@@ -147,7 +148,7 @@ validate-then-rename install as the VM rule.
 
 Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra, whose main
 repository is enough: do not enable `terra-release-extras`, `-mesa`, or
-`-multimedia`. Fedora desktops take Amp Desktop from Amp's own dnf
+`-multimedia`. Non-work Fedora desktops take Amp Desktop from Amp's own dnf
 repository, installing `amp-desktop` alongside the rest of the system.
 They also install the pinned official OpenCode
 Desktop RPM for their architecture, verified against OpenCode's published

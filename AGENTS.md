@@ -118,7 +118,7 @@ receives shipped changes that way: update its checkout and re-run
 The machines chezmoi manages. The Role column records the profile plus the VM
 class; `vm` comes from the `managedVMs` list, and `work` from the
 `workMachines` list, which decides the keys a machine registers with the
-personal GitHub account and whether it deploys the Amp runner. What a profile
+personal GitHub account and whether it installs Amp and deploys the Amp runner. What a profile
 provides is described in the
 [Provisioning model](.agents/docs/provisioning.md#profile-data).
 

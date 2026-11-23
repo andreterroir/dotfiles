@@ -42,8 +42,9 @@ allowed-signers.sh
 tmux-plugins.sh
 {{ end -}}
 {{ if .work -}}
-# a work machine runs no Amp runner
+# a work machine installs no Amp and runs no Amp runner
 amp-runner.sh
+.config/amp
 .config/systemd/user/amp-runner.service
 {{ end -}}
 {{ if not $desktop -}}

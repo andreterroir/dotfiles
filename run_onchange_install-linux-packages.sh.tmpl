@@ -33,15 +33,17 @@ sudo dnf install -y \
 	wget2-wget
 
 {{ if .desktop -}}
+{{ if not .work -}}
 # Amp's own dnf repository; amp-desktop updates with the rest of the system.
 sudo curl --fail --location --show-error \
 	--output /etc/yum.repos.d/amp.repo \
 	https://static.ampcode.com/linux/amp.repo
 
+{{ end -}}
 sudo dnf install -y \
 	ImageMagick \
-	amp-desktop \
-	ghostty \
+{{ if not .work }}	amp-desktop \
+{{ end }}	ghostty \
 	gnome-extensions-app \
 	gnome-shell-extension-appindicator \
 	gnome-shell-extension-ddterm \
@@ -164,7 +166,7 @@ mkdir -p "$HOME/.local/bin"
 ln -sfn "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"
 
 {{   end -}}
-{{   if or (eq .distro "fedora") (and (eq .distro "ubuntu") .devserver) -}}
+{{   if and (not .work) (or (eq .distro "fedora") (and (eq .distro "ubuntu") .devserver)) -}}
 if [ ! -x "$HOME/.local/bin/amp" ]; then
 	echo '>installing amp'
 	curl -fsSL https://ampcode.com/install.sh | bash
