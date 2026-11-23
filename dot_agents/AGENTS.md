@@ -34,6 +34,13 @@ execute via `pkexec` rather than handing the user a command to run, since
 approving the polkit dialog is the privilege approval.
 Bundle multi-step work into one script so they approve a single dialog.
 
+## Interactive Commands
+
+Commands that require interactive user input cannot be answered in an agent
+shell. When a command needs user input, give the user a heads up on what it
+will do, wait for their go-ahead, then run it in a pop-up `ptyxis` terminal
+window. Wait for the command to complete and analyze the results.
+
 ## Git Signing
 
 All commits use the machine-local SSH key by default, including interactive
