@@ -1,0 +1,18 @@
+{{ if and (eq .chezmoi.os "linux") (eq .distro "fedora") (not .transient) -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+# The packaged default only downloads updates; this override installs them.
+config="$(mktemp)"
+trap 'rm -f "$config"' EXIT
+cat > "$config" <<'EOF'
+[commands]
+apply_updates = yes
+EOF
+
+sudo install -o root -g root -m 0644 "$config" /etc/dnf/automatic.conf
+# Registering the timer starts it at the next daemon-reload or boot; a
+# running machine needs a separate start.
+sudo systemctl enable dnf5-automatic.timer
+{{ end -}}
