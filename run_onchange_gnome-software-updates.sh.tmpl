@@ -1,0 +1,19 @@
+{{ if and (eq .chezmoi.os "linux") .desktop (not .transient) -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+# dnf5-automatic owns package updates, so GNOME Software must not also
+# download them and stage offline updates for the next reboot. A system
+# dconf default needs no user session; a user's own explicit setting wins.
+keyfile="$(mktemp)"
+trap 'rm -f "$keyfile"' EXIT
+cat > "$keyfile" <<'EOF'
+[org/gnome/software]
+download-updates=false
+EOF
+
+sudo install -o root -g root -m 0644 "$keyfile" \
+	/etc/dconf/db/local.d/00-gnome-software-updates
+sudo dconf update
+{{ end -}}
