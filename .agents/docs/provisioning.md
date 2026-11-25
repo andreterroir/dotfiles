@@ -14,7 +14,7 @@ apply with "run chezmoi init before apply or update", and no key has a switch.
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, the `spice-vdagent` restart override, the `vm-display-scale` 200% scale watcher, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, the `spice-vdagent` restart override, the `vm-display-scale` watcher, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
 | `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it installs Amp and deploys the Amp runner |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
@@ -201,7 +201,8 @@ Dynamic SPICE display resizes also reset GNOME's per-mode scale in
 `~/.config/monitors.xml` when a new resolution appears on `Virtual-1`. Desktop
 VMs therefore get `~/.bin/vm-display-scale` and `vm-display-scale.service`,
 which listens for `org.gnome.Mutter.DisplayConfig` `MonitorsChanged` signals
-and snaps `Virtual-1` back to 200% via `gdctl` whenever its scale drifts.
+and sets `Virtual-1` via `gdctl` to 200% for modes taller than 1440px (e.g.
+MacBook Retina or 4K) and 100% otherwise (e.g. 1440p and below).
 
 ## GNOME Shell extensions
 

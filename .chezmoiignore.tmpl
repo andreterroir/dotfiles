@@ -19,7 +19,7 @@ install.sh
 .config/systemd/user/spice-vdagent.service.d
 {{ end -}}
 {{ if not (and $desktop .vm) -}}
-# lock Virtual-1 scale at 200% on desktop VMs
+# manage Virtual-1 scale across SPICE resizes on desktop VMs
 .bin/vm-display-scale
 .config/systemd/user/vm-display-scale.service
 {{ end -}}

@@ -1,5 +1,5 @@
 [Unit]
-Description=Keep Virtual-1 display scale at 200%
+Description=Scale Virtual-1 display by resolution
 PartOf=graphical-session.target
 After=graphical-session.target
 

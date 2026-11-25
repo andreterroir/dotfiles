@@ -1,14 +1,36 @@
 #!/usr/bin/env bash
 # vi: set ft=bash
-# Keep Virtual-1 at 200% scale across SPICE dynamic display resizes.
+# Scale Virtual-1 by resolution across SPICE dynamic display resizes:
+# 200% on high-resolution displays (>1440p, e.g. MacBook Retina), 100% otherwise.
 set -euo pipefail
 
 ensure_scale() {
-	local out
+	local out mode height target
 	out="$(gdctl show 2>/dev/null)" || return 0
-	if grep -q 'Monitor Virtual-1 ' <<< "$out" &&
-	   ! grep -qE 'Scale: 2(\.0+)?$' <<< "$out"; then
-		gdctl set -L -M Virtual-1 -s 2 -p >/dev/null 2>&1 || true
+	grep -q 'Monitor Virtual-1 ' <<< "$out" || return 0
+
+	mode="$(awk '
+		/──Monitor Virtual-1 / { in_mon = 1; next }
+		in_mon && /──Monitor / { in_mon = 0 }
+		in_mon && /Current mode/ { want_mode = 1; next }
+		want_mode {
+			if (match($0, /[0-9]+x[0-9]+/)) {
+				print substr($0, RSTART, RLENGTH)
+			}
+			exit
+		}
+	' <<< "$out")"
+	[[ "$mode" =~ ^[0-9]+x([0-9]+)$ ]] || return 0
+	height="${BASH_REMATCH[1]}"
+
+	if (( height > 1440 )); then
+		target=2
+	else
+		target=1
+	fi
+
+	if ! grep -qE "Scale: ${target}(\.0+)?$" <<< "$out"; then
+		gdctl set -L -M Virtual-1 -s "$target" -p >/dev/null 2>&1 || true
 	fi
 }
 
