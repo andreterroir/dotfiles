@@ -83,6 +83,13 @@ instructions (e.g., repo-level `AGENTS.md` or `CONTRIBUTING.md`):
 - Wrap the body at 72 characters.
 - Use the body to explain what and why, not how.
 
+## Pushing Changes
+
+Before pushing to a remote with the `andreterroir` `gh` identity, verify that
+the commits being published use a matching author and committer identity
+(agent identities are allowed). If any commit uses a different identity, stop
+and ask the user before pushing.
+
 ## Pull Requests
 
 When asked to create a new pull request make sure it has the correct base
