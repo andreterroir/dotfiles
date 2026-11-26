@@ -36,9 +36,9 @@ refused, and what an earlier apply left there stays.
 
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
-| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Table Habit, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, unattended dnf updates, GNOME Software update downloads off, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
+| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, OpenCode Desktop, ChatGPT Desktop (Codex); Flathub Signal, Table Habit, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with claude-code, codex, zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, unattended dnf updates, GNOME Software update downloads off, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
 | desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps (and Amp on a `work` machine) | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; `vm-display-scale` service; Amp runner, except on a `work` machine |
-| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh`, chezmoi, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
+| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh`, chezmoi, mise with claude-code, codex, zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, or a host that is not Linux | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, the agent instructions | none: no keys, no allowlist, no runner, no sudo, no packages |
 
 `work` changes the identity and Amp: the machine keeps its profile's other
@@ -150,9 +150,12 @@ Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra, whose main
 repository is enough: do not enable `terra-release-extras`, `-mesa`, or
 `-multimedia`. Non-work Fedora desktops take Amp Desktop from Amp's own dnf
 repository, installing `amp-desktop` alongside the rest of the system.
-They also install the pinned official OpenCode
+Fedora desktops also install the pinned official OpenCode
 Desktop RPM for their architecture, verified against OpenCode's published
-SHA-256 checksum. Ubuntu takes
+SHA-256 checksum, and bootstrap OpenAI's official ChatGPT Desktop RPM (which
+includes Codex and registers OpenAI's signed dnf repository for subsequent
+updates). Claude Code and Codex CLIs come from `mise` on both Fedora and
+Ubuntu so `topgrade` updates them across every managed machine. Ubuntu takes
 mise from mise's own apt repository, and `gh` from GitHub's, because Ubuntu's
 package is stale. Chezmoi's installer writes its binary into `~/.local/bin`;
 opencode's installer cannot change `PATH`, so the script links its binary there
