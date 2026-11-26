@@ -167,9 +167,8 @@ targets default to. There is no zsh configuration in this repository.
 | `M-c` | fzf: change directory |
 | `**<Tab>` | fzf: completion trigger |
 
-The fzf keys come from `fzf --bash`, or from the packaged scripts on older
-packages; `dot_bashrc` sources them, then moves the file widget from `C-t`
-to `M-s` and restores `transpose-chars` on `C-t`.
+The fzf keys come from `fzf --bash`; `dot_bashrc` loads them, then moves the
+file widget from `C-t` to `M-s` and restores `transpose-chars` on `C-t`.
 
 Aliases and functions are command shortcuts rather than keys:
 
@@ -182,7 +181,6 @@ Aliases and functions are command shortcuts rather than keys:
 | `python` | `python3` |
 | `v`, `vi` | `vim` |
 | `t` | `tmux attach` or `tmux new` |
-| `fd` | `fdfind`, where that is the packaged name |
 | `bytes` | bytes `[START, START+COUNT)` of stdin, counting from 0, so `bytes 4 6` is bytes 4 to 9 |
 
 `bytes` is a function rather than an alias: it checks the two numbers itself and

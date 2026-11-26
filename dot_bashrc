@@ -12,9 +12,6 @@ alias python='python3'
 alias v='vim'
 alias vi='vim'
 alias t='tmux attach || tmux new'
-if ! command -v fd > /dev/null && command -v fdfind > /dev/null ; then
-	alias fd='fdfind'
-fi
 
 # Bytes [START, START+COUNT) of stdin, counting from 0: `bytes 4 6` is bytes 4 to 9.
 # A function rather than an alias because it guards the arguments.
@@ -44,11 +41,7 @@ printf '\e[1 q'
 
 # Git prompt; the escapes print literally under sh and dash, so gate on bash.
 if [ -n "${BASH_VERSION:-}" ]; then
-	if [ -f /usr/lib/git-core/git-sh-prompt ]; then
-		# Ubuntu
-		source /usr/lib/git-core/git-sh-prompt
-	elif [ -f /usr/share/git-core/contrib/completion/git-prompt.sh ]; then
-		# Fedora
+	if [ -f /usr/share/git-core/contrib/completion/git-prompt.sh ]; then
 		source /usr/share/git-core/contrib/completion/git-prompt.sh
 	fi
 	# Keep the prompt plain rather than erroring when no helper was found
@@ -77,37 +70,9 @@ command -v rustup > /dev/null && source <(rustup completions bash rustup)
 # shellcheck source=/dev/null
 command -v amp > /dev/null && source <(amp completions bash)
 
-# fzf key bindings (Alt-S, Ctrl-R, Alt-C) and ** completion. `fzf --bash`
-# embeds both from 0.48; older packages ship the scripts separately.
+# fzf key bindings (Alt-S, Ctrl-R, Alt-C) and ** completion.
 if command -v fzf > /dev/null; then
-	_fzf_bash="$(fzf --bash 2>/dev/null)" || true
-	if [ -n "$_fzf_bash" ]; then
-		eval "$_fzf_bash"
-	else
-		for _fzf_bindings in \
-			/usr/share/fzf/shell/key-bindings.bash \
-			/usr/share/doc/fzf/examples/key-bindings.bash
-		do
-			if [ -r "$_fzf_bindings" ]; then
-				# shellcheck source=/dev/null
-				source "$_fzf_bindings"
-				break
-			fi
-		done
-		unset _fzf_bindings
-		for _fzf_completion in \
-			/usr/share/doc/fzf/examples/completion.bash \
-			/usr/share/bash-completion/completions/fzf
-		do
-			if [ -r "$_fzf_completion" ]; then
-				# shellcheck source=/dev/null
-				source "$_fzf_completion"
-				break
-			fi
-		done
-		unset _fzf_completion
-	fi
-	unset _fzf_bash
+	eval "$(fzf --bash)"
 	# Move the fzf path widget to `M-s`: `C-t` is readline's
 	# transpose-chars, which fzf's bindings would otherwise steal.
 	for _fzf_map in emacs-standard vi-command vi-insert; do
