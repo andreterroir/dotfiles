@@ -1,21 +1,21 @@
-{{- $asset := ternary "assets/firefox-policies-vm.json" "assets/firefox-policies.json" .vm -}}
 {{ if eq .chezmoi.os "linux" -}}
 {{   if and (eq .distro "fedora") .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
-# A system policy survives Firefox RPM updates, because no RPM owns it.
-# {{ include $asset | sha256sum }}
+# A system policy overrides Fedora's packaged homepage default and survives
+# updates, because no RPM owns it.
+# {{ include "assets/firefox-policies.json" | sha256sum }}
 set -euo pipefail
 
 policy=/etc/firefox/policies/policies.json
-source_file="$CHEZMOI_SOURCE_DIR/{{ $asset }}"
+source_file="$CHEZMOI_SOURCE_DIR/assets/firefox-policies.json"
 
 if [ -r "$policy" ] && cmp -s "$source_file" "$policy"; then
-	echo '>firefox policy already installed'
+	echo '>firefox homepage policy already installed'
 	exit 0
 fi
 
 sudo install -D -m 0644 "$source_file" "$policy"
-echo '>firefox policy installed'
+echo '>firefox homepage policy installed'
 {{   end -}}
 {{ end -}}

@@ -14,7 +14,7 @@ apply with "run chezmoi init before apply or update", and no key has a switch.
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, Firefox's software-rendering policy, the `spice-vdagent` restart override, the `vm-display-scale` watcher, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, the `spice-vdagent` restart override, the `vm-display-scale` watcher, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
 | `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it installs Amp and deploys the Amp runner |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
@@ -36,8 +36,8 @@ refused, and what an earlier apply left there stays.
 
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
-| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Table Habit, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox policy, unattended dnf updates, GNOME Software update downloads off, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
-| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps (and Amp on a `work` machine) | the desktop configuration, with Firefox software rendering and minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; `vm-display-scale` service; Amp runner, except on a `work` machine |
+| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Table Habit, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, unattended dnf updates, GNOME Software update downloads off, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps (and Amp on a `work` machine) | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; `vm-display-scale` service; Amp runner, except on a `work` machine |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh`, chezmoi, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, or a host that is not Linux | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, the agent instructions | none: no keys, no allowlist, no runner, no sudo, no packages |
 
@@ -163,15 +163,10 @@ Ghostty package omits bundled themes. Fedora desktops skip Spotify on ARM,
 where its Flathub package is x86_64-only.
 
 Fedora ships `start.fedoraproject.org` as the homepage default that every
-Firefox update restores, so `run_onchange_firefox-policy.sh.tmpl` installs
-`about:home` as a system policy in `/etc/firefox/policies/policies.json`. On
-Fedora desktop VMs, the same policy also sets default preferences that switch
-Firefox to Software WebRender (`gfx.webrender.software`), disable Wayland
-DMABUF (`widget.dmabuf.enabled`), WebGL (`webgl.disabled`), and hardware video
-decoding (`media.hardware-video-decoding.enabled`): Firefox does not blocklist
-`virgl`, and its GL, DMABUF, and WebGL paths through QEMU's synchronous
-`virglrenderer` can deadlock the whole VM. No RPM owns `policies.json`, so
-updates leave it alone, and the settings stay unlocked.
+Firefox update restores, so `run_onchange_firefox-homepage-policy.sh.tmpl`
+installs `about:home` as a system policy in `/etc/firefox/policies/policies.json`.
+No RPM owns that file, so updates leave it alone, and the setting stays
+unlocked.
 
 `dnf5-plugin-automatic` joins the Fedora base set, and
 `run_onchange_after_dnf-automatic.sh.tmpl` writes `/etc/dnf/automatic.conf` with
