@@ -13,12 +13,11 @@ apply with "run chezmoi init before apply or update", and no key has a switch.
 
 | Key | Chosen by | Selects |
 | --- | --- | --- |
-| `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
 | `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, the `spice-vdagent` restart override, the `vm-display-scale` watcher, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
 | `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it installs Amp and deploys the Amp runner |
-| `desktop` | `gnome-shell` on `PATH` | the desktop set-up |
-| `devserver` | the `greenhouse` hostname | the dev-server set-up |
-| `transient` | a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up |
+| `desktop` | a managed Fedora host with `gnome-shell` on `PATH` | the desktop set-up |
+| `devserver` | a managed Fedora host without `gnome-shell` on `PATH` | the dev-server set-up |
+| `transient` | a non-Fedora host, a container, an Amp orb, or a hostname outside `managedHosts` | the portable set-up |
 
 One derivation writes the three profile flags, so they exclude each other.
 Virtualization is not detected: `vm` names the managed VMs, so an unlisted VM
@@ -36,10 +35,10 @@ refused, and what an earlier apply left there stays.
 
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
-| desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, OpenCode Desktop, ChatGPT Desktop (Codex); Flathub Signal, Table Habit, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with claude-code, codex, zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, unattended dnf updates, GNOME Software update downloads off, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
+| desktop | a managed Fedora host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`, OpenCode Desktop, ChatGPT Desktop (Codex); Flathub Signal, Table Habit, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with claude-code, zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, unattended dnf updates, GNOME Software update downloads off, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
 | desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps (and Amp on a `work` machine) | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; `vm-display-scale` service; Amp runner, except on a `work` machine |
-| devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh`, chezmoi, mise with claude-code, codex, zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
-| portable | a container, an Amp orb, a hostname outside `managedHosts`, or a host that is not Linux | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, the agent instructions | none: no keys, no allowlist, no runner, no sudo, no packages |
+| devserver | a managed Fedora host without `gnome-shell` on `PATH` | the Fedora base CLI set, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade, mise with claude-code, zig and exercism, unattended dnf updates | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
+| portable | a non-Fedora host, a container, an Amp orb, or a hostname outside `managedHosts` | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, the agent instructions | none: no keys, no allowlist, no runner, no sudo, no packages |
 
 `work` changes the identity and Amp: the machine keeps its profile's other
 installs, configuration, and services, creates its machine key, registers
@@ -146,21 +145,16 @@ validate-then-rename install as the VM rule.
 
 ## Packages and sources
 
-Fedora takes Ghostty, mise, opencode-cli, and topgrade from Terra, whose main
-repository is enough: do not enable `terra-release-extras`, `-mesa`, or
+Fedora takes codex, Ghostty, mise, opencode-cli, and topgrade from Terra, whose
+main repository is enough: do not enable `terra-release-extras`, `-mesa`, or
 `-multimedia`. Non-work Fedora desktops take Amp Desktop from Amp's own dnf
 repository, installing `amp-desktop` alongside the rest of the system.
 Fedora desktops also install the pinned official OpenCode
 Desktop RPM for their architecture, verified against OpenCode's published
 SHA-256 checksum, and bootstrap OpenAI's official ChatGPT Desktop RPM (which
 includes Codex and registers OpenAI's signed dnf repository for subsequent
-updates). Claude Code and Codex CLIs come from `mise` on both Fedora and
-Ubuntu so `topgrade` updates them across every managed machine. Ubuntu takes
-mise from mise's own apt repository, and `gh` from GitHub's, because Ubuntu's
-package is stale. Chezmoi's installer writes its binary into `~/.local/bin`;
-opencode's installer cannot change `PATH`, so the script links its binary there
-too. Ubuntu's `fd-find` package provides
-`fdfind`, so the script links that name as `fd`. Chezmoi downloads the two
+updates). Claude Code comes from `mise` so `topgrade` updates it alongside the
+pinned runtimes and tools. Chezmoi downloads the two
 configured Ghostty themes from a pinned upstream revision, because Terra's
 Ghostty package omits bundled themes. Fedora desktops skip Spotify on ARM,
 where its Flathub package is x86_64-only.

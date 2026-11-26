@@ -7,11 +7,10 @@ Prerequisites
 - curl
 - git
 
-This repository provisions Fedora desktops, their VMs, and one headless Ubuntu
-dev server. Containers, Amp orbs, and unlisted hosts get a portable set-up with
-no packages and no identity, and a host that is not Linux gets those same
-portable files. See the [Provisioning model](.agents/docs/provisioning.md) for
-the exact scope.
+This repository provisions Fedora desktops, their VMs, and headless Fedora dev
+servers. Containers, Amp orbs, unlisted hosts, and non-Fedora hosts get a
+portable set-up with no packages and no identity. See the
+[Provisioning model](.agents/docs/provisioning.md) for the exact scope.
 
 Install
 -------

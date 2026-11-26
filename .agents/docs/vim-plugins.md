@@ -36,9 +36,7 @@ keeps its last commit.
 
 Upgrade in a throwaway `HOME` so the applied configuration stays at the old
 pins until the new snapshot is committed and applied. The fleet runs Vim 9 from
-Fedora or Ubuntu, well above every plugin's minimum; Ubuntu's `vim` is a
-`-clipboard` build, so the clipboard maps in [Shortcuts](shortcuts.md) do not
-exist there.
+Fedora, well above every plugin's minimum.
 
     export H=/tmp/vim-upgrade
     rm -rf "$H" && mkdir -p "$H/.vim"
@@ -91,9 +89,7 @@ APIs, so breakage shows up here rather than in startup:
 | fzf.vim | `:Files`, `:Rg`, `:Maps`, `:History`, `:Helptags` |
 | vim-fugitive | `:Git add`, `:Git restore`, `:Git blame`, `:Gdiffsplit` |
 
-fzf.vim requires fzf 0.63 or newer. Fedora and Ubuntu 26.04 ship a newer
-release; on Ubuntu 24.04, whose package is 0.44, the first picker offers to
-download a binary into the plugin directory instead.
+fzf.vim requires fzf 0.63 or newer, which Fedora ships.
 
 `:Files` runs `$FZF_DEFAULT_COMMAND` when it is set. `dot_vimrc` points it at
 `git ls-files`, because fzf's own walker lists ignored files. The picker

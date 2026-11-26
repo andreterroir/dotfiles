@@ -1,5 +1,4 @@
-{{ if eq .chezmoi.os "linux" -}}
-{{   if and (eq .distro "fedora") .desktop -}}
+{{ if .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail
@@ -53,5 +52,4 @@ chords add "$wm" toggle-fullscreen '<Control><Super>f'
 # ddterm's F12 default is a system-wide grab, and browsers use F12 for DevTools.
 # The toggle replaces ddterm's default instead of adding to it.
 gsettings set org.gnome.shell.extensions.ddterm ddterm-toggle-hotkey "['<Super>backslash']"
-{{   end -}}
 {{ end -}}

@@ -8,7 +8,6 @@ managedHosts = [
     "black",
     "slate-vm-work",
     "slate-vm-personal",
-    "greenhouse",
 ]
 managedVMs = [
     "slate-vm-work",

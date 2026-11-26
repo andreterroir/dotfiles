@@ -1,4 +1,4 @@
-{{ if and (eq .chezmoi.os "linux") .desktop (not .transient) -}}
+{{ if .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail

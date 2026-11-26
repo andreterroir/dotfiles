@@ -36,7 +36,7 @@ there.
 - `private_*`        → target with restricted (`0700`) permissions
 - `*.tmpl`           → chezmoi templates; use `{{ }}` and gate on the
                        profile data (`desktop` | `devserver` | `transient`,
-                       exclusive, plus `distro`, `vm`, and `work`)
+                       exclusive, plus `vm` and `work`)
 - `run_onchange_*`   → scripts re-run when their checksum changes; the script
                        name sorts the run order, which is why the identity
                        script's `10-` prefix puts it before the allowlist
@@ -122,7 +122,6 @@ provides is described in the
 | black | Fedora Linux | desktop | the desktop workstation |
 | slate-vm-work | Fedora Linux | desktop, vm | the managed work VM; `work`, so it registers no keys with the personal GitHub account |
 | slate-vm-personal | Fedora Linux | desktop, vm | the personal desktop VM |
-| greenhouse | Ubuntu Linux | devserver | headless; the only dev server |
 
 Hostnames are compared lowercase, with a `.local` suffix stripped. Fedora
 desktops upgrade in place between releases; see
@@ -133,16 +132,15 @@ desktops upgrade in place between releases; see
 - This is a public GitHub repository: no change may include private information
   that cannot be freely disclosed. Raise a concern before publishing anything
   that might be sensitive.
-- The set-ups are Linux-only. A non-Linux host is not refused, but it gets the
-  portable files, nothing is installed, and what an earlier apply left there
-  stays.
+- The set-ups are Fedora-only. A non-Fedora host is not refused, but it gets
+  the portable files, nothing is installed, and what an earlier apply left
+  there stays.
 - Deploy a tool's configuration only where a package script installs the
-  tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same OS,
-  distro and role data. A gated target is left unmanaged where an earlier
-  apply wrote it, not removed.
+  tool: gate it in `.chezmoiignore.tmpl` (or the template) on the same role
+  data. A gated target is left unmanaged where an earlier apply wrote it, not
+  removed.
 - Gate tooling on profile data, not hostnames; `vm` and `work` are independent
-  of the profile. The only hostname gate is the `greenhouse` dev-server
-  selection. See [Provisioning model](.agents/docs/provisioning.md) for
+  of the profile. See [Provisioning model](.agents/docs/provisioning.md) for
   detection, authentication, and sudo policy; see
   [Commit signing](.agents/docs/signing.md) for signing and agents.
 - GitHub access is `gh` over HTTPS on every machine, and an apply registers a
@@ -150,8 +148,6 @@ desktops upgrade in place between releases; see
   authentication is a convention, as with x1's key, not something the set-up
   maintains. Preserve explicit repository signing overrides without silent
   fallback.
-- Gate on the persisted `distro` key (`fedora`, `ubuntu`), not on
-  `.chezmoi.osRelease`.
 - In `run_*` scripts, use `$CHEZMOI_SOURCE_DIR` (set by chezmoi when
   running scripts) rather than `chezmoi source-path`: a nested
   `chezmoi` invocation deadlocks on the parent `chezmoi apply`'s

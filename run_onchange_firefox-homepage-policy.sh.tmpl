@@ -1,5 +1,4 @@
-{{ if eq .chezmoi.os "linux" -}}
-{{   if and (eq .distro "fedora") .desktop -}}
+{{ if .desktop -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # A system policy overrides Fedora's packaged homepage default and survives
@@ -17,5 +16,4 @@ fi
 
 sudo install -D -m 0644 "$source_file" "$policy"
 echo '>firefox homepage policy installed'
-{{   end -}}
 {{ end -}}

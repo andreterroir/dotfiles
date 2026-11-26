@@ -9,19 +9,16 @@ license
 readme.md
 plug-snapshot.vim
 install.sh
-{{ if not (and (eq .distro "fedora") $desktop .vm) -}}
-# Ghostty's software-GL shims are for Fedora desktop VMs
+{{ if not (and $desktop .vm) -}}
+# Ghostty's software-GL shims and Virtual-1 scale watcher are for desktop VMs
 .config/systemd/user/app-com.mitchellh.ghostty.service.d
 .bin/ghostty
+.bin/vm-display-scale
+.config/systemd/user/vm-display-scale.service
 {{ end -}}
 {{ if not .vm -}}
 # the SPICE guest session agent only exists in VMs
 .config/systemd/user/spice-vdagent.service.d
-{{ end -}}
-{{ if not (and $desktop .vm) -}}
-# manage Virtual-1 scale across SPICE resizes on desktop VMs
-.bin/vm-display-scale
-.config/systemd/user/vm-display-scale.service
 {{ end -}}
 {{ if $transient -}}
 # portable files only
@@ -53,12 +50,10 @@ amp-runner.sh
 .config/systemd/user/amp-runner.service
 {{ end -}}
 {{ if not $desktop -}}
-# the swap script needs GNOME
+# desktop-only configuration
 .bin/swap_ctrl_caps
-{{ end -}}
-{{ if not (and (eq .distro "fedora") $desktop (not .vm)) -}}
-.config/autostart/syncthing-start.desktop
-{{ end -}}
-{{ if not (and (eq .distro "fedora") $desktop) -}}
 .config/ghostty
+{{ end -}}
+{{ if not (and $desktop (not .vm)) -}}
+.config/autostart/syncthing-start.desktop
 {{ end -}}

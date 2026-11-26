@@ -1,11 +1,7 @@
 [tools]
 claude-code = "latest"
-codex = "latest"
 zig = "0.16.0"
 "github:exercism/cli" = "3.5.8"
-{{ if and .devserver (eq .distro "ubuntu") -}}
-"github:topgrade-rs/topgrade" = "17.12.2"
-{{ end -}}
 {{ if .desktop -}}
 rust = "stable"
 {{ end -}}

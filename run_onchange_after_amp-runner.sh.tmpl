@@ -1,4 +1,3 @@
-{{ if eq .chezmoi.os "linux" -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 # Enable the Amp runner; it starts with the next boot or login.
@@ -20,4 +19,3 @@ if ! enable_output="$(systemctl --user enable amp-runner.service 2>&1)"; then
 fi
 # systemctl succeeds without enabling when the unit has no [Install] section.
 [ -z "$enable_output" ] || printf '%s\n' "$enable_output" >&2
-{{ end -}}

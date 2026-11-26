@@ -1,10 +1,10 @@
-{{ if and (eq .chezmoi.os "linux") (not .transient) -}}
-{{   if eq .distro "fedora" -}}
+{{ if not .transient -}}
 #!/usr/bin/env bash
 # vi: set ft=bash
 set -euo pipefail
 
-# Terra: Ghostty's documented install path, which also carries mise and topgrade
+# Terra: Ghostty's documented install path, which also carries codex, mise,
+# opencode-cli, and topgrade
 if ! rpm -q terra-release >/dev/null; then
 	sudo dnf install -y --nogpgcheck \
 		--repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" \
@@ -15,6 +15,7 @@ sudo dnf install -y \
 	ShellCheck \
 	bash-completion \
 	chezmoi \
+	codex \
 	dnf5-plugin-automatic \
 	fd-find \
 	fzf \
@@ -51,7 +52,7 @@ sudo dnf install -y \
 	gnome-shell-extension-launch-new-instance \
 	gnome-shell-extension-windowsNavigator \
 	gnome-tweaks \
-{{ if and .desktop (not .vm) }}	keepassxc \
+{{ if not .vm }}	keepassxc \
 {{ end }}	make \
 	meld \
 	powertop \
@@ -102,86 +103,11 @@ flatpak install --system --assumeyes flathub \
 	org.zotero.Zotero
 {{ end -}}
 
-{{   end -}}
-{{   else if and (eq .distro "ubuntu") .devserver -}}
-#!/usr/bin/env bash
-# vi: set ft=bash
-# Headless Ubuntu only.
-set -euo pipefail
-
-# mise's own apt repo; an ASCII-armored .asc keyring needs no gpg --dearmor.
-if ! command -v mise > /dev/null; then
-	sudo mkdir -p -m 755 /etc/apt/keyrings
-	curl -fsSL https://mise.jdx.dev/gpg-key.pub \
-		| sudo tee /etc/apt/keyrings/mise-archive-keyring.asc > /dev/null
-	sudo chmod go+r /etc/apt/keyrings/mise-archive-keyring.asc
-	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mise-archive-keyring.asc] https://mise.jdx.dev/deb stable main" \
-		| sudo tee /etc/apt/sources.list.d/mise.list > /dev/null
-fi
-
-sudo apt-get update
-sudo apt-get install -y \
-	bash-completion \
-	ca-certificates \
-	curl \
-	fd-find \
-	fzf \
-	git \
-	git-lfs \
-	golang-go \
-	jq \
-	mise \
-	ncurses-term \
-	ripgrep \
-	shellcheck \
-	tmux \
-	tree \
-	vim \
-	wget \
-	xz-utils
-
-# Fedora's fd-find package provides `fd`; Ubuntu's provides `fdfind`.
-if [ ! -e "$HOME/.local/bin/fd" ]; then
-	mkdir -p "$HOME/.local/bin"
-	ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
-fi
-
-# GitHub's own CLI repo; a snap or a stale Ubuntu package must not satisfy this.
-if ! dpkg-query -W -f '${Maintainer}' gh 2>/dev/null | grep -qx 'GitHub'; then
-	sudo mkdir -p -m 755 /etc/apt/keyrings
-	keyring="$(mktemp)"
-	wget -qO "$keyring" https://cli.github.com/packages/githubcli-archive-keyring.gpg
-	sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg < "$keyring" > /dev/null
-	rm -f "$keyring"
-	sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-	if [ ! -f /etc/apt/sources.list.d/github-cli.list ]; then
-		echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-			| sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-	fi
-	sudo apt-get update
-	sudo apt-get install -y gh
-fi
-
-# chezmoi's documented binary install; apt has no package for it.
-if ! command -v chezmoi > /dev/null; then
-	sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
-fi
-
-{{   end -}}
-{{   if and (eq .distro "ubuntu") .devserver -}}
-# --no-modify-path skips the installer's PATH edit; link into ~/.local/bin.
-if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
-	echo '>installing opencode'
-	curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
-fi
-mkdir -p "$HOME/.local/bin"
-ln -sfn "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"
-
-{{   end -}}
-{{   if and (not .work) (or (eq .distro "fedora") (and (eq .distro "ubuntu") .devserver)) -}}
+{{ end -}}
+{{ if not .work -}}
 if [ ! -x "$HOME/.local/bin/amp" ]; then
 	echo '>installing amp'
 	curl -fsSL https://ampcode.com/install.sh | bash
 fi
-{{   end -}}
+{{ end -}}
 {{ end -}}

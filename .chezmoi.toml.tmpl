@@ -1,14 +1,12 @@
 {{- $vm := false -}}
 {{- $work := false -}}
 {{- $container := false -}}
+{{- $fedora := false -}}
 {{- if eq .chezmoi.os "linux" -}}
     {{- $container = eq (output "sh" "-c" "systemd-detect-virt --container --quiet 2>/dev/null && echo true || true" | trim) "true" -}}
+    {{- $fedora = eq (get .chezmoi.osRelease "id") "fedora" -}}
 {{- end -}}
 {{- $desktop := ne (lookPath "gnome-shell") "" -}}
-{{- $distro := "" -}}
-{{- if eq .chezmoi.os "linux" -}}
-    {{- $distro = .chezmoi.osRelease.id -}}
-{{- end -}}
 {{- $host := lower (trimSuffix ".local" .chezmoi.hostname) -}}
 {{- $known := false -}}
 {{- if stat (joinPath .chezmoi.sourceDir ".chezmoidata.toml") -}}
@@ -23,13 +21,13 @@
         {{- $work = has $host $data.workMachines -}}
     {{- end -}}
 {{- end -}}
-{{- $transient := or $container (ne (env "AMP_ORB") "") (not $known) -}}
+{{- $transient := or (not $fedora) $container (ne (env "AMP_ORB") "") (not $known) -}}
 {{- $profile := "transient" -}}
 {{- if not $transient -}}
-    {{- if eq $host "greenhouse" -}}
-        {{- $profile = "devserver" -}}
-    {{- else if $desktop -}}
+    {{- if $desktop -}}
         {{- $profile = "desktop" -}}
+    {{- else -}}
+        {{- $profile = "devserver" -}}
     {{- end -}}
 {{- end -}}
 sourceDir = "{{ .chezmoi.sourceDir }}"
@@ -40,7 +38,6 @@ sourceDir = "{{ .chezmoi.sourceDir }}"
     command = "vim"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}", "{{ "{{ .Target }}" }}"]
 [data]
-    distro = "{{ $distro }}"
     vm = {{ $vm }}
     work = {{ $work }}
     desktop = {{ eq $profile "desktop" }}
