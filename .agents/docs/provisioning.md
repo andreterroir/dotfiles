@@ -14,7 +14,7 @@ apply with "run chezmoi init before apply or update", and no key has a switch.
 | Key | Chosen by | Selects |
 | --- | --- | --- |
 | `distro` | `.chezmoi.osRelease.id`; empty off Linux | the distro-specific package sets and gates |
-| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, GNOME animations disabled, the `spice-vdagent` restart override, the `vm-display-scale` watcher, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
+| `vm` | the `managedVMs` list in `.chezmoidata.toml` | passwordless sudo, Ghostty's software-GL shims, the `spice-vdagent` restart override, the `vm-display-scale` watcher, and keeping KeePassXC, Syncthing, and the Flathub apps off the machine |
 | `work` | the `workMachines` list in `.chezmoidata.toml` | the keys a machine registers with the personal GitHub account, and whether it installs Amp and deploys the Amp runner |
 | `desktop` | `gnome-shell` on `PATH` | the desktop set-up |
 | `devserver` | the `greenhouse` hostname | the dev-server set-up |
@@ -37,7 +37,7 @@ refused, and what an earlier apply left there stays.
 | Set-up | Selected by | Installs | Configures | Identity and services |
 | --- | --- | --- | --- | --- |
 | desktop | a managed host with `gnome-shell` on `PATH` | the Fedora base CLI set, then Ghostty, GNOME extension support, KeePassXC, Syncthing, `wl-clipboard`; Flathub Signal, Table Habit, Telegram and Zotero, plus Spotify on x86_64 | shell, Vim, tmux, Git with the LFS filter, agent instructions, Ghostty and its themes, topgrade, mise with zig, exercism and rust, GNOME Shell extensions, the Firefox homepage policy, unattended dnf updates, GNOME Software update downloads off, Syncthing autostart | passphrase-protected machine key registered on GitHub for signing; existing sudo policy; Amp runner |
-| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps (and Amp on a `work` machine) | the desktop configuration, with GNOME animations disabled and minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; `vm-display-scale` service; Amp runner, except on a `work` machine |
+| desktop, VM | `desktop` with `vm = true` | the desktop set minus KeePassXC, Syncthing, and the Flathub apps (and Amp on a `work` machine) | the desktop configuration, minus the Syncthing autostart entry | passphrase-less machine key registered on GitHub for signing, passwordless sudo; `vm-display-scale` service; Amp runner, except on a `work` machine |
 | devserver | the `greenhouse` hostname | the Ubuntu CLI set, `gh`, chezmoi, mise with zig, exercism and topgrade, opencode, the Amp CLI | shell, Vim, tmux, Git, agent instructions, the managed SSH configuration, topgrade and mise settings | passphrase-less machine key registered for signing only, no sudo grant, no password manager; Amp runner |
 | portable | a container, an Amp orb, a hostname outside `managedHosts`, or a host that is not Linux | nothing | `~/.vimrc` with its plug snapshot, `~/.bin/git-cleanup`, the agent instructions | none: no keys, no allowlist, no runner, no sudo, no packages |
 
@@ -177,12 +177,6 @@ download updates and stage offline updates for the next reboot,
 `run_onchange_gnome-software-updates.sh.tmpl` writes a system dconf default,
 `org.gnome.software download-updates = false`, into `/etc/dconf/db/local.d` and
 runs `dconf update`. The user's own explicit setting still wins.
-
-Desktop VMs run without hardware GPU acceleration (`virtio-gpu-pci`), so
-`run_onchange_gnome-animations.sh.tmpl` writes a system dconf default,
-`org.gnome.desktop.interface enable-animations = false`, into
-`/etc/dconf/db/local.d` and runs `dconf update`. The user's own explicit
-setting still wins.
 
 A VM guest whose host OpenGL stops below 4.3 cannot run Ghostty's default
 renderer: virgl exposes the host's ceiling, such as Apple's OpenGL 4.1, and
