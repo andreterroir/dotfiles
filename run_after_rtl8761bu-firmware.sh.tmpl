@@ -1,0 +1,89 @@
+{{ if .desktop -}}
+#!/usr/bin/env bash
+# vi: set ft=bash
+set -euo pipefail
+
+disabled="$HOME/.config/chezmoi/disable-rtl8761bu-firmware"
+[ ! -e "$disabled" ] || exit 0
+
+found=false
+for device in /sys/bus/usb/devices/*; do
+	if [ ! -f "$device/idVendor" ] || [ ! -f "$device/idProduct" ]; then
+		continue
+	fi
+	if [ "$(< "$device/idVendor")" = 2357 ] && [ "$(< "$device/idProduct")" = 0604 ]; then
+		found=true
+		break
+	fi
+done
+"$found" || exit 0
+
+dir=/usr/lib/firmware/updates/rtl_bt
+target="$dir/rtl8761bu_fw.bin.xz"
+firmware_hash=f48cf7124028206bb049740cd4cb0c63c5ad6315febec19f5cf248138b663a47
+custom_path="$(cat /sys/module/firmware_class/parameters/path 2>/dev/null || true)"
+release="$(uname -r)"
+for path in "$custom_path" "/lib/firmware/updates/$release" /lib/firmware/updates "/lib/firmware/$release" /lib/firmware; do
+	[ -n "$path" ] || continue
+	for suffix in '' .zst; do
+		file="$path/rtl_bt/rtl8761bu_fw.bin$suffix"
+		if [ -e "$file" ] || [ -L "$file" ]; then
+			echo "error: higher-priority firmware exists at $file; inspect it before installing the candidate" >&2
+			exit 1
+		fi
+	done
+done
+for path in "$custom_path" "/lib/firmware/updates/$release"; do
+	[ -n "$path" ] || continue
+	file="$path/rtl_bt/rtl8761bu_fw.bin.xz"
+	if [ -e "$file" ] || [ -L "$file" ]; then
+		[ "$file" -ef "$target" ] && continue
+		echo "error: higher-priority firmware exists at $file; inspect it before installing the candidate" >&2
+		exit 1
+	fi
+done
+if [ -e "$dir/rtl8761bu_fw.bin" ] || [ -L "$dir/rtl8761bu_fw.bin" ]; then
+	echo 'error: uncompressed RTL8761BU override already exists; inspect it before installing the candidate' >&2
+	exit 1
+fi
+if [ -e "$target" ] || [ -L "$target" ]; then
+	if [ -f "$target" ] && existing_hash="$(xz -dc -- "$target" | sha256sum)" && [ "${existing_hash%% *}" = "$firmware_hash" ]; then
+		exit 0
+	fi
+	echo 'error: a different RTL8761BU override already exists; leaving it untouched' >&2
+	exit 1
+fi
+
+tmp="$(mktemp -d)"
+staged=""
+cleanup() {
+	rm -rf "$tmp"
+	[ -z "$staged" ] || sudo rm -f -- "$staged"
+}
+trap cleanup EXIT
+curl --fail --location --show-error \
+	--output "$tmp/driver.zip" \
+	'https://static.tp-link.com/upload/driver/2025/202503/20250314/UB500_V3_Win10_Win11.zip'
+echo '66d218ef2a5dc0d0e6d8ab8f310409d7e72be8c84a1010054269d3cc66434c78  '"$tmp/driver.zip" | sha256sum --check
+unzip -p "$tmp/driver.zip" 'UB500V3/BT/plugins/Driver Files/Driver/Windows_11_64bit/rtl8761b_mp_chip_bt40_fw_asic_rom_patch_new.dat' > "$tmp/firmware"
+echo "$firmware_hash  $tmp/firmware" | sha256sum --check
+xz --check=crc32 --stdout "$tmp/firmware" > "$tmp/firmware.xz"
+
+sudo mkdir -p "$dir"
+staged="$(sudo mktemp "$dir/.rtl8761bu_fw.XXXXXXXX")"
+sudo install -o root -g root -m 0644 "$tmp/firmware.xz" "$staged"
+sudo ln -- "$staged" "$target"
+echo '>RTL8761BU candidate firmware installed; reloading btusb disconnects all Bluetooth devices'
+# Reload immediately to try the newly installed candidate as requested.
+if ! sudo modprobe -r btusb; then
+	[ ! "$target" -ef "$staged" ] || sudo rm -f -- "$target"
+	echo 'error: btusb unload failed; check the kernel journal before retrying apply' >&2
+	exit 1
+fi
+if ! sudo modprobe btusb; then
+	[ ! "$target" -ef "$staged" ] || sudo rm -f -- "$target"
+	echo 'error: btusb load failed; restore it with sudo modprobe btusb and check the kernel journal' >&2
+	exit 1
+fi
+echo '>btusb reloaded; check the kernel journal for firmware version 0xddd5c761'
+{{ end -}}

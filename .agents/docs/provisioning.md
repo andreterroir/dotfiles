@@ -159,6 +159,49 @@ configured Ghostty themes from a pinned upstream revision, because Terra's
 Ghostty package omits bundled themes. Fedora desktops skip Spotify on ARM,
 where its Flathub package is x86_64-only.
 
+### RTL8761BU Bluetooth firmware candidate
+
+On Fedora desktops, every apply checks for USB `2357:0604` (TP-Link UB500 V3)
+and, if present, installs a candidate RTL8761BU firmware override. Checking on
+every apply lets a later-connected adapter be detected; it does not watch for
+hotplug. The script downloads the official [TP-Link Windows driver archive](https://static.tp-link.com/upload/driver/2025/202503/20250314/UB500_V3_Win10_Win11.zip),
+checks the pinned archive and extracted firmware SHA-256 hashes, and compresses
+the firmware locally with XZ CRC32. The hashes identify observed bytes, not
+publisher signatures. The Windows driver is proprietary, its Linux support and
+redistribution terms are uncertain, and no firmware is stored in this repo.
+
+The override is `/usr/lib/firmware/updates/rtl_bt/rtl8761bu_fw.bin.xz`; the
+RPM-owned stock firmware and config remain untouched. The USB check gates
+installation, not firmware selection: this system-wide override also affects
+any other adapter requesting `rtl8761bu_fw.bin`, even after the TP-Link is
+removed. A different existing override or higher-priority firmware is not
+replaced. This is an experiment: on black the kernel reported
+`0xddd5c761` instead of `0xdfc6d922`, with no matching reconnect events for
+about 65 minutes, but that does not establish a fix. Other causes, including
+radio interference, remain possible.
+
+After installing the override, apply reloads `btusb` immediately to try the
+candidate. This disconnects **all** Bluetooth devices, so keep wired input or
+other access ready before applying. A later apply that finds the candidate
+already installed does not reload it again. If unloading or loading fails, the
+newly installed override is removed so a later apply can retry. If loading
+fails, restore the driver with `sudo modprobe btusb`. In either case, inspect
+the error and kernel journal before retrying.
+Check `journalctl -b -k | grep -iE 'bluetooth.*(rtl|firmware)'` for the actual
+loaded version, and test mouse stability. If the expected version is not
+loaded, check firmware lookup and whether the initramfs includes an older copy;
+do not assume the override was selected.
+
+To roll back and keep future applies from reinstalling the candidate, first
+create `~/.config/chezmoi/disable-rtl8761bu-firmware`, then inspect and remove
+only the candidate override with `sudo rm /usr/lib/firmware/updates/rtl_bt/rtl8761bu_fw.bin.xz`.
+Inspect affected initramfs images with `lsinitrd` for an embedded override; if
+present, rebuild those images with dracut after removing it, before rebooting.
+Reinitialize the adapter when safe and check the kernel log for the stock
+version. Remove the disable file and apply again to opt back in. If the adapter
+is absent or the profile changes, an earlier override is left in place; remove
+it explicitly if no longer wanted.
+
 Fedora ships `start.fedoraproject.org` as the homepage default that every
 Firefox update restores, so `run_onchange_firefox-homepage-policy.sh.tmpl`
 installs `about:home` as a system policy in `/etc/firefox/policies/policies.json`.
