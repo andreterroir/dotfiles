@@ -39,8 +39,10 @@ PY
 # carrying the muscle memory over.
 chords add "$mk" toggle-tiled-left '<Control><Super>h'
 chords add "$mk" toggle-tiled-right '<Control><Super>l'
-chords add "$wm" move-to-center '<Control><Super>j' '<Control><Super>m'
+chords add "$wm" move-to-center '<Control><Super>j'
+chords drop "$wm" move-to-center '<Control><Super>m'
 chords add "$wm" maximize '<Control><Super>k'
+chords add "$wm" maximize-vertically '<Control><Super>m'
 chords add "$wm" unmaximize '<Control><Super>u'
 
 # Cmd+M minimizes, so the message tray hands Super+M over and keeps Super+V.

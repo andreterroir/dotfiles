@@ -237,8 +237,9 @@ to Super, so the letter carries the muscle memory over. GNOME's own
 | --- | --- |
 | `Ctrl+Super+H` | left half; press again to untile |
 | `Ctrl+Super+L` | right half; press again to untile |
-| `Ctrl+Super+J`, `Ctrl+Super+M` | center, at the window's current size |
+| `Ctrl+Super+J` | center, at the window's current size |
 | `Ctrl+Super+K` | maximize |
+| `Ctrl+Super+M` | maximize vertically |
 | `Ctrl+Super+U` | restore a maximized or tiled window to its previous geometry |
 | `Super+M`, `Super+H` | minimize |
 | `Ctrl+Super+F` | toggle fullscreen |
